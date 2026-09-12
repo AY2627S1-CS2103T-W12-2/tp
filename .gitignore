@@ -3,6 +3,9 @@
 /build/
 src/main/resources/docs/
 
+# Node dependencies
+node_modules/
+
 # IDEA files
 /.idea/
 /out/
