@@ -1,5 +1,8 @@
-title: "AB-3"
+title: "LarperBoard"
 theme: minima
+
+url: "https://ay2627s1-cs2103t-w12-2.github.io"
+baseurl: "/tp"
 
 header_pages:
   - UserGuide.md
@@ -8,7 +11,8 @@ header_pages:
 
 markdown: kramdown
 
-repository: "se-edu/addressbook-level3"
+repository: "AY2627S1-CS2103T-W12-2/tp"
+
 github_icon: "images/github-icon.png"
 
 plugins:
