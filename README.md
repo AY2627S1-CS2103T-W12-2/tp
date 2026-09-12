@@ -1,3 +1,4 @@
+[![codecov](https://codecov.io/gh/AY2627S1-CS2103T-W12-2/tp/graph/badge.svg?token=69EYSQR3GS)](https://codecov.io/gh/AY2627S1-CS2103T-W12-2/tp)
 [![CI Status](https://github.com/se-edu/addressbook-level3/workflows/Java%20CI/badge.svg)](https://github.com/se-edu/addressbook-level3/actions)
 
 ![Ui](docs/images/Ui.png)
