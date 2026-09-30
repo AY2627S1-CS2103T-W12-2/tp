@@ -261,29 +261,53 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
+* attends many hackathons and meets 15 to 30 new people (teammates, mentors, recruiters, fellow participants) at each one
+* keeps a laptop open throughout the event, while their phone stays in a pocket or bag
+* wants to record a contact in a few seconds without breaking the flow of a conversation
+* needs to remember *who* each person is, not just their name (e.g. what they are building, what they are good at)
+* plans to follow up with some of these people after the event
+* can type fast and is comfortable with CLI commands (e.g. a computer science student)
 * prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: LarperBoard lets hackathon participants capture a new contact and the detail that will jog their memory later using one short typed command, on the laptop that is already open. Contacts are grouped by hackathon and team, can be searched by the notes written about them, and can be exported for follow-up. This is faster than saving contacts on a phone, and more useful afterwards than a generic address book, which records who someone is but not how or where they were met.
 
 
 ### User stories
 
-Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
+Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …​ | I want to …​ | So that I can…​ |
+| -------- | ------ | ---------- | ------------- |
+| Must-have | user | add a contact | add people quickly |
+| Must-have | user | delete unnecessary people | remove people who are no longer relevant to me |
+| Nice-to-have | user | edit people's information | correct a mistake without having to delete and re-add the contact |
+| Nice-to-have | user | undo my last destructive CLI action | avoid losing important contact information because of a fast typo |
+| Nice-to-have | hackathon participant | clear all data or reset my board | start fresh for a brand new hackathon event |
+| Nice-to-have | user | group people together | organize everyone I met at a specific track or workshop |
+| Unlikely-to-have | forgetful participant | search contacts using partial text or fuzzy matching | find a person even if I only remember part of their name or handle |
+| Nice-to-have | user | sort people by category | easily find people using keywords |
+| Unlikely-to-have | power user | filter contacts | execute complex queries on my network |
+| Must-have | hackathon participant | attach project tags or stack keywords | remember what tech stack or project a participant is cracked at |
+| Nice-to-have | forgetful participant | add rapid freeform notes (e.g., "Met at booth 4") | remember the context when following up after the event |
+| Nice-to-have | organizer/scout | mark high-priority contacts with a "starred"/"cracked" flag | easily filter and focus on standout individuals |
+| Nice-to-have | hackathon participant | attach the hackathon name/date as a tag (auto or manual) | look back and remember which event I met each person at |
+| Nice-to-have | hackathon participant | tag a contact with their hackathon role (Frontend, Pitcher, Designer) | easily assemble balanced teams for future hackathons |
+| Nice-to-have | user | view a list of all saved contacts sorted by recency | quickly recall the last few people I spoke with |
+| Must-have | user | display a detailed view of a single contact card | read all notes, links, and tags in one clean view |
+| Nice-to-have | user | view images | remember the projects people have created |
+| Nice-to-have | CLI user | view contact summaries in a clean, formatted ASCII table | browse my address book without messy text wrapping |
+| Nice-to-have | visual learner | distinguish categories with colour codes | visually scan and distinguish categories at a glance |
+| Nice-to-have | user | run a stats/summary command (counts by tech stack or event) | get a high-level snapshot of my networking efforts |
+| Nice-to-have | power user | have fast keyboard navigation | navigate and manipulate data at maximum keyboard speed |
+| Nice-to-have | user | set up CLI auto-completion for commands and contact names | run commands faster with Tab completion |
+| Nice-to-have | first-time user | run a help/tutorial command with interactive examples | learn key commands within 30 seconds of installing the app |
+| Nice-to-have | hackathon participant | save social profiles (GitHub, LinkedIn, X, Telegram) under dedicated flags | have direct links to reach out to a person on their preferred platform |
+| Nice-to-have | user | copy a contact's email/social handle to the clipboard from the CLI | quickly paste it into a browser or messaging app |
+| Nice-to-have | hackathon participant | import contact details via a short encoded CLI string or QR token | exchange contact information instantly without manual typing |
+| Nice-to-have | power user | export my contact list to JSON, CSV, or Markdown | import it into my personal CRM, Notion, or address book |
+| Must-have | offline user | have all data stored locally | use the app without an internet connection at crowded venues |
+| Nice-to-have | hackathon participant | archive or hide contacts I don't need anymore | avoid being distracted by people I no longer need to see in my active list |
+| Nice-to-have | hackathon participant | be flagged when I try to add someone who is already in my list | avoid accidentally creating two separate entries for the same person met at different events |
 
 ### Use cases
 
