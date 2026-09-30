@@ -287,26 +287,25 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is the `LarperBoard` and the **Actor** is the `user`, unless specified otherwise)
 
 **Use case: Add a person**
 
 **MSS**
 
-1. User inputs command to add a person and provides the contact details.
-2. AddressBook validates the input.
-3. AddressBook adds the person.
-4. AddressBook displays a confirmation message.
+1. User requests to add a person and provides the contact details.
+2. LarperBoard adds the person.
+3. LarperBoard displays a confirmation message.
 
    Use case ends.
 
 **Extensions**
 
 - 1a. The user omits a required field or enters an invalid value.
-  - 1a1. AddressBook displays an error message.
+  - 1a1. LarperBoard displays an error message.
   - 1a2. Use case resumes at step 1.
-- 3a. The person already exists in the address book.
-  - 3a1. AddressBook displays a duplicate-person error message.
+- 2a. The person already exists in the address book.
+  - 2a1. LarperBoard displays a duplicate-person error message.
 
     Use case ends.
 
@@ -315,11 +314,10 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 **MSS**
 
 1. User requests to list persons.
-2. AddressBook shows a list of persons.
-3. User enters a command to add tags to the selected person.
-4. AddressBook validates the tags or keywords.
-5. AddressBook replaces the selected person's existing tags with the supplied tags.
-6. AddressBook displays the updated person details.
+2. LarperBoard shows a list of persons.
+3. User requests to update the selected person's project tags or stack keywords.
+4. LarperBoard replaces the selected person's existing tags with the supplied tags.
+5. LarperBoard displays the updated person details.
 
    Use case ends.
 
@@ -329,29 +327,150 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
   Use case ends.
 
-- 3a. The given person index is invalid.
-  - 3a1. AddressBook shows an error message.
+- 3a. The selected person cannot be identified.
+  - 3a1. LarperBoard shows an error message.
 
     Use case resumes at step 2.
 
 - 3b. The user does not provide any tags or keywords.
-  - 3b1. AddressBook shows an error message.
+  - 3b1. LarperBoard shows an error message.
 
     Use case resumes at step 3.
 
 - 4a. One or more tags or keywords contain invalid characters.
-  - 4a1. AddressBook shows an error message.
+  - 4a1. LarperBoard shows an error message.
 
     Use case resumes at step 3.
+
+**Use case: Find a person by name**
+
+**MSS**
+
+1. User requests to find persons using one or more name keywords.
+2. LarperBoard searches for persons whose names contain at least one of the keywords, ignoring letter case.
+3. LarperBoard displays the matching persons.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user does not provide any name keywords.
+  * 1a1. LarperBoard displays an error message.
+
+    Use case resumes at step 1.
+
+* 2a. No persons match the provided keywords.
+  * 2a1. LarperBoard informs the user that no matching persons were found.
+
+    Use case ends.
+
+**Use case: Edit a person's details**
+
+**MSS**
+
+1. User requests to edit a person.
+2. User provides one or more replacement details for the person.
+3. LarperBoard updates the specified details and retains the unspecified details.
+4. LarperBoard displays the updated person details.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The selected person cannot be identified.
+  * 1a1. LarperBoard displays an error message.
+
+    Use case resumes at step 1.
+
+* 2a. The user does not provide any details to edit.
+  * 2a1. LarperBoard displays an error message.
+
+    Use case resumes at step 2.
+
+* 2b. One or more replacement details are invalid.
+  * 2b1. LarperBoard displays an error message.
+
+    Use case resumes at step 2.
+
+* 3a. The edited person would duplicate another person in the address book.
+  * 3a1. LarperBoard displays a duplicate-person error message.
+
+    Use case ends.
+
+**Use case: List all persons**
+
+**MSS**
+
+1. User requests to list all persons.
+2. LarperBoard displays all persons and their contact details.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The address book contains no persons.
+  * 2a1. LarperBoard displays an empty list.
+
+    Use case ends.
+
+**Use case: View usage instructions**
+
+**MSS**
+
+1. User requests usage instructions.
+2. LarperBoard displays instructions for the available commands.
+
+   Use case ends.
+
+**Use case: Clear all persons**
+
+**MSS**
+
+1. User requests to clear the address book.
+2. LarperBoard removes all persons from the address book.
+3. LarperBoard displays a confirmation message.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The address book contains no persons.
+  * 2a1. LarperBoard displays the confirmation message.
+
+    Use case ends.
+
+**Use case: Load saved contacts on application startup**
+
+**MSS**
+
+1. User launches the application.
+2. LarperBoard loads the saved persons from the data file.
+3. LarperBoard displays the loaded persons.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. No saved address book exists.
+  * 2a1. LarperBoard initializes a new address book with the default sample persons.
+  * 2a2. LarperBoard displays the sample persons.
+
+    Use case ends.
+
+* 2b. The saved address book cannot be loaded because the data is corrupted or invalid.
+  * 2b1. LarperBoard starts with an empty address book.
+  * 2b2. LarperBoard displays the empty address book.
+
+    Use case ends.
 
 **Use case: Delete a person**
 
 **MSS**
 
 1.  User requests to list persons
-2.  AddressBook shows a list of persons
+2.  LarperBoard shows a list of persons
 3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+4.  LarperBoard deletes the person
 
     Use case ends.
 
@@ -363,7 +482,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 3a. The given index is invalid.
 
-    * 3a1. AddressBook shows an error message.
+    * 3a1. LarperBoard shows an error message.
 
       Use case resumes at step 2.
 
