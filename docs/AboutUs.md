@@ -47,12 +47,11 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 * Role: Developer
 * Responsibilities: Dev Ops + Threading
 
-### James Doe
+### Cysiac
 
-<img src="images/johndoe.png" width="200px">
+<img src="images/cysiac.png" width="200px">
 
-[[github](http://github.com/johndoe)]
-[[portfolio](team/johndoe.md)]
+[[github](http://github.com/cysiac)]
 
-* Role: Developer
-* Responsibilities: UI
+* Role: Developer / Claude Expert
+* Responsibilities: Develop Features + Educate the rest on usage of Claude
