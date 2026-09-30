@@ -289,6 +289,68 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 (For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
 
+**Use case: Add a person**
+
+**MSS**
+
+1. User inputs command to add person and adds details about contact
+2. AddressBook validates the input.
+3. AddressBook adds the person.
+4. AddressBook displays a confirmation message.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user omits a required field or enters an invalid value.
+
+    * 1a1. AddressBook displays an error message.
+    * 1a2. Use case resumes at step 1.
+
+* 3a. The person already exists in the address book.
+
+    * 3a1. AddressBook displays a duplicate-person error message.
+
+      Use case ends.
+
+**Use case: Add project tags or stack keywords to a person**
+
+**MSS**
+
+1. User requests to list persons.
+2. AddressBook shows a list of persons.
+3. User inputs command to add tags to selected person with desired project tags or stack keywords.
+4. AddressBook validates the tags or keywords.
+5. AddressBook replaces the selected person's existing tags with the supplied tags.
+6. AddressBook displays the updated person details.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+
+    Use case ends.
+
+* 3a. The given person index is invalid.
+
+    * 3a1. AddressBook shows an error message.
+
+      Use case resumes at step 2.
+
+* 3b. The user does not provide any tags or keywords.
+
+    * 3b1. AddressBook shows an error message.
+
+      Use case resumes at step 3.
+
+* 4a. One or more tags or keywords contain invalid characters.
+
+    * 4a1. AddressBook shows an error message.
+
+      Use case resumes at step 3.
+
+
 **Use case: Delete a person**
 
 **MSS**
