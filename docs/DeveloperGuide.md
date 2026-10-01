@@ -517,11 +517,25 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
 ### Non-Functional Requirements
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
-
-*{More to be added}*
+1. **Environment**: Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
+2. **Environment**: Should work without an installer, and should be packaged as a single JAR file no larger than 100 MB.
+3. **Performance**: Should respond to any command within 1 second while holding up to 1000 contacts.
+4. **Performance**: Should be ready to accept commands within 3 seconds of launch while holding up to 1000 contacts.
+5. **Capacity**: Should be able to hold up to 1000 contacts, which is more than 30 hackathons' worth at 30 new contacts per event, without noticeable sluggishness in performance for typical usage.
+6. **Usability**: A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+7. **Usability**: All features should be usable with the keyboard alone, so that the user does not need to reach for the mouse in the middle of a conversation.
+8. **Usability**: A new contact should be recordable with a single command, without the user having to respond to follow-up prompts.
+9. **Usability**: When a command is rejected, the error message should state what was wrong and show the correct command format.
+10. **Offline use**: Should not require an internet connection for any feature.
+11. **Privacy**: Should store contact data only on the user's computer, and should not send it to any remote server.
+12. **Data**: Should save changes automatically after every command that modifies data, without requiring a separate save command.
+13. **Data**: The _data file_ should be a human-editable text file, so that advanced users can view and edit their contacts without using LarperBoard.
+14. **Reliability**: A missing or corrupted _data file_ should not cause LarperBoard to crash or fail to start.
+15. **Display**: Should be usable at screen resolutions of 1280x720 and higher, at screen scales of 100% and 125%.
+16. **Scope**: Should be designed for a single user, and is not expected to support multiple users sharing one _data file_.
+17. **Scope**: Should not depend on a database management system or on a remote server.
+18. **Maintainability**: The code should follow the project's Java coding standard, as enforced by Checkstyle in the build.
+19. **Maintainability**: New features should fit into the existing `UI`, `Logic`, `Model` and `Storage` components without changing how the components depend on one another.
 
 ### Glossary
 
