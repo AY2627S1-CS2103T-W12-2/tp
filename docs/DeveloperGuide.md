@@ -261,42 +261,240 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
+* attends many hackathons and meets 15 to 30 new people (teammates, mentors, recruiters, fellow participants) at each one
+* keeps a laptop open throughout the event, while their phone stays in a pocket or bag
+* wants to record a contact in a few seconds without breaking the flow of a conversation
+* needs to remember *who* each person is, not just their name (e.g. what they are building, what they are good at)
+* plans to follow up with some of these people after the event
+* can type fast and is comfortable with CLI commands (e.g. a computer science student)
 * prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
+**Value proposition**: LarperBoard lets hackathon participants capture a new contact and the detail that will jog their memory later using one short typed command, on the laptop that is already open. Contacts are grouped by hackathon and team, can be searched by the notes written about them, and can be exported for follow-up. This is faster than saving contacts on a phone, and more useful afterwards than a generic address book, which records who someone is but not how or where they were met.
 
 
 ### User stories
 
-Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
+Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …​ | I want to …​ | So that I can…​ |
+| -------- | ------ | ---------- | ------------- |
+| Must-have | user | add a contact | add people quickly |
+| Must-have | user | delete unnecessary people | remove people who are no longer relevant to me |
+| Nice-to-have | user | edit people's information | correct a mistake without having to delete and re-add the contact |
+| Nice-to-have | user | undo my last destructive CLI action | avoid losing important contact information because of a fast typo |
+| Nice-to-have | hackathon participant | clear all data or reset my board | start fresh for a brand new hackathon event |
+| Nice-to-have | user | group people together | organize everyone I met at a specific track or workshop |
+| Unlikely-to-have | forgetful participant | search contacts using partial text or fuzzy matching | find a person even if I only remember part of their name or handle |
+| Nice-to-have | user | sort people by keywords | easily find people using keywords |
+| Unlikely-to-have | power user | filter contacts | execute complex queries on my network |
+| Must-have | hackathon participant | attach project tags or stack keywords | remember what tech stack or project a participant is cracked at |
+| Nice-to-have | forgetful participant | add rapid freeform notes (e.g., "Met at booth 4") | remember the context when following up after the event |
+| Nice-to-have | hackathon participant | mark high-priority contacts with a "starred" flag | easily filter and focus on standout individuals |
+| Nice-to-have | hackathon participant | attach the hackathon name/date as a tag (auto or manual) | look back and remember which event I met each person at |
+| Nice-to-have | hackathon participant | tag a contact with their hackathon role (Frontend, Pitcher, Designer) | easily assemble balanced teams for future hackathons |
+| Nice-to-have | user | view a list of all saved contacts sorted by recency | quickly recall the last few people I spoke with |
+| Must-have | user | display a detailed view of a single contact card | read all notes, links, and tags in one clean view |
+| Nice-to-have | user | view images | remember the projects people have created |
+| Nice-to-have | CLI user | view contact summaries in a clean, formatted ASCII table | browse my address book without messy text wrapping |
+| Nice-to-have | visual learner | distinguish categories with colour codes | visually scan and distinguish categories at a glance |
+| Nice-to-have | user | run a stats/summary command (counts by tech stack or event) | get a high-level snapshot of my networking efforts |
+| Nice-to-have | power user | have fast keyboard navigation | navigate and manipulate data at maximum keyboard speed |
+| Nice-to-have | user | set up CLI auto-completion for commands and contact names | run commands faster with Tab completion |
+| Nice-to-have | first-time user | run a help/tutorial command with interactive examples | learn key commands within 30 seconds of installing the app |
+| Nice-to-have | hackathon participant | save social profiles (GitHub, LinkedIn, X, Telegram) under dedicated flags | have direct links to reach out to a person on their preferred platform |
+| Nice-to-have | user | copy a contact's email/social handle to the clipboard from the CLI | quickly paste it into a browser or messaging app |
+| Nice-to-have | hackathon participant | import contact details via a short encoded CLI string or QR token | exchange contact information instantly without manual typing |
+| Nice-to-have | power user | export my contact list to JSON, CSV, or Markdown | import it into my personal CRM, Notion, or address book |
+| Must-have | offline user | have all data stored locally | use the app without an internet connection at crowded venues |
+| Nice-to-have | hackathon participant | archive or hide contacts I don't need anymore | avoid being distracted by people I no longer need to see in my active list |
+| Nice-to-have | hackathon participant | be flagged when I try to add someone who is already in my list | avoid accidentally creating two separate entries for the same person met at different events |
 
 ### Use cases
 
-(For all use cases below, the **System** is `Larperboard` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is the `LarperBoard` and the **Actor** is the `user`, unless specified otherwise)
 
-**Use case: UC01 - Delete a person**
+**Use case: Add a person**
 
 **MSS**
 
-1.  User requests to list persons
-2.  Larperboard shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  Larperboard deletes the person
+1. User requests to add a person and provides the contact details.
+2. LarperBoard adds the person.
+3. LarperBoard displays a confirmation message.
+
+   Use case ends.
+
+**Extensions**
+
+- 1a. The user omits a required field or enters an invalid value.
+  - 1a1. LarperBoard displays an error message.
+  - 1a2. Use case resumes at step 1.
+- 2a. The person already exists in the address book.
+  - 2a1. LarperBoard displays a duplicate-person error message.
+
+    Use case ends.
+
+**Use case: Add project tags or stack keywords to a person**
+
+**MSS**
+
+1. User requests to list persons.
+2. LarperBoard shows a list of persons.
+3. User requests to update the selected person's project tags or stack keywords.
+4. LarperBoard replaces the selected person's existing tags with the supplied tags.
+5. LarperBoard displays the updated person details.
+
+   Use case ends.
+
+**Extensions**
+
+- 2a. The list is empty.
+
+  Use case ends.
+
+- 3a. The selected person cannot be identified.
+  - 3a1. LarperBoard shows an error message.
+
+    Use case resumes at step 2.
+
+- 3b. The user does not provide any tags or keywords.
+  - 3b1. LarperBoard shows an error message.
+
+    Use case resumes at step 3.
+
+- 4a. One or more tags or keywords contain invalid characters.
+  - 4a1. LarperBoard shows an error message.
+
+    Use case resumes at step 3.
+
+**Use case: Find a person by name**
+
+**MSS**
+
+1. User requests to find persons using one or more name keywords.
+2. LarperBoard searches for persons whose names contain at least one of the keywords, ignoring letter case.
+3. LarperBoard displays the matching persons.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user does not provide any name keywords.
+  * 1a1. LarperBoard displays an error message.
+
+    Use case resumes at step 1.
+
+* 2a. No persons match the provided keywords.
+  * 2a1. LarperBoard informs the user that no matching persons were found.
+
+    Use case ends.
+
+**Use case: Edit a person's details**
+
+**MSS**
+
+1. User requests to edit a person.
+2. User provides one or more replacement details for the person.
+3. LarperBoard updates the specified details and retains the unspecified details.
+4. LarperBoard displays the updated person details.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The selected person cannot be identified.
+  * 1a1. LarperBoard displays an error message.
+
+    Use case resumes at step 1.
+
+* 2a. The user does not provide any details to edit.
+  * 2a1. LarperBoard displays an error message.
+
+    Use case resumes at step 2.
+
+* 2b. One or more replacement details are invalid.
+  * 2b1. LarperBoard displays an error message.
+
+    Use case resumes at step 2.
+
+* 3a. The edited person would duplicate another person in the address book.
+  * 3a1. LarperBoard displays a duplicate-person error message.
+
+    Use case ends.
+
+**Use case: List all persons**
+
+**MSS**
+
+1. User requests to list all persons.
+2. LarperBoard displays all persons and their contact details.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The address book contains no persons.
+  * 2a1. LarperBoard displays an empty list.
+
+    Use case ends.
+
+**Use case: View usage instructions**
+
+**MSS**
+
+1. User requests usage instructions.
+2. LarperBoard displays instructions for the available commands.
+
+   Use case ends.
+
+**Use case: Clear all persons**
+
+**MSS**
+
+1. User requests to clear the address book.
+2. LarperBoard removes all persons from the address book.
+3. LarperBoard displays a confirmation message.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The address book contains no persons.
+  * 2a1. LarperBoard displays the confirmation message.
+
+    Use case ends.
+
+**Use case: Load saved contacts on application startup**
+
+**MSS**
+
+1. User launches the application.
+2. LarperBoard loads the saved persons from the data file.
+3. LarperBoard displays the loaded persons.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. No saved address book exists.
+  * 2a1. LarperBoard initializes a new address book with the default sample persons.
+  * 2a2. LarperBoard displays the sample persons.
+
+    Use case ends.
+
+* 2b. The saved address book cannot be loaded because the data is corrupted or invalid.
+  * 2b1. LarperBoard starts with an empty address book.
+  * 2b2. LarperBoard displays the empty address book.
+
+    Use case ends.
+
+**Use case: Delete a person**
+
+**MSS**
+
+1.  User requests to list persons.
+2.  LarperBoard shows a list of persons.
+3.  User requests to delete a specific person in the list.
+4.  LarperBoard deletes the person.
 
     Use case ends.
 
@@ -306,85 +504,54 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The given index is invalid (e.g., non-numeric, 0, negative, or exceeds list size).
 
-    * 3a1. Larperboard shows an error message.
+    * 3a1. LarperBoard shows an invalid index error message.
 
       Use case resumes at step 2.
 
-**Use case: UC02 - Tag a contact with skill/role keywords (Advanced)**
+* 3b. Extraneous parameters are provided.
+
+    * 3b1. LarperBoard shows an invalid command format message.
+
+      Use case resumes at step 2.
+
+**Use case: Display detailed view of a single contact card (Secondary / Advanced)**
 
 **MSS**
 
-1.  User requests to list contacts.
-2.  Larperboard shows a list of contacts with their respective index numbers.
-3.  User requests to tag a specific contact by specifying the index and one or more tag keywords.
-4.  Larperboard adds the tags to the specified contact (preserving existing tags), assigns corresponding category colour codes (e.g., technical skills, roles, domains), and displays the updated contact details.
+1.  User requests to list persons.
+2.  LarperBoard shows a list of persons.
+3.  User requests to view the full details of a specific person by index.
+4.  LarperBoard opens and updates the detailed view panel showing all stored attributes (full name, phone, email, LinkedIn handle, and categorised tag chips with colour codes) of the selected person.
 
     Use case ends.
 
 **Extensions**
 
 * 2a. The list is empty.
-    * 2a1. Larperboard displays a message indicating that the list is empty.
 
-      Use case ends.
-
-* 3a. The given index is invalid (e.g., 0, negative, non-numeric, or exceeds the displayed list size).
-    * 3a1. Larperboard displays an invalid index error message.
-
-      Use case resumes at step 2.
-
-* 3b. No tag parameter (`t/TAG`) is provided.
-    * 3b1. Larperboard displays an invalid command format message detailing the correct syntax.
-
-      Use case resumes at step 2.
-
-* 3c. A tag violates validation rules (e.g., exceeds 20 characters, contains spaces, or uses illegal symbols).
-    * 3c1. Larperboard displays an invalid tag error message without modifying the contact.
-
-      Use case resumes at step 2.
-
-* 3d. User inputs duplicate tags for the contact (case-insensitive).
-    * 3d1. Larperboard merges the duplicates into a single lowercase tag and proceeds with step 4.
-
-* 3e. The given index causes integer overflow.
-    * 3e1. Larperboard displays a message stating the provided index is too large.
-
-      Use case resumes at step 2.
-
-**Use case: UC03 - Display detailed view of a single contact card (Secondary)**
-
-**MSS**
-
-1.  User requests to list contacts.
-2.  Larperboard shows a list of contacts.
-3.  User requests to view the full details of a specific contact by index.
-4.  Larperboard opens and updates the detailed view panel showing all stored attributes (full name, phone, email, LinkedIn handle, and categorised tag chips) of the selected contact.
+  * 2a1. LarperBoard displays a message indicating that the list is empty.
 
     Use case ends.
-
-**Extensions**
-
-* 2a. The list is empty.
-    * 2a1. Larperboard displays a message indicating that the list is empty.
-
-      Use case ends.
 
 * 3a. The given index is invalid (e.g., out of range, negative, or non-numeric).
-    * 3a1. Larperboard displays an invalid index error message.
 
-      Use case resumes at step 2.
+  * 3a1. LarperBoard displays an invalid index error message.
+
+    Use case resumes at step 2.
 
 * 3b. Extraneous parameters are provided (e.g., multiple indices or unexpected prefixes).
-    * 3b1. Larperboard displays an invalid command format message.
 
-      Use case resumes at step 2.
+  * 3b1. LarperBoard displays an invalid command format message.
+
+    Use case resumes at step 2.
 
 * 3c. The given index causes integer overflow.
-    * 3c1. Larperboard displays a message stating the provided index is too large.
 
-      Use case resumes at step 2.
+  * 3c1. LarperBoard displays a message stating the provided index is too large.
+
+    Use case resumes at step 2.
 
 *{More to be added}*
 
