@@ -261,15 +261,18 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* attends many hackathons and meets 15 to 30 new people (teammates, mentors, recruiters, fellow participants) at each one
-* keeps a laptop open throughout the event, while their phone stays in a pocket or bag
+* is a university student who attends many hackathons, both to build projects and to meet people
+* meets 15 to 30 new people (teammates, mentors, recruiters, fellow participants) at each hackathon
+* keeps a laptop open throughout the event, while their phone stays in a pocket or on a table
+* finds taking out a phone to save a contact too much effort in the middle of an event, so often does not save the contact at all
 * wants to record a contact in a few seconds without breaking the flow of a conversation
-* needs to remember *who* each person is, not just their name (e.g. what they are building, what they are good at)
-* plans to follow up with some of these people after the event
+* needs to remember *who* each person is, not just their name (e.g. what they are building, what they are good at), as they struggle to recall many of these people a week later
+* plans to follow up with some of these people after the event (e.g. to form a team, ask for advice or apply for a role)
+* may have an unreliable internet connection at crowded venues
 * can type fast and is comfortable with CLI commands (e.g. a computer science student)
 * prefers desktop apps over other types of applications
 
-**Value proposition**: LarperBoard lets hackathon participants capture a new contact and the detail that will jog their memory later using one short typed command, on the laptop that is already open. Contacts are grouped by hackathon and team, can be searched by the notes written about them, and can be exported for follow-up. This is faster than saving contacts on a phone, and more useful afterwards than a generic address book, which records who someone is but not how or where they were met.
+**Value proposition**: LarperBoard helps hackathon participants build a network that they can still use after the event. Using one short typed command on the laptop that is already open, the user records a new contact together with the detail that will jog their memory later, such as what the person is building, their tech stack and where they were met. Contacts can be grouped by hackathon and team, searched by these details, and exported for follow-up. This is faster than saving contacts on a phone in the middle of an event, and more useful afterwards than a generic address book, which records who someone is but not how or where they were met. All data is stored locally, so LarperBoard works without an internet connection.
 
 
 ### User stories
