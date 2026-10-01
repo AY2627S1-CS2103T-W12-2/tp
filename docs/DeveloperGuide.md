@@ -285,11 +285,11 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 | Nice-to-have | hackathon participant | clear all data or reset my board | start fresh for a brand new hackathon event |
 | Nice-to-have | user | group people together | organize everyone I met at a specific track or workshop |
 | Unlikely-to-have | forgetful participant | search contacts using partial text or fuzzy matching | find a person even if I only remember part of their name or handle |
-| Nice-to-have | user | sort people by category | easily find people using keywords |
+| Nice-to-have | user | sort people by keywords | easily find people using keywords |
 | Unlikely-to-have | power user | filter contacts | execute complex queries on my network |
 | Must-have | hackathon participant | attach project tags or stack keywords | remember what tech stack or project a participant is cracked at |
 | Nice-to-have | forgetful participant | add rapid freeform notes (e.g., "Met at booth 4") | remember the context when following up after the event |
-| Nice-to-have | organizer/scout | mark high-priority contacts with a "starred"/"cracked" flag | easily filter and focus on standout individuals |
+| Nice-to-have | hackathon participant | mark high-priority contacts with a "starred" flag | easily filter and focus on standout individuals |
 | Nice-to-have | hackathon participant | attach the hackathon name/date as a tag (auto or manual) | look back and remember which event I met each person at |
 | Nice-to-have | hackathon participant | tag a contact with their hackathon role (Frontend, Pitcher, Designer) | easily assemble balanced teams for future hackathons |
 | Nice-to-have | user | view a list of all saved contacts sorted by recency | quickly recall the last few people I spoke with |
