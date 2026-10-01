@@ -516,7 +516,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
       Use case resumes at step 2.
 
-**Use case: Display detailed view of a single contact card (Secondary / Advanced)**
+**Use case: Display detailed view of a single contact card (Advanced)**
 
 **MSS**
 
