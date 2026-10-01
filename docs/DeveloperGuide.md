@@ -494,10 +494,10 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
 **MSS**
 
-1.  User requests to list persons
-2.  LarperBoard shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  LarperBoard deletes the person
+1.  User requests to list persons.
+2.  LarperBoard shows a list of persons.
+3.  User requests to delete a specific person in the list.
+4.  LarperBoard deletes the person.
 
     Use case ends.
 
@@ -507,11 +507,54 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The given index is invalid (e.g., non-numeric, 0, negative, or exceeds list size).
 
-    * 3a1. LarperBoard shows an error message.
+    * 3a1. LarperBoard shows an invalid index error message.
 
       Use case resumes at step 2.
+
+* 3b. Extraneous parameters are provided.
+
+    * 3b1. LarperBoard shows an invalid command format message.
+
+      Use case resumes at step 2.
+
+**Use case: Display detailed view of a single contact card (Advanced)**
+
+**MSS**
+
+1.  User requests to list persons.
+2.  LarperBoard shows a list of persons.
+3.  User requests to view the full details of a specific person by index.
+4.  LarperBoard opens and updates the detailed view panel showing all stored attributes (full name, phone, email, LinkedIn handle, and categorised tag chips with colour codes) of the selected person.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+
+  * 2a1. LarperBoard displays a message indicating that the list is empty.
+
+    Use case ends.
+
+* 3a. The given index is invalid (e.g., out of range, negative, or non-numeric).
+
+  * 3a1. LarperBoard displays an invalid index error message.
+
+    Use case resumes at step 2.
+
+* 3b. Extraneous parameters are provided (e.g., multiple indices or unexpected prefixes).
+
+  * 3b1. LarperBoard displays an invalid command format message.
+
+    Use case resumes at step 2.
+
+* 3c. The given index causes integer overflow.
+
+  * 3c1. LarperBoard displays a message stating the provided index is too large.
+
+    Use case resumes at step 2.
 
 *{More to be added}*
 
