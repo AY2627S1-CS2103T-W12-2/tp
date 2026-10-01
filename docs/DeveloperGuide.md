@@ -287,16 +287,16 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is `Larperboard` and the **Actor** is the `user`, unless specified otherwise)
 
-**Use case: Delete a person**
+**Use case: UC01 - Delete a person**
 
 **MSS**
 
 1.  User requests to list persons
-2.  AddressBook shows a list of persons
+2.  Larperboard shows a list of persons
 3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+4.  Larperboard deletes the person
 
     Use case ends.
 
@@ -308,7 +308,81 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 * 3a. The given index is invalid.
 
-    * 3a1. AddressBook shows an error message.
+    * 3a1. Larperboard shows an error message.
+
+      Use case resumes at step 2.
+
+**Use case: UC02 - Tag a contact with skill/role keywords (Advanced)**
+
+**MSS**
+
+1.  User requests to list contacts.
+2.  Larperboard shows a list of contacts with their respective index numbers.
+3.  User requests to tag a specific contact by specifying the index and one or more tag keywords.
+4.  Larperboard adds the tags to the specified contact (preserving existing tags), assigns corresponding category colour codes (e.g., technical skills, roles, domains), and displays the updated contact details.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+    * 2a1. Larperboard displays a message indicating that the list is empty.
+
+      Use case ends.
+
+* 3a. The given index is invalid (e.g., 0, negative, non-numeric, or exceeds the displayed list size).
+    * 3a1. Larperboard displays an invalid index error message.
+
+      Use case resumes at step 2.
+
+* 3b. No tag parameter (`t/TAG`) is provided.
+    * 3b1. Larperboard displays an invalid command format message detailing the correct syntax.
+
+      Use case resumes at step 2.
+
+* 3c. A tag violates validation rules (e.g., exceeds 20 characters, contains spaces, or uses illegal symbols).
+    * 3c1. Larperboard displays an invalid tag error message without modifying the contact.
+
+      Use case resumes at step 2.
+
+* 3d. User inputs duplicate tags for the contact (case-insensitive).
+    * 3d1. Larperboard merges the duplicates into a single lowercase tag and proceeds with step 4.
+
+* 3e. The given index causes integer overflow.
+    * 3e1. Larperboard displays a message stating the provided index is too large.
+
+      Use case resumes at step 2.
+
+**Use case: UC03 - Display detailed view of a single contact card (Secondary)**
+
+**MSS**
+
+1.  User requests to list contacts.
+2.  Larperboard shows a list of contacts.
+3.  User requests to view the full details of a specific contact by index.
+4.  Larperboard opens and updates the detailed view panel showing all stored attributes (full name, phone, email, LinkedIn handle, and categorised tag chips) of the selected contact.
+
+    Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+    * 2a1. Larperboard displays a message indicating that the list is empty.
+
+      Use case ends.
+
+* 3a. The given index is invalid (e.g., out of range, negative, or non-numeric).
+    * 3a1. Larperboard displays an invalid index error message.
+
+      Use case resumes at step 2.
+
+* 3b. Extraneous parameters are provided (e.g., multiple indices or unexpected prefixes).
+    * 3b1. Larperboard displays an invalid command format message.
+
+      Use case resumes at step 2.
+
+* 3c. The given index causes integer overflow.
+    * 3c1. Larperboard displays a message stating the provided index is too large.
 
       Use case resumes at step 2.
 
