@@ -111,14 +111,15 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 <img src="images/ParserClasses.png" width="600"/>
 
 How the parsing works:
+
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
+
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="450" />
-
 
 The `Model` component,
 
@@ -133,7 +134,6 @@ The `Model` component,
 
 </div>
 
-
 ### Storage component
 
 **API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
@@ -141,6 +141,7 @@ The `Model` component,
 <img src="images/StorageClassDiagram.png" width="550" />
 
 The `Storage` component,
+
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
@@ -189,8 +190,7 @@ Step 4. The user now decides that adding the person was a mistake, and decides t
 
 ![UndoRedoState3](images/UndoRedoState3.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the undo.
 
 </div>
 
@@ -232,8 +232,7 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Easy to implement.
   * Cons: May have performance issues in terms of memory usage.
 
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
+* **Alternative 2:** Individual command knows how to undo/redo by itself.
   * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
@@ -242,7 +241,6 @@ _{more aspects and alternatives to be added}_
 ### \[Proposed\] Data archiving
 
 _{Explain here how the data archiving feature will be implemented}_
-
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -273,7 +271,6 @@ _{Explain here how the data archiving feature will be implemented}_
 * prefers desktop apps over other types of applications
 
 **Value proposition**: LarperBoard helps hackathon participants build a network that they can still use after the event. Using one short typed command on the laptop that is already open, the user records a new contact together with the detail that will jog their memory later, such as what the person is building, their tech stack and where they were met. Contacts can be grouped by hackathon and team, searched by these details, and exported for follow-up. This is faster than saving contacts on a phone in the middle of an event, and more useful afterwards than a generic address book, which records who someone is but not how or where they were met. All data is stored locally, so LarperBoard works without an internet connection.
-
 
 ### User stories
 
@@ -328,11 +325,11 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
 **Extensions**
 
-- 1a. The user omits a required field or enters an invalid value.
-  - 1a1. LarperBoard displays an error message.
-  - 1a2. Use case resumes at step 1.
-- 2a. The person already exists in the address book.
-  - 2a1. LarperBoard displays a duplicate-person error message.
+* 1a. The user omits a required field or enters an invalid value.
+  * 1a1. LarperBoard displays an error message.
+  * 1a2. Use case resumes at step 1.
+* 2a. The person already exists in the address book.
+  * 2a1. LarperBoard displays a duplicate-person error message.
 
     Use case ends.
 
@@ -350,22 +347,22 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
 **Extensions**
 
-- 2a. The list is empty.
+* 2a. The list is empty.
 
   Use case ends.
 
-- 3a. The selected person cannot be identified.
-  - 3a1. LarperBoard shows an error message.
+* 3a. The selected person cannot be identified.
+  * 3a1. LarperBoard shows an error message.
 
     Use case resumes at step 2.
 
-- 3b. The user does not provide any tags or keywords.
-  - 3b1. LarperBoard shows an error message.
+* 3b. The user does not provide any tags or keywords.
+  * 3b1. LarperBoard shows an error message.
 
     Use case resumes at step 3.
 
-- 4a. One or more tags or keywords contain invalid characters.
-  - 4a1. LarperBoard shows an error message.
+* 4a. One or more tags or keywords contain invalid characters.
+  * 4a1. LarperBoard shows an error message.
 
     Use case resumes at step 3.
 
@@ -494,12 +491,12 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
 **MSS**
 
-1.  User requests to list persons
-2.  LarperBoard shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  LarperBoard deletes the person
+1. User requests to list persons.
+2. LarperBoard shows a list of persons.
+3. User requests to delete a specific person in the list.
+4. LarperBoard deletes the person.
 
-    Use case ends.
+   Use case ends.
 
 **Extensions**
 
@@ -508,14 +505,11 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
   Use case ends.
 
 * 3a. The given index is invalid.
+  * 3a1. LarperBoard shows an error message.
 
-    * 3a1. LarperBoard shows an error message.
+    Use case resumes at step 2.
 
-      Use case resumes at step 2.
-
-*{More to be added}*
-
-### Non-Functional Requirements
+### Non-functional requirements
 
 1. **Environment**: Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
 2. **Environment**: Should work without an installer, and should be packaged as a single JAR file no larger than 100 MB.
@@ -563,8 +557,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
 Given below are instructions to test the app manually.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** These instructions only provide a starting point for testers to work on;
-testers are expected to do more *exploratory* testing.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** These instructions only provide a starting point for testers to work on; testers are expected to do more *exploratory* testing.
 
 </div>
 
@@ -582,7 +575,7 @@ testers are expected to do more *exploratory* testing.
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
    1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+      Expected: The most recent window size and location are retained.
 
 1. _{ more test cases …​ }_
 
