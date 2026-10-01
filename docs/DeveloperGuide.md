@@ -522,8 +522,23 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
 ### Glossary
 
+* **Archive**: Hiding a contact from the active list without deleting it, so that it can be brought back later
+* **CLI (Command Line Interface)**: A way of using an application by typing text commands instead of clicking buttons
+* **Command**: A line of text typed into the command box that tells LarperBoard to do something, e.g. adding or deleting a contact
+* **Contact**: A person whose details are saved in LarperBoard, such as a teammate, mentor, recruiter or fellow participant met at a hackathon
+* **Cracked**: Slang for being highly skilled, used to describe the participants a user wants to remember and keep in touch with
+* **Data file**: The file on the user's computer where LarperBoard saves all contacts, stored in JSON format
+* **Duplicate contact**: A contact that LarperBoard considers to be the same person as a contact already saved, in which case LarperBoard rejects it
+* **Export**: Saving the user's contacts into a file in another format (e.g. JSON, CSV or Markdown) so that they can be used in other tools
+* **Hackathon**: A time-limited event where participants form teams to build projects, and where the users of LarperBoard meet most of their contacts
+* **Hackathon role**: The part a contact plays in a team, e.g. Frontend, Pitcher or Designer
+* **Index**: The position number of a contact in the list currently shown, starting from 1, used to refer to that contact in a command
 * **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **MSS (Main Success Scenario)**: The steps of a use case in which everything goes as expected, as opposed to its extensions, which cover failures and alternative paths
+* **Note**: Free-form text attached to a contact to record the context in which they were met, e.g. "Met at booth 4"
+* **Starred contact**: A contact that the user has marked as high priority so that they stand out from the rest
+* **Tag**: A short keyword attached to a contact, such as a project or tech stack keyword, used to remember and find them later
+* **Tech stack**: The set of technologies, such as programming languages and frameworks, that a contact works with or used in their project
 
 --------------------------------------------------------------------------------------------------------------------
 
