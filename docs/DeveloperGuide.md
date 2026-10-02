@@ -125,6 +125,7 @@ The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* stores each `Person` with a `Name`, `Phone`, `Email`, `Address`, `Remark` and a set of `Tag` objects. A `Remark` accepts any text, including an empty one.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 
@@ -633,6 +634,31 @@ Given below are instructions to test the app manually.
       Expected: Similar to previous.
 
 1. _{ more test cases …​ }_
+
+### Adding or removing a remark
+
+1. Adding a remark to a person while all persons are being shown
+
+   1. Prerequisites: List all persons using the `list` command, with multiple persons in the list.
+
+   1. Test case: `remark 1 r/Likes to swim.`<br>
+      Expected: The first contact's card shows the remark `Likes to swim.`. The status message shows `Added remark to Person:` followed by the contact's details.
+
+   1. Test case: `remark 1 r/`<br>
+      Expected: The remark on the first contact's card is cleared. The status message shows `Removed remark from Person:` followed by the contact's details.
+
+   1. Test case: `remark 0 r/Test`<br>
+      Expected: No remark is changed. The status message shows the invalid command format error with the `remark` usage.
+
+   1. Other incorrect remark commands to try: `remark`, `remark x r/Test`, `remark 999 r/Test` (where 999 is larger than the list size)<br>
+      Expected: Similar to previous, except that an out-of-range index shows the invalid person index error.
+
+1. Remarks are saved
+
+   1. Prerequisites: Run `remark 1 r/Likes to swim.`, then close and relaunch the app.<br>
+      Expected: The first contact's remark is still `Likes to swim.`.
+
+   1. Note: a `data/addressbook.json` written before the `remark` field existed has no remark for any person, so it is treated as invalid and AddressBook starts empty. Delete the file to start afresh.
 
 ### Saving data
 
