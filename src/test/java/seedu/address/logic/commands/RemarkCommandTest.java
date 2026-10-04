@@ -13,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Remark;
 
 public class RemarkCommandTest {
 
@@ -22,18 +23,16 @@ public class RemarkCommandTest {
 
     @Test
     public void execute() {
-        final String remark = "Some remark";
-
-        assertCommandFailure(new RemarkCommand(INDEX_FIRST_PERSON, remark), model,
-                String.format(RemarkCommand.MESSAGE_ARGUMENTS, INDEX_FIRST_PERSON.getOneBased(), remark));
+        assertCommandFailure(new RemarkCommand(INDEX_FIRST_PERSON, new Remark(REMARK_STUB)), model,
+                String.format(RemarkCommand.MESSAGE_ARGUMENTS, INDEX_FIRST_PERSON.getOneBased(), REMARK_STUB));
     }
 
     @Test
     public void equals() {
-        final RemarkCommand standardCommand = new RemarkCommand(INDEX_FIRST_PERSON, REMARK_STUB);
+        final RemarkCommand standardCommand = new RemarkCommand(INDEX_FIRST_PERSON, new Remark(REMARK_STUB));
 
         // same values -> returns true
-        RemarkCommand commandWithSameValues = new RemarkCommand(INDEX_FIRST_PERSON, REMARK_STUB);
+        RemarkCommand commandWithSameValues = new RemarkCommand(INDEX_FIRST_PERSON, new Remark(REMARK_STUB));
         assertTrue(standardCommand.equals(commandWithSameValues));
 
         // same object -> returns true
@@ -46,15 +45,15 @@ public class RemarkCommandTest {
         assertFalse(standardCommand.equals(new ClearCommand()));
 
         // different index -> returns false
-        assertFalse(standardCommand.equals(new RemarkCommand(INDEX_SECOND_PERSON, REMARK_STUB)));
+        assertFalse(standardCommand.equals(new RemarkCommand(INDEX_SECOND_PERSON, new Remark(REMARK_STUB))));
 
         // different remark -> returns false
-        assertFalse(standardCommand.equals(new RemarkCommand(INDEX_FIRST_PERSON, "Hello")));
+        assertFalse(standardCommand.equals(new RemarkCommand(INDEX_FIRST_PERSON, new Remark("Hello"))));
     }
 
     @Test
     public void toStringMethod() {
-        RemarkCommand remarkCommand = new RemarkCommand(INDEX_FIRST_PERSON, REMARK_STUB);
+        RemarkCommand remarkCommand = new RemarkCommand(INDEX_FIRST_PERSON, new Remark(REMARK_STUB));
         String expected = RemarkCommand.class.getCanonicalName() + "{index=" + INDEX_FIRST_PERSON
                 + ", remark=" + REMARK_STUB + "}";
         assertEquals(expected, remarkCommand.toString());
