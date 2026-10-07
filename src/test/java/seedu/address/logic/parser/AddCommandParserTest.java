@@ -135,7 +135,7 @@ public class AddCommandParserTest {
         Person expectedPerson = new PersonBuilder(AMY).withTags().build();
         assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY,
                 new AddCommand(expectedPerson));
-        
+
         // missing phone
         Person expectedPersonWithoutPhone = new PersonBuilder(AMY).withPhone("").withTags().build();
         assertParseSuccess(parser, NAME_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY,
@@ -147,7 +147,8 @@ public class AddCommandParserTest {
                 new AddCommand(expectedPersonWithoutEmail));
 
         // missing both phone and email
-        Person expectedPersonWithoutPhoneAndEmail = new PersonBuilder(AMY).withPhone("").withEmail("").withTags().build();
+        Person expectedPersonWithoutPhoneAndEmail = new PersonBuilder(AMY).withPhone("")
+                .withEmail("").withTags().build();
         assertParseSuccess(parser, NAME_DESC_AMY + ADDRESS_DESC_AMY,
                 new AddCommand(expectedPersonWithoutPhoneAndEmail));
     }
