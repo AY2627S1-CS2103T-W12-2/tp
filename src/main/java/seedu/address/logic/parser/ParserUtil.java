@@ -19,25 +19,40 @@ import seedu.address.model.tag.Tag;
  */
 public class ParserUtil {
 
+    /** Message shown when an index is not a positive integer. */
     public static final String MESSAGE_INVALID_INDEX = "Index must be a positive integer.";
+
+    /** Message shown when an index is larger than {@link Integer#MAX_VALUE}. */
     public static final String MESSAGE_INDEX_TOO_LARGE = "The provided index is too large.";
 
     /**
-     * Parses {@code oneBasedIndex} into an {@code Index} and returns it. Leading and trailing whitespaces will be
-     * trimmed.
-     * @throws ParseException if the specified index is invalid or exceeds the range of an integer.
+     * Parses a one-based index after trimming surrounding whitespace.
+     *
+     * @param oneBasedIndex textual index to parse
+     * @return the parsed index
+     * @throws ParseException if the index is invalid or exceeds {@link Integer#MAX_VALUE}
      */
     public static Index parseIndex(String oneBasedIndex) throws ParseException {
         String trimmedIndex = oneBasedIndex.trim();
-        if (!trimmedIndex.matches("[0-9]+")) {
+        validateIndexCharacters(trimmedIndex);
+        return Index.fromOneBased(parsePositiveIntegerIndex(trimmedIndex));
+    }
+
+    /** Ensures that an index contains only decimal digits. */
+    private static void validateIndexCharacters(String index) throws ParseException {
+        if (!index.matches("[0-9]+")) {
             throw new ParseException(MESSAGE_INVALID_INDEX);
         }
+    }
+
+    /** Converts an index to a positive integer and reports integer overflow separately. */
+    private static int parsePositiveIntegerIndex(String index) throws ParseException {
         try {
-            int parsedIndex = Integer.parseInt(trimmedIndex);
+            int parsedIndex = Integer.parseInt(index);
             if (parsedIndex == 0) {
                 throw new ParseException(MESSAGE_INVALID_INDEX);
             }
-            return Index.fromOneBased(parsedIndex);
+            return parsedIndex;
         } catch (NumberFormatException nfe) {
             throw new ParseException(MESSAGE_INDEX_TOO_LARGE, nfe);
         }
