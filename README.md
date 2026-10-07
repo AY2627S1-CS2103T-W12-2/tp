@@ -14,6 +14,12 @@
 * **Keep hackathons separate:** each hackathon's contacts stay together, while people you meet again can be looked up instead of duplicated. Archive contacts you have already followed up with.
 * It has a GUI, but most interactions happen through a Command Line Interface (CLI).
 
+## Delete a contact
+
+Use `delete INDEX` with one positive index from the currently displayed contact list. For example, `delete 2` removes the second displayed contact.
+
+The command accepts only one index: `delete 1 2` reports `Only one index parameter is accepted.` An index larger than a Java integer reports `The provided index is too large.`
+
 ## Documentation
 
 * Using LarperBoard: see the [**User Guide**](docs/UserGuide.md).
