@@ -4,6 +4,7 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.logic.parser.DeleteCommandParser.MESSAGE_MULTIPLE_INDEXES;
+import static seedu.address.logic.parser.ParserUtil.MESSAGE_INDEX_TOO_LARGE;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
 import org.junit.jupiter.api.Test;
@@ -33,5 +34,10 @@ public class DeleteCommandParserTest {
                 MESSAGE_MULTIPLE_INDEXES + "\n" + DeleteCommand.MESSAGE_USAGE);
         assertParseFailure(parser, "1 2", expectedMessage);
         assertParseFailure(parser, " 1   2 ", expectedMessage);
+    }
+
+    @Test
+    public void parse_indexTooLarge_throwsParseException() {
+        assertParseFailure(parser, Long.toString((long) Integer.MAX_VALUE + 1), MESSAGE_INDEX_TOO_LARGE);
     }
 }
