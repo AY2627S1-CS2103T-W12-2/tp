@@ -141,6 +141,22 @@ public class AddCommandParserTest {
         Person expectedPerson = new PersonBuilder(AMY).withTags().build();
         assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY,
                 new AddCommand(expectedPerson));
+
+        // missing phone
+        Person expectedPersonWithoutPhone = new PersonBuilder(AMY).withPhone("").withTags().build();
+        assertParseSuccess(parser, NAME_DESC_AMY + EMAIL_DESC_AMY + ADDRESS_DESC_AMY,
+                new AddCommand(expectedPersonWithoutPhone));
+
+        // missing email
+        Person expectedPersonWithoutEmail = new PersonBuilder(AMY).withEmail("").withTags().build();
+        assertParseSuccess(parser, NAME_DESC_AMY + PHONE_DESC_AMY + ADDRESS_DESC_AMY,
+                new AddCommand(expectedPersonWithoutEmail));
+
+        // missing both phone and email
+        Person expectedPersonWithoutPhoneAndEmail = new PersonBuilder(AMY).withPhone("")
+                .withEmail("").withTags().build();
+        assertParseSuccess(parser, NAME_DESC_AMY + ADDRESS_DESC_AMY,
+                new AddCommand(expectedPersonWithoutPhoneAndEmail));
     }
 
     @Test
@@ -149,14 +165,6 @@ public class AddCommandParserTest {
 
         // missing name prefix
         assertParseFailure(parser, VALID_NAME_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB,
-                expectedMessage);
-
-        // missing phone prefix
-        assertParseFailure(parser, NAME_DESC_BOB + VALID_PHONE_BOB + EMAIL_DESC_BOB + ADDRESS_DESC_BOB,
-                expectedMessage);
-
-        // missing email prefix
-        assertParseFailure(parser, NAME_DESC_BOB + PHONE_DESC_BOB + VALID_EMAIL_BOB + ADDRESS_DESC_BOB,
                 expectedMessage);
 
         // missing address prefix
