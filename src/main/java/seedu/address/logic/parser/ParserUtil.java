@@ -11,6 +11,7 @@ import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.LinkedIn;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
@@ -93,6 +94,22 @@ public class ParserUtil {
             throw new ParseException(Email.MESSAGE_CONSTRAINTS);
         }
         return new Email(trimmedEmail);
+    }
+
+    /**
+     * Parses a {@code String linkedIn} into a {@code LinkedIn}.
+     * Leading and trailing whitespaces will be trimmed.
+     * An empty string is accepted and represents the absence of a handle.
+     *
+     * @throws ParseException if the given {@code linkedIn} is invalid.
+     */
+    public static LinkedIn parseLinkedIn(String linkedIn) throws ParseException {
+        requireNonNull(linkedIn);
+        String trimmedLinkedIn = linkedIn.trim();
+        if (!LinkedIn.isValidLinkedIn(trimmedLinkedIn)) {
+            throw new ParseException(LinkedIn.MESSAGE_CONSTRAINTS);
+        }
+        return new LinkedIn(trimmedLinkedIn);
     }
 
     /**

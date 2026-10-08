@@ -11,6 +11,7 @@
     "phone" : "98765432",
     "email" : "johnd@example.com",
     "address" : "311, Clementi Ave 2, #02-25",
+    "linkedIn" : "benson-meier",
     "tags" : [ "owesMoney", "friends" ]
   }, {
     "name" : "Carl Kurz",
