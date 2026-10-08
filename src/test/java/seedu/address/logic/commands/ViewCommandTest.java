@@ -50,6 +50,16 @@ public class ViewCommandTest {
     }
 
     @Test
+    public void execute_emptyList_throwsCommandException() {
+        model.updateFilteredPersonList(person -> false);
+        assertTrue(model.getFilteredPersonList().isEmpty());
+
+        ViewCommand viewCommand = new ViewCommand(INDEX_FIRST_PERSON);
+
+        assertCommandFailure(viewCommand, model, ViewCommand.MESSAGE_EMPTY_PERSON_LIST);
+    }
+
+    @Test
     public void execute_validIndexFilteredList_success() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
 
