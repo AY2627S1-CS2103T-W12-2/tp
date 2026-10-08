@@ -176,6 +176,18 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseTag_mixedCaseWithAllowedSymbols_returnsLowercaseTag() throws Exception {
+        Tag expectedTag = new Tag("ui-ux+2");
+
+        assertEquals(expectedTag, ParserUtil.parseTag("UI-UX+2"));
+    }
+
+    @Test
+    public void parseTag_tooLong_throwsParseException() {
+        assertThrows(ParseException.class, () -> ParserUtil.parseTag("a".repeat(21)));
+    }
+
+    @Test
     public void parseTag_validValueWithWhitespace_returnsTrimmedTag() throws Exception {
         String tagWithWhitespace = WHITESPACE + VALID_TAG_1 + WHITESPACE;
         Tag expectedTag = new Tag(VALID_TAG_1);
