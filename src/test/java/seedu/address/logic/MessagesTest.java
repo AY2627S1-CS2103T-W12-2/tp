@@ -14,7 +14,7 @@ public class MessagesTest {
     public void format_personWithLinkedIn_includesLinkedIn() {
         Person person = new PersonBuilder().withLinkedIn(VALID_LINKEDIN_AMY).withTags("friends").build();
         String expected = person.getName() + "; Phone: " + person.getPhone() + "; Email: " + person.getEmail()
-                + "; Address: " + person.getAddress() + "; LinkedIn: " + VALID_LINKEDIN_AMY + "; Tags: [friends]";
+                + "; LinkedIn: " + VALID_LINKEDIN_AMY + "; Tags: [friends]";
         assertEquals(expected, Messages.format(person));
     }
 
@@ -22,7 +22,7 @@ public class MessagesTest {
     public void format_personWithoutLinkedIn_omitsLinkedIn() {
         Person person = new PersonBuilder().withLinkedIn("").withTags("friends").build();
         String expected = person.getName() + "; Phone: " + person.getPhone() + "; Email: " + person.getEmail()
-                + "; Address: " + person.getAddress() + "; Tags: [friends]";
+                + "; Tags: [friends]";
         assertEquals(expected, Messages.format(person));
     }
 }
