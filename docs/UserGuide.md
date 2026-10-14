@@ -132,6 +132,28 @@ Examples:
 * `find alex david` returns `Alex Yeoh`, `David Li`<br>
   ![result for 'find alex david'](images/findAlexDavidResult.png)
 
+### Viewing a person's details: `view`
+
+Shows all the details of a person in the detail panel, next to the person list.
+
+Format: `view INDEX`
+
+* Views the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
+* The detail panel shows the person's name, phone number, email, LinkedIn handle and all of their tags. A field that the person does not have is shown as `-`.
+* The detail panel shows `No contact selected` until you view a person. The result box also shows `Now viewing:` followed by the person's details.
+* The detail panel stays on the person you viewed until you view someone else. It is updated if you edit or tag that person, and goes back to `No contact selected` if you delete that person or clear all entries.
+
+Examples:
+* `list` followed by `view 2` shows the details of the 2nd person in the list.
+* `find Alex` followed by `view 1` shows the details of the 1st person in the results of the `find` command.<br>
+  ![result for 'view 1'](images/view-panel.png)
+
+Errors:
+* `view` without an index shows `Invalid command format!` followed by the usage of the command.
+* `view 1 2` (more than one index) shows `Invalid command format!` followed by `Only one index parameter is accepted.` and the usage of the command.
+* `view 0`, `view -1`, `view abc`, an index that is larger than the number of persons in the displayed list, or an index that is too large to be a number shows `The person index provided is invalid.`
+* `view 1` when the displayed list is empty shows `The person list is empty.`
+
 ### Deleting a person: `delete`
 
 Deletes the specified person from the address book.
@@ -203,4 +225,5 @@ Action | Format, Examples
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [a/ADDRESS] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Find** | `find KEYWORD [MORE_KEYWORDS]`<br> e.g., `find James Jake`
 **List** | `list`
+**View** | `view INDEX`<br> e.g., `view 2`
 **Help** | `help`
