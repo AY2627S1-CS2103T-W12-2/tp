@@ -111,14 +111,15 @@ Here are the other classes in `Logic` (omitted from the class diagram above) tha
 <img src="images/ParserClasses.png" width="600"/>
 
 How the parsing works:
+
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
 
 ### Model component
+
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="450" />
-
 
 The `Model` component,
 
@@ -133,7 +134,6 @@ The `Model` component,
 
 </div>
 
-
 ### Storage component
 
 **API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
@@ -141,6 +141,7 @@ The `Model` component,
 <img src="images/StorageClassDiagram.png" width="550" />
 
 The `Storage` component,
+
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
@@ -189,8 +190,7 @@ Step 4. The user now decides that adding the person was a mistake, and decides t
 
 ![UndoRedoState3](images/UndoRedoState3.png)
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather
-than attempting to perform the undo.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the undo.
 
 </div>
 
@@ -232,8 +232,7 @@ The following activity diagram summarizes what happens when a user executes a ne
   * Pros: Easy to implement.
   * Cons: May have performance issues in terms of memory usage.
 
-* **Alternative 2:** Individual command knows how to undo/redo by
-  itself.
+* **Alternative 2:** Individual command knows how to undo/redo by itself.
   * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
   * Cons: We must ensure that the implementation of each individual command is correct.
 
@@ -242,7 +241,6 @@ _{more aspects and alternatives to be added}_
 ### \[Proposed\] Data archiving
 
 _{Explain here how the data archiving feature will be implemented}_
-
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -261,44 +259,91 @@ _{Explain here how the data archiving feature will be implemented}_
 
 **Target user profile**:
 
-* has a need to manage a significant number of contacts
+* is a university student who attends many hackathons, both to build projects and to meet people
+* meets 15 to 30 new people (teammates, mentors, recruiters, fellow participants) at each hackathon
+* keeps a laptop open throughout the event, while their phone stays in a pocket or on a table
+* finds taking out a phone to save a contact too much effort in the middle of an event, so often does not save the contact at all
+* wants to record a contact in a few seconds without breaking the flow of a conversation
+* needs to remember *who* each person is, not just their name (e.g. what they are building, what they are good at), as they struggle to recall many of these people a week later
+* plans to follow up with some of these people after the event (e.g. to form a team, ask for advice or apply for a role)
+* may have an unreliable internet connection at crowded venues
+* can type fast and is comfortable with CLI commands (e.g. a computer science student)
 * prefers desktop apps over other types of applications
-* can type fast
-* prefers typing to mouse interactions
-* is reasonably comfortable using CLI apps
 
-**Value proposition**: Manage contacts faster than with a typical mouse-driven GUI application.
-
+**Value proposition**: LarperBoard helps hackathon participants build a network that they can still use after the event. Using one short typed command on the laptop that is already open, the user records a new contact together with the detail that will jog their memory later, such as what the person is building, their tech stack and where they were met. Contacts can be grouped by hackathon and team, searched by these details, and exported for follow-up. This is faster than saving contacts on a phone in the middle of an event, and more useful afterwards than a generic address book, which records who someone is but not how or where they were met. All data is stored locally, so LarperBoard works without an internet connection.
 
 ### User stories
 
-Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unlikely to have) - `*`
+Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
-| Priority | As a …​                                    | I want to …​                     | So that I can…​                                                        |
-| -------- | ------------------------------------------ | ------------------------------ | ---------------------------------------------------------------------- |
-| `* * *`  | new user                                   | see usage instructions         | refer to instructions when I forget how to use the App                 |
-| `* * *`  | user                                       | add a new person               |                                                                        |
-| `* * *`  | user                                       | delete a person                | remove entries that I no longer need                                   |
-| `* * *`  | user                                       | find a person by name          | locate details of persons without having to go through the entire list |
-| `* *`    | user                                       | hide private contact details   | minimize chance of someone else seeing them by accident                |
-| `*`      | user with many persons in the address book | sort persons by name           | locate a person easily                                                 |
-
-*{More to be added}*
+| Priority | As a …​ | I want to …​ | So that I can…​ |
+| -------- | ------ | ---------- | ------------- |
+| Must-have | user | add a contact | add people quickly |
+| Must-have | user | delete unnecessary people | remove people who are no longer relevant to me |
+| Nice-to-have | user | edit people's information | correct a mistake without having to delete and re-add the contact |
+| Nice-to-have | user | undo my last destructive CLI action | avoid losing important contact information because of a fast typo |
+| Nice-to-have | hackathon participant | clear all data or reset my board | start fresh for a brand new hackathon event |
+| Nice-to-have | user | group people together | organize everyone I met at a specific track or workshop |
+| Unlikely-to-have | forgetful participant | search contacts using partial text or fuzzy matching | find a person even if I only remember part of their name or handle |
+| Nice-to-have | user | sort people by keywords | easily find people using keywords |
+| Unlikely-to-have | power user | filter contacts | execute complex queries on my network |
+| Must-have | hackathon participant | attach project tags or stack keywords | remember what tech stack or project a participant is cracked at |
+| Nice-to-have | forgetful participant | add rapid freeform notes (e.g., "Met at booth 4") | remember the context when following up after the event |
+| Nice-to-have | hackathon participant | mark high-priority contacts with a "starred" flag | easily filter and focus on standout individuals |
+| Nice-to-have | hackathon participant | attach the hackathon name/date as a tag (auto or manual) | look back and remember which event I met each person at |
+| Nice-to-have | hackathon participant | tag a contact with their hackathon role (Frontend, Pitcher, Designer) | easily assemble balanced teams for future hackathons |
+| Nice-to-have | user | view a list of all saved contacts sorted by recency | quickly recall the last few people I spoke with |
+| Must-have | user | display a detailed view of a single contact card | read all notes, links, and tags in one clean view |
+| Nice-to-have | user | view images | remember the projects people have created |
+| Nice-to-have | CLI user | view contact summaries in a clean, formatted ASCII table | browse my address book without messy text wrapping |
+| Nice-to-have | visual learner | distinguish categories with colour codes | visually scan and distinguish categories at a glance |
+| Nice-to-have | user | run a stats/summary command (counts by tech stack or event) | get a high-level snapshot of my networking efforts |
+| Nice-to-have | power user | have fast keyboard navigation | navigate and manipulate data at maximum keyboard speed |
+| Nice-to-have | user | set up CLI auto-completion for commands and contact names | run commands faster with Tab completion |
+| Nice-to-have | first-time user | run a help/tutorial command with interactive examples | learn key commands within 30 seconds of installing the app |
+| Nice-to-have | hackathon participant | save social profiles (GitHub, LinkedIn, X, Telegram) under dedicated flags | have direct links to reach out to a person on their preferred platform |
+| Nice-to-have | user | copy a contact's email/social handle to the clipboard from the CLI | quickly paste it into a browser or messaging app |
+| Nice-to-have | hackathon participant | import contact details via a short encoded CLI string or QR token | exchange contact information instantly without manual typing |
+| Nice-to-have | power user | export my contact list to JSON, CSV, or Markdown | import it into my personal CRM, Notion, or address book |
+| Must-have | offline user | have all data stored locally | use the app without an internet connection at crowded venues |
+| Nice-to-have | hackathon participant | archive or hide contacts I don't need anymore | avoid being distracted by people I no longer need to see in my active list |
+| Nice-to-have | hackathon participant | be flagged when I try to add someone who is already in my list | avoid accidentally creating two separate entries for the same person met at different events |
 
 ### Use cases
 
-(For all use cases below, the **System** is the `AddressBook` and the **Actor** is the `user`, unless specified otherwise)
+(For all use cases below, the **System** is the `LarperBoard` and the **Actor** is the `user`, unless specified otherwise)
 
-**Use case: Delete a person**
+**Use case: Add a person**
 
 **MSS**
 
-1.  User requests to list persons
-2.  AddressBook shows a list of persons
-3.  User requests to delete a specific person in the list
-4.  AddressBook deletes the person
+1. User requests to add a person and provides the contact details.
+2. LarperBoard adds the person.
+3. LarperBoard displays a confirmation message.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user omits a required field or enters an invalid value.
+  * 1a1. LarperBoard displays an error message.
+  * 1a2. Use case resumes at step 1.
+* 2a. The person already exists in the address book.
+  * 2a1. LarperBoard displays a duplicate-person error message.
 
     Use case ends.
+
+**Use case: Add project tags or stack keywords to a person**
+
+**MSS**
+
+1. User requests to list persons.
+2. LarperBoard shows a list of persons.
+3. User requests to update the selected person's project tags or stack keywords.
+4. LarperBoard replaces the selected person's existing tags with the supplied tags.
+5. LarperBoard displays the updated person details.
+
+   Use case ends.
 
 **Extensions**
 
@@ -306,26 +351,243 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
   Use case ends.
 
-* 3a. The given index is invalid.
+* 3a. The selected person cannot be identified.
+  * 3a1. LarperBoard shows an error message.
 
-    * 3a1. AddressBook shows an error message.
+    Use case resumes at step 2.
 
-      Use case resumes at step 2.
+* 3b. The user does not provide any tags or keywords.
+  * 3b1. LarperBoard shows an error message.
 
-*{More to be added}*
+    Use case resumes at step 3.
 
-### Non-Functional Requirements
+* 4a. One or more tags or keywords contain invalid characters.
+  * 4a1. LarperBoard shows an error message.
 
-1.  Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
-2.  Should be able to hold up to 1000 persons without noticeable sluggishness in performance for typical usage.
-3.  A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+    Use case resumes at step 3.
 
-*{More to be added}*
+**Use case: Find a person by name**
+
+**MSS**
+
+1. User requests to find persons using one or more name keywords.
+2. LarperBoard searches for persons whose names contain at least one of the keywords, ignoring letter case.
+3. LarperBoard displays the matching persons.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user does not provide any name keywords.
+  * 1a1. LarperBoard displays an error message.
+
+    Use case resumes at step 1.
+
+* 2a. No persons match the provided keywords.
+  * 2a1. LarperBoard informs the user that no matching persons were found.
+
+    Use case ends.
+
+**Use case: Edit a person's details**
+
+**MSS**
+
+1. User requests to edit a person.
+2. User provides one or more replacement details for the person.
+3. LarperBoard updates the specified details and retains the unspecified details.
+4. LarperBoard displays the updated person details.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The selected person cannot be identified.
+  * 1a1. LarperBoard displays an error message.
+
+    Use case resumes at step 1.
+
+* 2a. The user does not provide any details to edit.
+  * 2a1. LarperBoard displays an error message.
+
+    Use case resumes at step 2.
+
+* 2b. One or more replacement details are invalid.
+  * 2b1. LarperBoard displays an error message.
+
+    Use case resumes at step 2.
+
+* 3a. The edited person would duplicate another person in the address book.
+  * 3a1. LarperBoard displays a duplicate-person error message.
+
+    Use case ends.
+
+**Use case: List all persons**
+
+**MSS**
+
+1. User requests to list all persons.
+2. LarperBoard displays all persons and their contact details.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The address book contains no persons.
+  * 2a1. LarperBoard displays an empty list.
+
+    Use case ends.
+
+**Use case: View usage instructions**
+
+**MSS**
+
+1. User requests usage instructions.
+2. LarperBoard displays instructions for the available commands.
+
+   Use case ends.
+
+**Use case: Clear all persons**
+
+**MSS**
+
+1. User requests to clear the address book.
+2. LarperBoard removes all persons from the address book.
+3. LarperBoard displays a confirmation message.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The address book contains no persons.
+  * 2a1. LarperBoard displays the confirmation message.
+
+    Use case ends.
+
+**Use case: Load saved contacts on application startup**
+
+**MSS**
+
+1. User launches the application.
+2. LarperBoard loads the saved persons from the data file.
+3. LarperBoard displays the loaded persons.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. No saved address book exists.
+  * 2a1. LarperBoard initializes a new address book with the default sample persons.
+  * 2a2. LarperBoard displays the sample persons.
+
+    Use case ends.
+
+* 2b. The saved address book cannot be loaded because the data is corrupted or invalid.
+  * 2b1. LarperBoard starts with an empty address book.
+  * 2b2. LarperBoard displays the empty address book.
+
+    Use case ends.
+
+**Use case: Delete a person**
+
+**MSS**
+
+1. User requests to list persons.
+2. LarperBoard shows a list of persons.
+3. User requests to delete a specific person in the list.
+4. LarperBoard deletes the person.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The given index is invalid (e.g., non-numeric, 0, negative, or exceeds list size).
+  * 3a1. LarperBoard shows an invalid index error message.
+
+    Use case resumes at step 2.
+
+* 3b. Extraneous parameters are provided.
+  * 3b1. LarperBoard shows an invalid command format message.
+
+    Use case resumes at step 2.
+
+**Use case: Display detailed view of a single contact card (Advanced)**
+
+**MSS**
+
+1. User requests to list persons.
+2. LarperBoard shows a list of persons.
+3. User requests to view the full details of a specific person by index.
+4. LarperBoard opens and updates the detailed view panel showing all stored attributes (full name, phone, email, LinkedIn handle, and categorised tag chips with colour codes) of the selected person.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+  * 2a1. LarperBoard displays a message indicating that the list is empty.
+
+    Use case ends.
+
+* 3a. The given index is invalid (e.g., out of range, negative, or non-numeric).
+  * 3a1. LarperBoard displays an invalid index error message.
+
+    Use case resumes at step 2.
+
+* 3b. Extraneous parameters are provided (e.g., multiple indices or unexpected prefixes).
+  * 3b1. LarperBoard displays an invalid command format message.
+
+    Use case resumes at step 2.
+
+* 3c. The given index causes integer overflow.
+  * 3c1. LarperBoard displays a message stating the provided index is too large.
+
+    Use case resumes at step 2.
+
+### Non-functional requirements
+
+1. **Environment**: Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
+2. **Environment**: Should work without an installer, and should be packaged as a single JAR file no larger than 100 MB.
+3. **Performance**: Should respond to any command within 1 second while holding up to 1000 contacts.
+4. **Performance**: Should be ready to accept commands within 3 seconds of launch while holding up to 1000 contacts.
+5. **Capacity**: Should be able to hold up to 1000 contacts, which is more than 30 hackathons' worth at 30 new contacts per event, without noticeable sluggishness in performance for typical usage.
+6. **Usability**: A user with above average typing speed for regular English text (i.e. not code, not system admin commands) should be able to accomplish most of the tasks faster using commands than using the mouse.
+7. **Usability**: All features should be usable with the keyboard alone, so that the user does not need to reach for the mouse in the middle of a conversation.
+8. **Usability**: A new contact should be recordable with a single command, without the user having to respond to follow-up prompts.
+9. **Usability**: When a command is rejected, the error message should state what was wrong and show the correct command format.
+10. **Offline use**: Should not require an internet connection for any feature.
+11. **Privacy**: Should store contact data only on the user's computer, and should not send it to any remote server.
+12. **Data**: Should save changes automatically after every command that modifies data, without requiring a separate save command.
+13. **Data**: The _data file_ should be a human-editable text file, so that advanced users can view and edit their contacts without using LarperBoard.
+14. **Reliability**: A missing or corrupted _data file_ should not cause LarperBoard to crash or fail to start.
+15. **Display**: Should be usable at screen resolutions of 1280x720 and higher, at screen scales of 100% and 125%.
+16. **Scope**: Should be designed for a single user, and is not expected to support multiple users sharing one _data file_.
+17. **Scope**: Should not depend on a database management system or on a remote server.
+18. **Maintainability**: The code should follow the project's Java coding standard, as enforced by Checkstyle in the build.
+19. **Maintainability**: New features should fit into the existing `UI`, `Logic`, `Model` and `Storage` components without changing how the components depend on one another.
 
 ### Glossary
 
+* **Archive**: Hiding a contact from the active list without deleting it, so that it can be brought back later
+* **CLI (Command Line Interface)**: A way of using an application by typing text commands instead of clicking buttons
+* **Command**: A line of text typed into the command box that tells LarperBoard to do something, e.g. adding or deleting a contact
+* **Contact**: A person whose details are saved in LarperBoard, such as a teammate, mentor, recruiter or fellow participant met at a hackathon
+* **Cracked**: Slang for being highly skilled, used to describe the participants a user wants to remember and keep in touch with
+* **Data file**: The file on the user's computer where LarperBoard saves all contacts, stored in JSON format
+* **Duplicate contact**: A contact that LarperBoard considers to be the same person as a contact already saved, in which case LarperBoard rejects it
+* **Export**: Saving the user's contacts into a file in another format (e.g. JSON, CSV or Markdown) so that they can be used in other tools
+* **Hackathon**: A time-limited event where participants form teams to build projects, and where the users of LarperBoard meet most of their contacts
+* **Hackathon role**: The part a contact plays in a team, e.g. Frontend, Pitcher or Designer
+* **Index**: The position number of a contact in the list currently shown, starting from 1, used to refer to that contact in a command
 * **Mainstream OS**: Windows, Linux, Unix, or macOS
-* **Private contact detail**: A contact detail that is not meant to be shared with others
+* **MSS (Main Success Scenario)**: The steps of a use case in which everything goes as expected, as opposed to its extensions, which cover failures and alternative paths
+* **Note**: Free-form text attached to a contact to record the context in which they were met, e.g. "Met at booth 4"
+* **Starred contact**: A contact that the user has marked as high priority so that they stand out from the rest
+* **Tag**: A short keyword attached to a contact, such as a project or tech stack keyword, used to remember and find them later
+* **Tech stack**: The set of technologies, such as programming languages and frameworks, that a contact works with or used in their project
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -333,8 +595,7 @@ Priorities: High (must have) - `* * *`, Medium (nice to have) - `* *`, Low (unli
 
 Given below are instructions to test the app manually.
 
-<div markdown="span" class="alert alert-info">:information_source: **Note:** These instructions only provide a starting point for testers to work on;
-testers are expected to do more *exploratory* testing.
+<div markdown="span" class="alert alert-info">:information_source: **Note:** These instructions only provide a starting point for testers to work on; testers are expected to do more *exploratory* testing.
 
 </div>
 
@@ -352,7 +613,7 @@ testers are expected to do more *exploratory* testing.
    1. Resize the window to an optimal size. Move the window to a different location. Close the window.
 
    1. Relaunch the app by double-clicking the JAR file.<br>
-       Expected: The most recent window size and location are retained.
+      Expected: The most recent window size and location are retained.
 
 1. _{ more test cases …​ }_
 

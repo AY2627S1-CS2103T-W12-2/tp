@@ -8,6 +8,7 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.HashSet;
@@ -32,12 +33,27 @@ public class TagCommandTest {
     public void execute_addsTagsWithoutRemovingExistingTags_success() {
         Set<Tag> updatedTags = new HashSet<>(ALICE.getTags());
         updatedTags.add(new Tag("work"));
-        Person updatedPerson = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getAddress(),
+        Person updatedPerson = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getLinkedIn(),
                 updatedTags);
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
         expectedModel.setPerson(ALICE, updatedPerson);
 
         TagCommand command = new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("work")));
+        String expectedMessage = String.format(TagCommand.MESSAGE_SUCCESS, Messages.format(updatedPerson));
+
+        assertCommandSuccess(command, model, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_addsTagsWithoutRemovingLinkedIn_success() {
+        Set<Tag> updatedTags = new HashSet<>(BENSON.getTags());
+        updatedTags.add(new Tag("work"));
+        Person updatedPerson = new Person(BENSON.getName(), BENSON.getPhone(), BENSON.getEmail(),
+                BENSON.getLinkedIn(), updatedTags);
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(BENSON, updatedPerson);
+
+        TagCommand command = new TagCommand(INDEX_SECOND_PERSON, Set.of(new Tag("work")));
         String expectedMessage = String.format(TagCommand.MESSAGE_SUCCESS, Messages.format(updatedPerson));
 
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
