@@ -97,9 +97,9 @@ Format: `list`
 
 ### Editing a person: `edit`
 
-Edits an existing person in the address book.
+Edits an existing person in LarperBoard.
 
-Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [a/ADDRESS] [l/LINKEDIN_HANDLE] [t/TAG]…​`
+Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`
 
 * Edits the person at the specified `INDEX`. The index refers to the index number shown in the displayed person list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
@@ -157,15 +157,17 @@ Format: `exit`
 
 ### Saving the data
 
-AddressBook automatically saves data after every command. You do not need to save manually.
+LarperBoard automatically saves data after every command. You do not need to save manually.
 
 ### Editing the data file
 
-AddressBook data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+LarperBoard data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+
+Contacts no longer have an address. If your data file still has an `address` field for some contacts, LarperBoard ignores it and removes it the next time it saves.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, AddressBook starts with an empty address book at the next run. The invalid file remains on disk until you run a command (AddressBook saves after every command). Still, we recommend backing up the file before editing it.<br>
-Furthermore, certain edits can cause the AddressBook to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
+If your changes make the data file invalid, LarperBoard starts with an empty contact list at the next run. The invalid file remains on disk until you run a command (LarperBoard saves after every command). Still, we recommend backing up the file before editing it.<br>
+Furthermore, certain edits can cause LarperBoard to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
 ### Archiving data files `[coming in v2.0]`
@@ -177,7 +179,7 @@ _Details coming soon ..._
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous AddressBook home folder.
+**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous LarperBoard home folder.
 
 --------------------------------------------------------------------------------------------------------------------
 
