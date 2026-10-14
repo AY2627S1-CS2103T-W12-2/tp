@@ -1,6 +1,7 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
@@ -84,6 +85,20 @@ public class LogicManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> logic.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void getViewedPerson_noPersonViewed_returnsNull() {
+        assertNull(logic.getViewedPerson().get());
+    }
+
+    @Test
+    public void getViewedPerson_afterViewCommand_returnsViewedPerson() throws Exception {
+        model.addPerson(AMY);
+
+        logic.execute("view 1");
+
+        assertEquals(AMY, logic.getViewedPerson().get());
     }
 
     /**

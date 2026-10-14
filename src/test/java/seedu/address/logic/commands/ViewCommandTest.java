@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
@@ -35,10 +36,21 @@ public class ViewCommandTest {
         String expectedMessage = String.format(ViewCommand.MESSAGE_VIEW_PERSON_SUCCESS,
                 Messages.format(personToView));
 
-        // viewing a person is read-only, so the model is expected to stay unchanged
+        // viewing a person does not change the address book data
         ModelManager expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
 
         assertCommandSuccess(viewCommand, model, expectedMessage, expectedModel);
+        assertEquals(personToView, model.getViewedPerson().get());
+    }
+
+    @Test
+    public void execute_viewAnotherPerson_replacesViewedPerson() throws Exception {
+        new ViewCommand(INDEX_FIRST_PERSON).execute(model);
+        Person secondPerson = model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased());
+
+        new ViewCommand(INDEX_SECOND_PERSON).execute(model);
+
+        assertEquals(secondPerson, model.getViewedPerson().get());
     }
 
     @Test
@@ -47,6 +59,18 @@ public class ViewCommandTest {
         ViewCommand viewCommand = new ViewCommand(outOfBoundIndex);
 
         assertCommandFailure(viewCommand, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertNull(model.getViewedPerson().get());
+    }
+
+    @Test
+    public void execute_invalidIndexAfterViewingPerson_keepsViewedPerson() throws Exception {
+        new ViewCommand(INDEX_FIRST_PERSON).execute(model);
+        Person viewedPerson = model.getViewedPerson().get();
+        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+
+        assertCommandFailure(new ViewCommand(outOfBoundIndex), model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+
+        assertEquals(viewedPerson, model.getViewedPerson().get());
     }
 
     @Test
