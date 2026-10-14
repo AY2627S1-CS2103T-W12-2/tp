@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
@@ -28,6 +29,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Person;
+import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -99,6 +101,50 @@ public class LogicManagerTest {
         logic.execute("view 1");
 
         assertEquals(AMY, logic.getViewedPerson().get());
+    }
+
+    @Test
+    public void getViewedPerson_afterEditingViewedPerson_returnsEditedPerson() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("view 1");
+
+        logic.execute("edit 1 n/Bob Choo");
+
+        Person editedPerson = logic.getFilteredPersonList().get(0);
+        assertEquals("Bob Choo", editedPerson.getName().fullName);
+        assertEquals(editedPerson, logic.getViewedPerson().get());
+    }
+
+    @Test
+    public void getViewedPerson_afterTaggingViewedPerson_returnsTaggedPerson() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("view 1");
+
+        logic.execute("tag 1 t/hackathon");
+
+        Person taggedPerson = logic.getFilteredPersonList().get(0);
+        assertTrue(taggedPerson.getTags().contains(new Tag("hackathon")));
+        assertEquals(taggedPerson, logic.getViewedPerson().get());
+    }
+
+    @Test
+    public void getViewedPerson_afterDeletingViewedPerson_returnsNull() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("view 1");
+
+        logic.execute("delete 1");
+
+        assertNull(logic.getViewedPerson().get());
+    }
+
+    @Test
+    public void getViewedPerson_afterClear_returnsNull() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("view 1");
+
+        logic.execute("clear");
+
+        assertNull(logic.getViewedPerson().get());
     }
 
     /**
