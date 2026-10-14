@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
+import seedu.address.logic.parser.TagCommandParser;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -71,6 +72,21 @@ public class TagCommandTest {
         assertSame(ALICE, model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()));
         assertEquals(Set.of(new Tag("friends")),
                 model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getTags());
+    }
+
+    @Test
+    public void execute_duplicateTagsIgnoringCase_addsSingleLowercaseTag() throws Exception {
+        TagCommand command = new TagCommandParser().parse("1 t/Java t/java");
+        Set<Tag> updatedTags = new HashSet<>(ALICE.getTags());
+        updatedTags.add(new Tag("java"));
+        Person updatedPerson = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getLinkedIn(), updatedTags);
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        expectedModel.setPerson(ALICE, updatedPerson);
+        String expectedMessage = String.format(TagCommand.MESSAGE_SUCCESS, Messages.format(updatedPerson));
+
+        assertCommandSuccess(command, model, expectedMessage, expectedModel);
+        assertEquals(updatedTags, model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()).getTags());
     }
 
     @Test
