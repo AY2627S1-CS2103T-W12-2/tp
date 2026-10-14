@@ -2,6 +2,7 @@ package seedu.address.model;
 
 import java.util.function.Predicate;
 
+import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
@@ -68,4 +69,16 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Returns the person currently being viewed in the detail panel.
+     * The value is null if no person is being viewed.
+     */
+    ReadOnlyObjectProperty<Person> getViewedPerson();
+
+    /**
+     * Sets the person to be viewed in the detail panel.
+     * A null {@code person} means that no person is being viewed.
+     */
+    void setViewedPerson(Person person);
 }

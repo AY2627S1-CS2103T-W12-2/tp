@@ -2,6 +2,7 @@ package seedu.address.model;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -71,6 +72,24 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    @Test
+    public void getViewedPerson_noPersonViewed_returnsNull() {
+        assertNull(modelManager.getViewedPerson().get());
+    }
+
+    @Test
+    public void setViewedPerson_person_setsViewedPerson() {
+        modelManager.setViewedPerson(ALICE);
+        assertEquals(ALICE, modelManager.getViewedPerson().get());
+    }
+
+    @Test
+    public void setViewedPerson_null_clearsViewedPerson() {
+        modelManager.setViewedPerson(ALICE);
+        modelManager.setViewedPerson(null);
+        assertNull(modelManager.getViewedPerson().get());
     }
 
     @Test
