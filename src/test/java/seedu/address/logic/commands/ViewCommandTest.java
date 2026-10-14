@@ -80,7 +80,7 @@ public class ViewCommandTest {
 
         ViewCommand viewCommand = new ViewCommand(INDEX_FIRST_PERSON);
 
-        assertCommandFailure(viewCommand, model, ViewCommand.MESSAGE_EMPTY_PERSON_LIST);
+        assertCommandFailure(viewCommand, model, Messages.MESSAGE_EMPTY_PERSON_LIST);
     }
 
     @Test
