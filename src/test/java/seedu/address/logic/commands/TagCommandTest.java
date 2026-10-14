@@ -14,13 +14,13 @@ import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.Messages;
-import seedu.address.logic.parser.TagCommandParser;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -75,8 +75,9 @@ public class TagCommandTest {
     }
 
     @Test
-    public void execute_duplicateTagsIgnoringCase_addsSingleLowercaseTag() throws Exception {
-        TagCommand command = new TagCommandParser().parse("1 t/Java t/java");
+    public void execute_duplicateTagsIgnoringCase_addsSingleLowercaseTag() {
+        Set<Tag> tagsToAdd = new HashSet<>(List.of(new Tag("Java"), new Tag("java")));
+        TagCommand command = new TagCommand(INDEX_FIRST_PERSON, tagsToAdd);
         Set<Tag> updatedTags = new HashSet<>(ALICE.getTags());
         updatedTags.add(new Tag("java"));
         Person updatedPerson = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
