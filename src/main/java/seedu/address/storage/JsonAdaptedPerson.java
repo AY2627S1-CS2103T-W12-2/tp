@@ -10,7 +10,6 @@ import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import seedu.address.commons.exceptions.IllegalValueException;
-import seedu.address.model.person.Address;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.LinkedIn;
 import seedu.address.model.person.Name;
@@ -28,7 +27,6 @@ class JsonAdaptedPerson {
     private final String name;
     private final String phone;
     private final String email;
-    private final String address;
     private final String linkedIn;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
 
@@ -37,12 +35,11 @@ class JsonAdaptedPerson {
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
-            @JsonProperty("email") String email, @JsonProperty("address") String address,
-            @JsonProperty("linkedIn") String linkedIn, @JsonProperty("tags") List<JsonAdaptedTag> tags) {
+            @JsonProperty("email") String email, @JsonProperty("linkedIn") String linkedIn,
+            @JsonProperty("tags") List<JsonAdaptedTag> tags) {
         this.name = name;
         this.phone = phone;
         this.email = email;
-        this.address = address;
         this.linkedIn = linkedIn;
         if (tags != null) {
             this.tags.addAll(tags);
@@ -56,7 +53,6 @@ class JsonAdaptedPerson {
         name = source.getName().fullName;
         phone = source.getPhone().value;
         email = source.getEmail().value;
-        address = source.getAddress().value;
         linkedIn = source.getLinkedIn().value;
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
@@ -92,14 +88,6 @@ class JsonAdaptedPerson {
         }
         final Email modelEmail = email == null ? new Email("") : new Email(email);
 
-        if (address == null) {
-            throw new IllegalValueException(String.format(MISSING_FIELD_MESSAGE_FORMAT, Address.class.getSimpleName()));
-        }
-        if (!Address.isValidAddress(address)) {
-            throw new IllegalValueException(Address.MESSAGE_CONSTRAINTS);
-        }
-        final Address modelAddress = new Address(address);
-
         // A missing LinkedIn field is treated as no handle, so that older data files still load.
         if (linkedIn != null && !LinkedIn.isValidLinkedIn(linkedIn)) {
             throw new IllegalValueException(LinkedIn.MESSAGE_CONSTRAINTS);
@@ -107,7 +95,7 @@ class JsonAdaptedPerson {
         final LinkedIn modelLinkedIn = new LinkedIn(linkedIn == null ? "" : linkedIn);
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
-        return new Person(modelName, modelPhone, modelEmail, modelAddress, modelLinkedIn, modelTags);
+        return new Person(modelName, modelPhone, modelEmail, modelLinkedIn, modelTags);
     }
 
 }
