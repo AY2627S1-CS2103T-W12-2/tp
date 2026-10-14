@@ -142,11 +142,24 @@ public class AddCommandParserTest {
     }
 
     @Test
+    public void parse_nameWithRepeatedInnerWhitespace_success() {
+        Person expectedPerson = new PersonBuilder()
+                .withName("Jane Tan")
+                .withPhone("")
+                .withEmail("")
+                .withTags()
+                .build();
+
+        assertParseSuccess(parser, " " + PREFIX_NAME + "Jane   Tan",
+                new AddCommand(expectedPerson));
+    }
+
+    @Test
     public void parse_compulsoryFieldMissing_failure() {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, AddCommand.MESSAGE_USAGE);
 
         // missing name prefix
-        assertParseFailure(parser, VALID_NAME_BOB + PHONE_DESC_BOB + EMAIL_DESC_BOB,
+        assertParseFailure(parser, PHONE_DESC_BOB,
                 expectedMessage);
 
         // all prefixes missing
@@ -159,6 +172,9 @@ public class AddCommandParserTest {
         // invalid name
         assertParseFailure(parser, INVALID_NAME_DESC + PHONE_DESC_BOB + EMAIL_DESC_BOB
                 + TAG_DESC_HUSBAND + TAG_DESC_FRIEND, Name.MESSAGE_CONSTRAINTS);
+
+        // name longer than 50 characters
+        assertParseFailure(parser, " " + PREFIX_NAME + "a".repeat(51), Name.MESSAGE_CONSTRAINTS);
 
         // invalid phone
         assertParseFailure(parser, NAME_DESC_BOB + INVALID_PHONE_DESC + EMAIL_DESC_BOB
