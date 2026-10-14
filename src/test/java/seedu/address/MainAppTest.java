@@ -18,6 +18,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
+import seedu.address.model.ReadOnlyUserPrefs;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.util.SampleDataUtil;
 import seedu.address.storage.JsonAddressBookStorage;
@@ -46,6 +47,28 @@ public class MainAppTest {
             assertNotNull(fxml);
             assertTrue(new String(fxml.readAllBytes(), StandardCharsets.UTF_8).contains("title=\"LarperBoard\""));
         }
+    }
+
+    @Test
+    public void init_initializesAppComponents() throws Exception {
+        MainApp appWithIsolatedData = new MainApp() {
+            @Override
+            protected UserPrefs initPrefs(JsonUserPrefsStorage storage) {
+                return new UserPrefs();
+            }
+
+            @Override
+            Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+                return new ModelManager();
+            }
+        };
+
+        appWithIsolatedData.init();
+
+        assertNotNull(appWithIsolatedData.storage);
+        assertNotNull(appWithIsolatedData.model);
+        assertNotNull(appWithIsolatedData.logic);
+        assertNotNull(appWithIsolatedData.ui);
     }
 
     @Test
