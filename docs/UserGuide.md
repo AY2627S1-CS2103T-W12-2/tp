@@ -79,17 +79,20 @@ Format: `help`
 
 Adds a person to the address book.
 
-Format: `add n/NAME p/PHONE_NUMBER e/EMAIL [l/LINKEDIN_HANDLE] [t/TAG]…​`
+Format: `add n/NAME [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
 A person can have any number of tags, including zero.
 </div>
 
 * `LINKEDIN_HANDLE` is the last part of the person's LinkedIn profile link (e.g. `john-doe` in `linkedin.com/in/john-doe`). It may contain only letters, digits and hyphens, and must be 3 to 50 characters long.
+* `NAME` must be 1 to 50 characters long and contain only alphanumeric characters and spaces. Leading and trailing spaces are removed, and consecutive inner spaces are stored as one space.
+* `PHONE` is optional and must contain 3 to 20 digits.
+* A contact is a duplicate when its name matches an existing contact's name, ignoring case, and both contacts have the same phone number. Duplicate contacts cannot be added.
 
 Examples:
-* `add n/Aisha Rahman p/98765432 e/aisha@example.com l/aisha-rahman t/frontend t/react`
-* `add n/Ben Tan p/91234567 e/ben@example.com t/backend`
+* `add n/Jane Tan`
+* `add n/Betsy Crowe p/1234567 e/betsycrowe@example.com l/betsy-crowe t/friend t/criminal`
 
 ### Listing all persons: `list`
 
@@ -99,7 +102,7 @@ Format: `list`
 
 ### Editing a person: `edit`
 
-Edits an existing person in the address book.
+Edits an existing person in LarperBoard.
 
 Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`
 
@@ -174,6 +177,8 @@ LarperBoard automatically saves data after every command. You do not need to sav
 
 LarperBoard data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
+Contacts no longer have an address. If your data file still has an `address` field for some contacts, LarperBoard ignores it and removes it the next time it saves.
+
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, LarperBoard starts with an empty contact list at the next run. The invalid file remains on disk until you run a command (LarperBoard saves after every command). Still, we recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause LarperBoard to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
@@ -203,7 +208,7 @@ _Details coming soon ..._
 
 Action | Format, Examples
 --------|------------------
-**Add** | `add n/NAME p/PHONE_NUMBER e/EMAIL [l/LINKEDIN_HANDLE] [t/TAG]…​` <br> e.g., `add n/Aisha Rahman p/98765432 e/aisha@example.com l/aisha-rahman t/frontend`
+**Add** | `add n/NAME [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​` <br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com l/james-ho t/friend t/colleague`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE_NUMBER] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
