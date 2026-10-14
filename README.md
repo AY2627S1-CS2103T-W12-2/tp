@@ -14,6 +14,11 @@
 * **Keep hackathons separate:** each hackathon's contacts stay together, while people you meet again can be looked up instead of duplicated. Archive contacts you have already followed up with.
 * It has a GUI, but most interactions happen through a Command Line Interface (CLI).
 
+## Run LarperBoard v1.3
+
+With Java 25 installed, build the JAR from the project root using `./gradlew shadowJar`, then run `java -jar build/libs/larperboard.jar`.
+The Help menu opens the [online User Guide](https://ay2627s1-cs2103t-w12-2.github.io/tp/UserGuide.html).
+
 ## Delete a contact
 
 Use `delete INDEX` with one positive index from the currently displayed contact list. For example, `delete 2` removes the second displayed contact.
