@@ -350,3 +350,28 @@
     -fx-background-radius: 2;
     -fx-font-size: 11;
 }
+
+.detail-placeholder {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-font-style: italic;
+    -fx-text-fill: #9e9e9e;
+}
+
+.detail-name {
+    -fx-font-family: "Segoe UI Semibold";
+    -fx-font-size: 24px;
+    -fx-text-fill: white;
+}
+
+.detail-heading {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 11px;
+    -fx-text-fill: #9e9e9e;
+}
+
+.detail-value {
+    -fx-font-family: "Segoe UI";
+    -fx-font-size: 13px;
+    -fx-text-fill: white;
+}
