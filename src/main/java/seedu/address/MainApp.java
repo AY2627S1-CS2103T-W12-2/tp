@@ -32,6 +32,7 @@ import seedu.address.ui.UiManager;
  */
 public class MainApp extends Application {
 
+    /** The release version reported when LarperBoard starts. */
     public static final String VERSION = "v1.3";
 
     private static final Logger logger = LogsCenter.getLogger(MainApp.class);
@@ -61,11 +62,13 @@ public class MainApp extends Application {
     }
 
     /**
-     * Returns a {@code ModelManager} with the data from {@code storage}'s address book and {@code userPrefs}. <br>
-     * The data from the sample address book will be used instead if {@code storage}'s address book is not found,
-     * or an empty address book will be used instead if errors occur when reading {@code storage}'s address book.
+     * Creates a model from saved data, sample data if no file exists, or an empty book if loading fails.
+     *
+     * @param storage source of the saved address book
+     * @param userPrefs preferences to use in the model
+     * @return the initialized model
      */
-    private Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
+    Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
 
         Optional<ReadOnlyAddressBook> addressBookOptional;
