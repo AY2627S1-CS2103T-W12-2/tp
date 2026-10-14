@@ -30,6 +30,9 @@ public class TagCommandParser implements Parser<TagCommand> {
         try {
             index = ParserUtil.parseIndex(argMultimap.getPreamble());
         } catch (ParseException pe) {
+            if (ParserUtil.MESSAGE_INDEX_TOO_LARGE.equals(pe.getMessage())) {
+                throw pe;
+            }
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, TagCommand.MESSAGE_USAGE), pe);
         }
 

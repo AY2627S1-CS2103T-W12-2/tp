@@ -56,6 +56,10 @@ public class TagCommand extends Command {
         Set<Tag> updatedTags = new HashSet<>(personToUpdate.getTags());
         updatedTags.addAll(tagsToAdd);
 
+        if (updatedTags.equals(personToUpdate.getTags())) {
+            return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(personToUpdate)));
+        }
+
         Person updatedPerson = new Person(personToUpdate.getName(), personToUpdate.getPhone(),
                 personToUpdate.getEmail(), personToUpdate.getLinkedIn(), updatedTags);
         model.setPerson(personToUpdate, updatedPerson);
