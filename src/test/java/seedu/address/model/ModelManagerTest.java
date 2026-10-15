@@ -15,7 +15,9 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.Person;
 import seedu.address.testutil.AddressBookBuilder;
+import seedu.address.testutil.PersonBuilder;
 
 public class ModelManagerTest {
 
@@ -89,6 +91,60 @@ public class ModelManagerTest {
     public void setViewedPerson_null_clearsViewedPerson() {
         modelManager.setViewedPerson(ALICE);
         modelManager.setViewedPerson(null);
+        assertNull(modelManager.getViewedPerson().get());
+    }
+
+    @Test
+    public void deletePerson_viewedPerson_clearsViewedPerson() {
+        modelManager.addPerson(ALICE);
+        modelManager.setViewedPerson(ALICE);
+
+        modelManager.deletePerson(ALICE);
+
+        assertNull(modelManager.getViewedPerson().get());
+    }
+
+    @Test
+    public void deletePerson_otherPerson_keepsViewedPerson() {
+        modelManager.addPerson(ALICE);
+        modelManager.addPerson(BENSON);
+        modelManager.setViewedPerson(ALICE);
+
+        modelManager.deletePerson(BENSON);
+
+        assertEquals(ALICE, modelManager.getViewedPerson().get());
+    }
+
+    @Test
+    public void setPerson_viewedPerson_updatesViewedPerson() {
+        Person editedAlice = new PersonBuilder(ALICE).withName("Alicia Pauline").build();
+        modelManager.addPerson(ALICE);
+        modelManager.setViewedPerson(ALICE);
+
+        modelManager.setPerson(ALICE, editedAlice);
+
+        assertEquals(editedAlice, modelManager.getViewedPerson().get());
+    }
+
+    @Test
+    public void setPerson_otherPerson_keepsViewedPerson() {
+        Person editedBenson = new PersonBuilder(BENSON).withName("Benny Meier").build();
+        modelManager.addPerson(ALICE);
+        modelManager.addPerson(BENSON);
+        modelManager.setViewedPerson(ALICE);
+
+        modelManager.setPerson(BENSON, editedBenson);
+
+        assertEquals(ALICE, modelManager.getViewedPerson().get());
+    }
+
+    @Test
+    public void setAddressBook_clearsViewedPerson() {
+        modelManager.addPerson(ALICE);
+        modelManager.setViewedPerson(ALICE);
+
+        modelManager.setAddressBook(new AddressBook());
+
         assertNull(modelManager.getViewedPerson().get());
     }
 
