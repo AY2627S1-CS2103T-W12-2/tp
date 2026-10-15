@@ -174,16 +174,29 @@ A valid `delete INDEX` when the displayed list is empty | `The person list is em
 
 ### Viewing a contact: `view`
 
-Shows the selected contact's full details in the detail pane without changing the contact.
+Shows the selected contact's full details in the detail panel, next to the contact list, without changing the contact.
 
 Format: `view INDEX`
 
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
-* A successful command reports `Now viewing:` followed by the contact's details.
+* The detail panel shows the contact's name, phone number, email, LinkedIn handle and all of their tags. A field that the contact does not have is shown as `-`.
+* The detail panel shows `No contact selected` until you view a contact. A successful command also reports `Now viewing:` followed by the contact's details.
+* The detail panel stays on the contact you viewed until you view someone else. It is updated if you edit or tag that contact, and goes back to `No contact selected` if you delete that contact or clear all entries.
 
 Examples:
-* `view 1` shows the 1st displayed contact.
+* `view 1` shows the 1st displayed contact.<br>
+  ![result for 'view 1'](images/view-panel.png)
 * `find Aisha` followed by `view 1` shows the 1st contact in the search results.
+
+If the contact cannot be viewed, LarperBoard shows these errors:
+
+Input or situation | Message
+-------------------|--------
+A valid `view INDEX` when the displayed list is empty | `The person list is empty.`
+`view 1 2` (more than one index) | `Only one index parameter is accepted.` (with the invalid-format message and usage)
+`view` (missing index) | `Invalid command format!` followed by the command usage
+`view 0`, `view -1`, `view abc`, or `view 2147483648` (invalid or oversized index) | `The person index provided is invalid.`
+`view 99` when the displayed list is nonempty but has fewer than 99 contacts | `The person index provided is invalid.`
 
 ### Clearing all entries: `clear`
 
