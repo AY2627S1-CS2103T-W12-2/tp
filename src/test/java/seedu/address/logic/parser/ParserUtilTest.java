@@ -88,6 +88,17 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseName_validValueWithRepeatedInnerWhitespace_returnsNormalizedName() throws Exception {
+        Name expectedName = new Name("Jane Tan");
+        assertEquals(expectedName, ParserUtil.parseName("Jane   Tan"));
+    }
+
+    @Test
+    public void parseName_tooLong_throwsParseException() {
+        assertThrows(ParseException.class, () -> ParserUtil.parseName("a".repeat(51)));
+    }
+
+    @Test
     public void parsePhone_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ParserUtil.parsePhone((String) null));
     }
