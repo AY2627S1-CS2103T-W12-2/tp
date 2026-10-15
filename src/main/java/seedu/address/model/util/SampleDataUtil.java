@@ -17,26 +17,23 @@ import seedu.address.model.tag.Tag;
  * Contains utility methods for populating {@code AddressBook} with sample data.
  */
 public class SampleDataUtil {
+    /**
+     * Returns six fictional hackathon contacts with LinkedIn handles and stack or role tags.
+     */
     public static Person[] getSamplePersons() {
         return new Person[] {
-            new Person(new Name("Alex Yeoh"), new Phone("87438807"), new Email("alexyeoh@example.com"),
-                new LinkedIn("alex-yeoh"),
-                getTagSet("friends")),
-            new Person(new Name("Bernice Yu"), new Phone("99272758"), new Email("berniceyu@example.com"),
-                new LinkedIn("bernice-yu"),
-                getTagSet("colleagues", "friends")),
-            new Person(new Name("Charlotte Oliveiro"), new Phone("93210283"), new Email("charlotte@example.com"),
-                new LinkedIn("charlotte-oliveiro"),
-                getTagSet("neighbours")),
-            new Person(new Name("David Li"), new Phone("91031282"), new Email("lidavid@example.com"),
-                new LinkedIn("david-li"),
-                getTagSet("family")),
-            new Person(new Name("Irfan Ibrahim"), new Phone("92492021"), new Email("irfan@example.com"),
-                new LinkedIn("irfan-ibrahim"),
-                getTagSet("classmates")),
-            new Person(new Name("Roy Balakrishnan"), new Phone("92624417"), new Email("royb@example.com"),
-                new LinkedIn("roy-balakrishnan"),
-                getTagSet("colleagues"))
+            new Person(new Name("Aisha Rahman"), new Phone("80000001"), new Email("aisha@example.com"),
+                    new LinkedIn("aisha-rahman"), getTagSet("react", "frontend")),
+            new Person(new Name("Ben Tan"), new Phone("80000002"), new Email("ben@example.com"),
+                    new LinkedIn("ben-tan"), getTagSet("python", "backend")),
+            new Person(new Name("Chloe Lim"), new Phone("80000003"), new Email("chloe@example.com"),
+                    new LinkedIn("chloe-lim"), getTagSet("figma", "designer")),
+            new Person(new Name("Daniel Koh"), new Phone("80000004"), new Email("daniel@example.com"),
+                    new LinkedIn("daniel-koh"), getTagSet("flutter", "mobile")),
+            new Person(new Name("Ethan Wong"), new Phone("80000005"), new Email("ethan@example.com"),
+                    new LinkedIn("ethan-wong"), getTagSet("nodejs", "devops")),
+            new Person(new Name("Farah Ali"), new Phone("80000006"), new Email("farah@example.com"),
+                    new LinkedIn("farah-ali"), getTagSet("java", "fullstack"))
         };
     }
 
