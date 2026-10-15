@@ -5,20 +5,30 @@
 
 # LarperBoard
 
-**LarperBoard is a desktop app for hackathon participants to log, find and follow up with the people they meet.** It is optimised for fast typing: a short command records a contact and the detail that will jog your memory later, so networking doesn't get in the way of building.
+**LarperBoard is a desktop app for keeping track of people you meet at hackathons.** Add contact details, LinkedIn handles, and role or tech-stack tags through short commands, then find a person by name when you want to reconnect.
 
-* **Target users:** students who attend many hackathons, keep a laptop open the whole time, and are comfortable with typing commands.
-* **Quick capture:** add a person with their name, what they are building, a note, and a way to reach them, in a single line.
-* **Organise and search:** tag contacts by hackathon or team, and search by name or by the notes you wrote.
-* **Follow up:** mark priority contacts and export everything, notes included, as CSV or plain text to paste into LinkedIn or email.
-* **Keep hackathons separate:** each hackathon's contacts stay together, while people you meet again can be looked up instead of duplicated. Archive contacts you have already followed up with.
-* It has a GUI, but most interactions happen through a Command Line Interface (CLI).
+LarperBoard has a graphical contact list and detail panel, with command-line-style input for adding, finding, viewing, editing, and deleting contacts. Data is saved locally.
+
+## Quick start
+
+Install Java 25 or later, download `larperboard.jar` from the [team releases page](https://github.com/AY2627S1-CS2103T-W12-2/tp/releases), and run it from the folder where you want LarperBoard to save its data:
+
+```text
+java -jar larperboard.jar
+```
+
+Try `list`, then `add n/Aisha Rahman p/98765432 e/aisha@example.com l/aisha-rahman t/frontend`. See the [User Guide](docs/UserGuide.md#quick-start) for the full setup and command instructions.
+
+## Run LarperBoard v1.3
+
+With Java 25 installed, build the JAR from the project root using `./gradlew shadowJar`, then run `java -jar build/libs/larperboard.jar`.
+The Help menu opens the [online User Guide](https://ay2627s1-cs2103t-w12-2.github.io/tp/UserGuide.html).
 
 ## Delete a contact
 
 Use `delete INDEX` with one positive index from the currently displayed contact list. For example, `delete 2` removes the second displayed contact.
 
-The command accepts only one index: `delete 1 2` reports `Only one index parameter is accepted.` An index larger than a Java integer reports `The provided index is too large.`
+The command accepts only one index: `delete 1 2` reports `Only one index parameter is accepted.` An index larger than a Java integer reports `The provided index is too large.` See the [delete error cases](docs/UserGuide.md#deleting-a-person-delete) for empty or invalid lists and indexes.
 
 ## Documentation
 
