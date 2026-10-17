@@ -13,7 +13,9 @@ import static seedu.address.testutil.TypicalTimes.EARLIEST;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 import static seedu.address.testutil.TypicalTimes.NOW;
 
+import java.time.Instant;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Set;
 
@@ -87,8 +89,19 @@ public class ModelManagerTest {
     //=========== activity ===================================================================================
 
     @Test
-    public void getClock_default_isSystemClock() {
-        assertEquals(ZoneId.systemDefault(), modelManager.getClock().getZone());
+    public void getClock_default_isSingaporeClock() {
+        assertEquals(ZoneId.of("Asia/Singapore"), Model.DISPLAY_ZONE);
+        assertEquals(Model.DISPLAY_ZONE, modelManager.getClock().getZone());
+    }
+
+    @Test
+    public void now_defaultClock_isCloseToSystemTime() {
+        Instant before = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        Instant now = modelManager.now();
+        Instant after = Instant.now();
+
+        assertFalse(now.isBefore(before));
+        assertFalse(now.isAfter(after));
     }
 
     @Test

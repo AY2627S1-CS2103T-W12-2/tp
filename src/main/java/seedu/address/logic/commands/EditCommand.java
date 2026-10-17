@@ -95,14 +95,14 @@ public class EditCommand extends Command {
     private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor) {
         assert personToEdit != null;
 
-        Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
-        Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
-        Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
-        LinkedIn updatedLinkedIn = editPersonDescriptor.getLinkedIn().orElse(personToEdit.getLinkedIn());
-        Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
-
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedLinkedIn, updatedTags,
-                personToEdit.getActivity());
+        // toBuilder keeps every field that is not edited here, including activity times
+        return personToEdit.toBuilder()
+                .withName(editPersonDescriptor.getName().orElse(personToEdit.getName()))
+                .withPhone(editPersonDescriptor.getPhone().orElse(personToEdit.getPhone()))
+                .withEmail(editPersonDescriptor.getEmail().orElse(personToEdit.getEmail()))
+                .withLinkedIn(editPersonDescriptor.getLinkedIn().orElse(personToEdit.getLinkedIn()))
+                .withTags(editPersonDescriptor.getTags().orElse(personToEdit.getTags()))
+                .build();
     }
 
     @Override

@@ -56,7 +56,8 @@ public class AddCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
-        model.addPerson(toAdd.withActivity(toAdd.getActivity().withCreatedAt(model.now())));
+        Person withCreatedTime = toAdd.withActivity(toAdd.getActivity().withCreatedAt(model.now()));
+        model.addPerson(withCreatedTime);
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(toAdd)));
     }
 

@@ -2,6 +2,7 @@ package seedu.address.model;
 
 import java.time.Clock;
 import java.time.Instant;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.function.Predicate;
 
@@ -14,6 +15,9 @@ import seedu.address.model.person.Person;
  * The API of the Model component.
  */
 public interface Model {
+    /** The time zone used to display activity times and to decide what today is. */
+    ZoneId DISPLAY_ZONE = ZoneId.of("Asia/Singapore");
+
     /** {@code Predicate} that always evaluates to true */
     Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
 
@@ -112,8 +116,9 @@ public interface Model {
     ReadOnlyObjectProperty<Person> getViewedPerson();
 
     /**
-     * Sets the person to be viewed in the detail panel.
+     * Sets the person to be viewed in the detail panel, without recording a view.
      * A null {@code person} means that no person is being viewed.
+     * To handle a user's {@code view} command use {@link #viewPerson(Person)}, which also sets the last viewed time.
      */
     void setViewedPerson(Person person);
 }

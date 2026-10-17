@@ -32,7 +32,7 @@ public class ModelManager implements Model {
      * Initializes a ModelManager with the given addressBook and userPrefs.
      */
     public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
-        this(addressBook, userPrefs, Clock.systemDefaultZone());
+        this(addressBook, userPrefs, Clock.system(DISPLAY_ZONE));
     }
 
     /**
