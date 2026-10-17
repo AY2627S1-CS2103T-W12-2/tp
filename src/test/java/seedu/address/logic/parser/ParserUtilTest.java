@@ -15,6 +15,7 @@ import org.junit.jupiter.api.Test;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.FollowUpDate;
 import seedu.address.model.person.LinkedIn;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
@@ -228,5 +229,34 @@ public class ParserUtilTest {
     @Test
     public void parseLinkedIn_emptyValue_returnsEmptyLinkedIn() throws Exception {
         assertEquals(new LinkedIn(""), ParserUtil.parseLinkedIn(WHITESPACE));
+    }
+
+    @Test
+    public void parseFollowUpDate_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ParserUtil.parseFollowUpDate((String) null));
+    }
+
+    @Test
+    public void parseFollowUpDate_invalidValue_throwsParseException() {
+        assertThrows(ParseException.class, FollowUpDate.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseFollowUpDate("2026-02-30"));
+        assertThrows(ParseException.class, FollowUpDate.MESSAGE_CONSTRAINTS, () ->
+                ParserUtil.parseFollowUpDate("tomorrow"));
+    }
+
+    @Test
+    public void parseFollowUpDate_validValue_returnsFollowUpDate() throws Exception {
+        assertEquals(new FollowUpDate("2026-10-25"), ParserUtil.parseFollowUpDate("2026-10-25"));
+    }
+
+    @Test
+    public void parseFollowUpDate_validValueWithWhitespace_returnsTrimmedFollowUpDate() throws Exception {
+        assertEquals(new FollowUpDate("2026-10-25"), ParserUtil.parseFollowUpDate("  2026-10-25  "));
+    }
+
+    @Test
+    public void parseFollowUpDate_emptyValue_returnsNone() throws Exception {
+        assertEquals(FollowUpDate.NONE, ParserUtil.parseFollowUpDate(""));
+        assertEquals(FollowUpDate.NONE, ParserUtil.parseFollowUpDate("   "));
     }
 }

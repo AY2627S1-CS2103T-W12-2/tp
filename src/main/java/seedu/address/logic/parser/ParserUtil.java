@@ -9,6 +9,7 @@ import java.util.Set;
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.FollowUpDate;
 import seedu.address.model.person.LinkedIn;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Phone;
@@ -143,5 +144,20 @@ public class ParserUtil {
             tagSet.add(parseTag(tagName));
         }
         return tagSet;
+    }
+
+    /**
+     * Parses a {@code String followUpDate} into a {@code FollowUpDate}.
+     * Leading and trailing whitespaces will be trimmed. An empty string means no date.
+     *
+     * @throws ParseException if the given {@code followUpDate} is invalid.
+     */
+    public static FollowUpDate parseFollowUpDate(String followUpDate) throws ParseException {
+        requireNonNull(followUpDate);
+        String trimmedFollowUpDate = followUpDate.trim();
+        if (!FollowUpDate.isValidFollowUpDate(trimmedFollowUpDate)) {
+            throw new ParseException(FollowUpDate.MESSAGE_CONSTRAINTS);
+        }
+        return new FollowUpDate(trimmedFollowUpDate);
     }
 }

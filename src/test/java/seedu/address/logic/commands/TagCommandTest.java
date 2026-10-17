@@ -30,8 +30,10 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Activity;
+import seedu.address.model.person.FollowUpDate;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
+import seedu.address.testutil.PersonBuilder;
 
 public class TagCommandTest {
 
@@ -181,5 +183,15 @@ public class TagCommandTest {
 
         assertCommandFailure(command, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         assertEquals(Activity.EMPTY, model.getFilteredPersonList().get(0).getActivity());
+    }
+
+    @Test
+    public void execute_personWithFollowUpDate_dateKept() throws Exception {
+        Person original = model.getFilteredPersonList().get(0);
+        model.setPerson(original, new PersonBuilder(original).withFollowUpDate("2026-10-25").build());
+
+        new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("work"))).execute(model);
+
+        assertEquals(new FollowUpDate("2026-10-25"), model.getFilteredPersonList().get(0).getFollowUpDate());
     }
 }

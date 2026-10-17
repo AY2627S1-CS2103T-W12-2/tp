@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_LINKEDIN_AMY;
+import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 
 import java.awt.GraphicsEnvironment;
 
@@ -66,6 +67,48 @@ public class PersonDetailPanelTest {
         PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
 
         assertEquals("-", text(panel, "#linkedIn"));
+    }
+
+    // The fixed clock says today is 2026-10-20.
+
+    @Test
+    public void constructor_futureFollowUpDate_showsDateWithoutOverdue() {
+        Person person = new PersonBuilder().withFollowUpDate("2026-10-25").build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person), FIXED_CLOCK);
+
+        assertEquals("2026-10-25", text(panel, "#followUp"));
+        assertFalse(lookup(panel, "#overdue").isVisible());
+    }
+
+    @Test
+    public void constructor_pastFollowUpDate_showsOverdue() {
+        Person person = new PersonBuilder().withFollowUpDate("2026-10-19").build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person), FIXED_CLOCK);
+
+        assertEquals("2026-10-19", text(panel, "#followUp"));
+        assertTrue(lookup(panel, "#overdue").isVisible());
+        assertEquals("OVERDUE", text(panel, "#overdue"));
+    }
+
+    @Test
+    public void constructor_noFollowUpDate_showsDashAndNoOverdue() {
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build()),
+                FIXED_CLOCK);
+
+        assertEquals("-", text(panel, "#followUp"));
+        assertFalse(lookup(panel, "#overdue").isVisible());
+    }
+
+    @Test
+    public void viewedPersonChanges_overdueIndicatorUpdates() {
+        ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>();
+        PersonDetailPanel panel = new PersonDetailPanel(viewedPerson, FIXED_CLOCK);
+
+        viewedPerson.set(new PersonBuilder().withFollowUpDate("2026-10-19").build());
+        assertTrue(lookup(panel, "#overdue").isVisible());
+
+        viewedPerson.set(new PersonBuilder().withFollowUpDate("2026-10-25").build());
+        assertFalse(lookup(panel, "#overdue").isVisible());
     }
 
     @Test

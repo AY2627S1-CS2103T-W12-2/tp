@@ -45,6 +45,9 @@ public class Messages {
         if (!person.getLinkedIn().isEmpty()) {
             builder.append("; LinkedIn: ").append(person.getLinkedIn());
         }
+        if (!person.getFollowUpDate().isEmpty()) {
+            builder.append("; Follow-up: ").append(person.getFollowUpDate());
+        }
         builder.append("; Tags: ");
         person.getTags().forEach(builder::append);
         return builder.toString();

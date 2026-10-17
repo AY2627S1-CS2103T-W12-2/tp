@@ -3,6 +3,7 @@ package seedu.address.model;
 import java.time.Clock;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Comparator;
 import java.util.function.Predicate;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -104,6 +105,14 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Orders the filtered person list by {@code comparator}. A null {@code comparator} restores the address book
+     * order. The displayed index of a person is its position in the sorted list, so commands that take an index
+     * act on the person shown at that position. The sort is stable.
+     * {@link #updateFilteredPersonList(Predicate)} resets the order, so filter first and then sort.
+     */
+    void updateSortedPersonList(Comparator<Person> comparator);
 
     /**
      * Returns the person currently being viewed in the detail panel.

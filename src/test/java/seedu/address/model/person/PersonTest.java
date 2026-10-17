@@ -99,6 +99,10 @@ public class PersonTest {
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
 
+        // different follow-up date -> returns false
+        editedAlice = new PersonBuilder(ALICE).withFollowUpDate("2026-10-25").build();
+        assertFalse(ALICE.equals(editedAlice));
+
         // different activity -> returns false
         editedAlice = new PersonBuilder(ALICE).withActivity(new Activity(T1, null, null)).build();
         assertFalse(ALICE.equals(editedAlice));
@@ -126,6 +130,25 @@ public class PersonTest {
     }
 
     @Test
+    public void withActivity_keepsFollowUpDate() {
+        Person withDate = new PersonBuilder(ALICE).withFollowUpDate("2026-10-25").build();
+
+        assertEquals(new FollowUpDate("2026-10-25"), withDate.withActivity(new Activity(T1, null, null))
+                .getFollowUpDate());
+    }
+
+    @Test
+    public void getFollowUpDate_defaultsToNone() {
+        assertEquals(FollowUpDate.NONE, ALICE.getFollowUpDate());
+    }
+
+    @Test
+    public void constructor_nullFollowUpDate_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new Person(ALICE.getName(), ALICE.getPhone(),
+                ALICE.getEmail(), ALICE.getLinkedIn(), ALICE.getTags(), null, Activity.EMPTY));
+    }
+
+    @Test
     public void withActivity_nullActivity_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> ALICE.withActivity(null));
     }
@@ -140,6 +163,9 @@ public class PersonTest {
 
         // only activity differs -> true
         assertTrue(ALICE.hasSameDetails(new PersonBuilder(ALICE).withActivity(new Activity(T1, T2, T3)).build()));
+
+        // follow-up date differs -> false
+        assertFalse(ALICE.hasSameDetails(new PersonBuilder(ALICE).withFollowUpDate("2026-10-25").build()));
 
         // a detail differs -> false
         assertFalse(ALICE.hasSameDetails(new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB).build()));
@@ -161,7 +187,7 @@ public class PersonTest {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail()
                 + ", linkedIn=" + ALICE.getLinkedIn() + ", tags=" + ALICE.getTags()
-                + ", activity=" + ALICE.getActivity() + "}";
+                + ", followUpDate=" + ALICE.getFollowUpDate() + ", activity=" + ALICE.getActivity() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }

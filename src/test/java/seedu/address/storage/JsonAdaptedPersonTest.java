@@ -17,6 +17,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
 import seedu.address.model.person.Activity;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.FollowUpDate;
 import seedu.address.model.person.LinkedIn;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
@@ -168,14 +169,14 @@ public class JsonAdaptedPersonTest {
     @Test
     public void toModelType_explicitNullActivityFields_returnsEmptyActivity() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
-                VALID_TAGS, null, null, null);
+                VALID_TAGS, null, null, null, null);
         assertEquals(Activity.EMPTY, person.toModelType().getActivity());
     }
 
     @Test
     public void toModelType_invalidCreatedAt_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
-                VALID_TAGS, INVALID_TIME, null, null);
+                VALID_TAGS, INVALID_TIME, null, null, null);
         assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_TIME_FORMAT,
                 person::toModelType);
     }
@@ -183,7 +184,7 @@ public class JsonAdaptedPersonTest {
     @Test
     public void toModelType_invalidLastEditedAt_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
-                VALID_TAGS, null, INVALID_TIME, null);
+                VALID_TAGS, null, INVALID_TIME, null, null);
         assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_TIME_FORMAT,
                 person::toModelType);
     }
@@ -191,7 +192,7 @@ public class JsonAdaptedPersonTest {
     @Test
     public void toModelType_invalidLastViewedAt_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
-                VALID_TAGS, null, null, INVALID_TIME);
+                VALID_TAGS, null, null, INVALID_TIME, null);
         assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_TIME_FORMAT,
                 person::toModelType);
     }
@@ -200,15 +201,54 @@ public class JsonAdaptedPersonTest {
     public void toModelType_timeWithOffset_normalisedToSameInstant() throws Exception {
         // hand-edited files may use an offset; it is read as the same instant and saved back as UTC
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
-                VALID_TAGS, NON_UTC_TIME, null, null);
+                VALID_TAGS, NON_UTC_TIME, null, null, null);
         assertEquals(Instant.parse("2026-10-17T04:12:33Z"),
                 person.toModelType().getActivity().getCreatedAt().get());
     }
 
     @Test
+    public void toModelType_followUpDateRoundTrip_preservesDate() throws Exception {
+        Person person = new PersonBuilder(BENSON).withFollowUpDate("2026-10-25").build();
+
+        assertEquals(person, new JsonAdaptedPerson(person).toModelType());
+    }
+
+    @Test
+    public void toModelType_missingFollowUpDate_returnsNoDate() throws Exception {
+        // a v1.3 data file has no followUpDate field
+        String json = "{\"name\":\"" + VALID_NAME + "\",\"phone\":\"" + VALID_PHONE
+                + "\",\"email\":\"" + VALID_EMAIL + "\",\"linkedIn\":\"" + VALID_LINKEDIN + "\"}";
+        JsonAdaptedPerson person = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+
+        assertEquals(FollowUpDate.NONE, person.toModelType().getFollowUpDate());
+    }
+
+    @Test
+    public void toModelType_nullOrEmptyFollowUpDate_returnsNoDate() throws Exception {
+        JsonAdaptedPerson nullDate = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
+                VALID_TAGS, null, null, null, null);
+        JsonAdaptedPerson emptyDate = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
+                VALID_TAGS, null, null, null, "");
+
+        assertEquals(FollowUpDate.NONE, nullDate.toModelType().getFollowUpDate());
+        assertEquals(FollowUpDate.NONE, emptyDate.toModelType().getFollowUpDate());
+    }
+
+    @Test
+    public void toModelType_invalidFollowUpDate_throwsIllegalValueException() {
+        String[] invalidDates = {"tomorrow", "2026-02-30", "25-10-2026", " 2026-10-25"};
+
+        for (String invalidDate : invalidDates) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
+                    VALID_TAGS, null, null, null, invalidDate);
+            assertThrows(IllegalValueException.class, FollowUpDate.MESSAGE_CONSTRAINTS, person::toModelType);
+        }
+    }
+
+    @Test
     public void toModelType_emptyTimeString_throwsIllegalValueException() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
-                VALID_TAGS, "", null, null);
+                VALID_TAGS, "", null, null, null);
         assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_TIME_FORMAT,
                 person::toModelType);
     }

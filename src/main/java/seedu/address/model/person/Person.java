@@ -24,6 +24,7 @@ public class Person {
     // Data fields
     private final LinkedIn linkedIn;
     private final Set<Tag> tags = new HashSet<>();
+    private final FollowUpDate followUpDate;
 
     // Activity metadata (when the person was created, last edited and last viewed)
     private final Activity activity;
@@ -40,12 +41,21 @@ public class Person {
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity) {
-        requireAllNonNull(name, phone, email, linkedIn, tags, activity);
+        this(name, phone, email, linkedIn, tags, FollowUpDate.NONE, activity);
+    }
+
+    /**
+     * Every field must be present and not null.
+     */
+    public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags,
+            FollowUpDate followUpDate, Activity activity) {
+        requireAllNonNull(name, phone, email, linkedIn, tags, followUpDate, activity);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.linkedIn = linkedIn;
         this.tags.addAll(tags);
+        this.followUpDate = followUpDate;
         this.activity = activity;
     }
 
@@ -73,6 +83,10 @@ public class Person {
         return Collections.unmodifiableSet(tags);
     }
 
+    public FollowUpDate getFollowUpDate() {
+        return followUpDate;
+    }
+
     public Activity getActivity() {
         return activity;
     }
@@ -81,7 +95,7 @@ public class Person {
      * Returns a copy of this person with every field kept except {@code activity}, which is replaced.
      */
     public Person withActivity(Activity activity) {
-        return new Person(name, phone, email, linkedIn, tags, activity);
+        return new Person(name, phone, email, linkedIn, tags, followUpDate, activity);
     }
 
     /**
@@ -127,13 +141,14 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && linkedIn.equals(otherPerson.linkedIn)
                 && tags.equals(otherPerson.tags)
+                && followUpDate.equals(otherPerson.followUpDate)
                 && activity.equals(otherPerson.activity);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, linkedIn, tags, activity);
+        return Objects.hash(name, phone, email, linkedIn, tags, followUpDate, activity);
     }
 
     @Override
@@ -144,6 +159,7 @@ public class Person {
                 .add("email", email)
                 .add("linkedIn", linkedIn)
                 .add("tags", tags)
+                .add("followUpDate", followUpDate)
                 .add("activity", activity)
                 .toString();
     }

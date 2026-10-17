@@ -23,6 +23,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.DueCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -32,6 +33,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Activity;
+import seedu.address.model.person.FollowUpDate;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
@@ -246,5 +248,39 @@ public class LogicManagerTest {
         Person reloaded = reader.readAddressBook().get().getPersonList().get(0);
 
         assertEquals(new Activity(NOW, null, NOW), reloaded.getActivity());
+    }
+
+    @Test
+    public void execute_followUpThenReload_dateAndEditTimeSaved() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY);
+        logic.execute("followup 1 d/2026-10-25");
+
+        JsonAddressBookStorage reader = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        Person reloaded = reader.readAddressBook().get().getPersonList().get(0);
+
+        assertEquals(new FollowUpDate("2026-10-25"), reloaded.getFollowUpDate());
+        assertEquals(new Activity(NOW, NOW, null), reloaded.getActivity());
+    }
+
+    @Test
+    public void execute_followUpClearedThenReload_dateGone() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY);
+        logic.execute("followup 1 d/2026-10-25");
+        logic.execute("followup 1 d/");
+
+        JsonAddressBookStorage reader = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+
+        assertEquals(FollowUpDate.NONE, reader.readAddressBook().get().getPersonList().get(0).getFollowUpDate());
+    }
+
+    @Test
+    public void execute_dueAfterFollowUp_showsOnlyDueContacts() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY);
+        logic.execute("followup 1 d/2026-10-19");
+
+        CommandResult result = logic.execute("due");
+
+        assertEquals(1, logic.getFilteredPersonList().size());
+        assertEquals(String.format(DueCommand.MESSAGE_SUCCESS, 1), result.getFeedbackToUser());
     }
 }

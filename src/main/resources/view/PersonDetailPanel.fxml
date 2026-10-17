@@ -5,6 +5,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -26,6 +27,11 @@
       <Label fx:id="email" styleClass="detail-value" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="1" />
       <Label styleClass="detail-heading" text="LINKEDIN" GridPane.columnIndex="0" GridPane.rowIndex="2" />
       <Label fx:id="linkedIn" styleClass="detail-value" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+      <Label styleClass="detail-heading" text="FOLLOW-UP" GridPane.columnIndex="0" GridPane.rowIndex="3" />
+      <HBox spacing="8" alignment="CENTER_LEFT" GridPane.columnIndex="1" GridPane.rowIndex="3">
+        <Label fx:id="followUp" styleClass="detail-value" wrapText="true" />
+        <Label fx:id="overdue" styleClass="overdue-label" text="OVERDUE" />
+      </HBox>
     </GridPane>
     <Label styleClass="detail-heading" text="TAGS" />
     <FlowPane fx:id="tags" />

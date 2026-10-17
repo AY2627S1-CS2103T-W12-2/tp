@@ -29,6 +29,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Activity;
+import seedu.address.model.person.FollowUpDate;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
@@ -222,5 +223,16 @@ public class EditCommandTest {
         assertEquals(secondBefore, model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased()));
         assertEquals(Activity.EMPTY,
                 model.getFilteredPersonList().get(INDEX_SECOND_PERSON.getZeroBased()).getActivity());
+    }
+
+    @Test
+    public void execute_personWithFollowUpDate_dateKept() throws Exception {
+        Person original = model.getFilteredPersonList().get(0);
+        model.setPerson(original, new PersonBuilder(original).withFollowUpDate("2026-10-25").build());
+
+        new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build()).execute(model);
+
+        assertEquals(new FollowUpDate("2026-10-25"), model.getFilteredPersonList().get(0).getFollowUpDate());
     }
 }

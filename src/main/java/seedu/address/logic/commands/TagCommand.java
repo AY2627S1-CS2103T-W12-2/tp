@@ -61,7 +61,8 @@ public class TagCommand extends Command {
         }
 
         Person updatedPerson = new Person(personToUpdate.getName(), personToUpdate.getPhone(),
-                personToUpdate.getEmail(), personToUpdate.getLinkedIn(), updatedTags, personToUpdate.getActivity());
+                personToUpdate.getEmail(), personToUpdate.getLinkedIn(), updatedTags, personToUpdate.getFollowUpDate(),
+                personToUpdate.getActivity());
         model.editPerson(personToUpdate, updatedPerson);
 
         return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(updatedPerson)));

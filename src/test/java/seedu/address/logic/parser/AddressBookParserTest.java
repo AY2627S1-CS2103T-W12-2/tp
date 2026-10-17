@@ -16,15 +16,18 @@ import org.junit.jupiter.api.Test;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClearCommand;
 import seedu.address.logic.commands.DeleteCommand;
+import seedu.address.logic.commands.DueCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.logic.commands.FollowUpCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.TagCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.FollowUpDate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
@@ -77,6 +80,19 @@ public class AddressBookParserTest {
         FindCommand command = (FindCommand) parser.parseCommand(
                 FindCommand.COMMAND_WORD + " " + keywords.stream().collect(Collectors.joining(" ")));
         assertEquals(new FindCommand(new NameContainsKeywordsPredicate(keywords)), command);
+    }
+
+    @Test
+    public void parseCommand_followUp() throws Exception {
+        FollowUpCommand command = (FollowUpCommand) parser.parseCommand(
+                FollowUpCommand.COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased() + " d/2026-10-25");
+        assertEquals(new FollowUpCommand(INDEX_FIRST_PERSON, new FollowUpDate("2026-10-25")), command);
+    }
+
+    @Test
+    public void parseCommand_due() throws Exception {
+        assertTrue(parser.parseCommand(DueCommand.COMMAND_WORD) instanceof DueCommand);
+        assertTrue(parser.parseCommand(DueCommand.COMMAND_WORD + " 3") instanceof DueCommand);
     }
 
     @Test

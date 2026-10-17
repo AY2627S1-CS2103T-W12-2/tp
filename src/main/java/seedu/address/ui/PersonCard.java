@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.Comparator;
 
 import javafx.fxml.FXML;
@@ -39,12 +41,23 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label linkedIn;
     @FXML
+    private Label followUp;
+    @FXML
+    private Label overdue;
+    @FXML
     private FlowPane tags;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
      */
     public PersonCard(Person person, int displayedIndex) {
+        this(person, displayedIndex, Clock.systemDefaultZone());
+    }
+
+    /**
+     * Creates a {@code PersonCard} that decides whether the follow-up date is overdue using the date on {@code clock}.
+     */
+    PersonCard(Person person, int displayedIndex, Clock clock) {
         super(FXML);
         this.person = person;
         id.setText(displayedIndex + ". ");
@@ -54,6 +67,13 @@ public class PersonCard extends UiPart<Region> {
         linkedIn.setText(person.getLinkedIn().value);
         linkedIn.setVisible(!person.getLinkedIn().isEmpty());
         linkedIn.setManaged(!person.getLinkedIn().isEmpty());
+        boolean hasFollowUp = !person.getFollowUpDate().isEmpty();
+        followUp.setText("Follow up: " + person.getFollowUpDate().value);
+        followUp.setVisible(hasFollowUp);
+        followUp.setManaged(hasFollowUp);
+        boolean isOverdue = person.getFollowUpDate().isOverdueOn(LocalDate.now(clock));
+        overdue.setVisible(isOverdue);
+        overdue.setManaged(isOverdue);
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));

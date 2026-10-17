@@ -1,5 +1,7 @@
 package seedu.address.ui;
 
+import java.time.Clock;
+import java.time.LocalDate;
 import java.util.Comparator;
 
 import javafx.beans.value.ObservableValue;
@@ -31,14 +33,29 @@ public class PersonDetailPanel extends UiPart<Region> {
     @FXML
     private Label linkedIn;
     @FXML
+    private Label followUp;
+    @FXML
+    private Label overdue;
+    @FXML
     private FlowPane tags;
+
+    private final Clock clock;
 
     /**
      * Creates a {@code PersonDetailPanel} that shows the person held by {@code viewedPerson},
      * and updates whenever that person changes.
      */
     public PersonDetailPanel(ObservableValue<Person> viewedPerson) {
+        this(viewedPerson, Clock.systemDefaultZone());
+    }
+
+    /**
+     * Creates a {@code PersonDetailPanel} that decides whether the follow-up date is overdue using the date on
+     * {@code clock}.
+     */
+    PersonDetailPanel(ObservableValue<Person> viewedPerson, Clock clock) {
         super(FXML);
+        this.clock = clock;
         showPerson(viewedPerson.getValue());
         viewedPerson.addListener((observable, oldPerson, newPerson) -> showPerson(newPerson));
     }
@@ -60,6 +77,10 @@ public class PersonDetailPanel extends UiPart<Region> {
         phone.setText(orPlaceholder(person.getPhone().value));
         email.setText(orPlaceholder(person.getEmail().value));
         linkedIn.setText(orPlaceholder(person.getLinkedIn().value));
+        followUp.setText(orPlaceholder(person.getFollowUpDate().value));
+        boolean isOverdue = person.getFollowUpDate().isOverdueOn(LocalDate.now(clock));
+        overdue.setVisible(isOverdue);
+        overdue.setManaged(isOverdue);
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));

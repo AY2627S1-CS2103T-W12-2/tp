@@ -14,6 +14,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Activity;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.FollowUpDate;
 import seedu.address.model.person.LinkedIn;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
@@ -34,6 +35,7 @@ class JsonAdaptedPerson {
     private final String email;
     private final String linkedIn;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
+    private final String followUpDate;
     private final String createdAt;
     private final String lastEditedAt;
     private final String lastViewedAt;
@@ -43,18 +45,20 @@ class JsonAdaptedPerson {
      */
     public JsonAdaptedPerson(String name, String phone, String email, String linkedIn,
             List<JsonAdaptedTag> tags) {
-        this(name, phone, email, linkedIn, tags, null, null, null);
+        this(name, phone, email, linkedIn, tags, null, null, null, null);
     }
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details.
+     * The follow-up date is {@code YYYY-MM-DD}, or null if not set.
      * The activity times are ISO-8601 UTC strings, or null if not known.
      */
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("linkedIn") String linkedIn,
             @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("createdAt") String createdAt,
-            @JsonProperty("lastEditedAt") String lastEditedAt, @JsonProperty("lastViewedAt") String lastViewedAt) {
+            @JsonProperty("lastEditedAt") String lastEditedAt, @JsonProperty("lastViewedAt") String lastViewedAt,
+            @JsonProperty("followUpDate") String followUpDate) {
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -65,6 +69,7 @@ class JsonAdaptedPerson {
         this.createdAt = createdAt;
         this.lastEditedAt = lastEditedAt;
         this.lastViewedAt = lastViewedAt;
+        this.followUpDate = followUpDate;
     }
 
     /**
@@ -78,6 +83,7 @@ class JsonAdaptedPerson {
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
+        followUpDate = source.getFollowUpDate().value;
         Activity activity = source.getActivity();
         createdAt = activity.getCreatedAt().map(Instant::toString).orElse(null);
         lastEditedAt = activity.getLastEditedAt().map(Instant::toString).orElse(null);
@@ -121,10 +127,17 @@ class JsonAdaptedPerson {
 
         final Set<Tag> modelTags = new HashSet<>(personTags);
 
+        // A missing follow-up date is treated as no date, so that older data files still load.
+        if (followUpDate != null && !FollowUpDate.isValidFollowUpDate(followUpDate)) {
+            throw new IllegalValueException(FollowUpDate.MESSAGE_CONSTRAINTS);
+        }
+        final FollowUpDate modelFollowUpDate = new FollowUpDate(followUpDate == null ? "" : followUpDate);
+
         // Missing activity times (for example, in older data files) stay absent instead of being invented.
         final Activity modelActivity = new Activity(parseTime(createdAt), parseTime(lastEditedAt),
                 parseTime(lastViewedAt));
-        return new Person(modelName, modelPhone, modelEmail, modelLinkedIn, modelTags, modelActivity);
+        return new Person(modelName, modelPhone, modelEmail, modelLinkedIn, modelTags, modelFollowUpDate,
+                modelActivity);
     }
 
     /**

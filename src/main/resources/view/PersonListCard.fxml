@@ -31,6 +31,10 @@
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
       <Label fx:id="email" styleClass="cell_small_label" text="\$email" />
       <Label fx:id="linkedIn" styleClass="cell_small_label" text="\$linkedIn" />
+      <HBox spacing="8" alignment="CENTER_LEFT">
+        <Label fx:id="followUp" styleClass="cell_small_label" text="\$followUp" />
+        <Label fx:id="overdue" styleClass="overdue-label" text="OVERDUE" />
+      </HBox>
     </VBox>
   </GridPane>
 </HBox>

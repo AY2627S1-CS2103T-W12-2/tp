@@ -5,6 +5,7 @@ import java.util.Set;
 
 import seedu.address.model.person.Activity;
 import seedu.address.model.person.Email;
+import seedu.address.model.person.FollowUpDate;
 import seedu.address.model.person.LinkedIn;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
@@ -27,6 +28,7 @@ public class PersonBuilder {
     private Email email;
     private LinkedIn linkedIn;
     private Set<Tag> tags;
+    private FollowUpDate followUpDate;
     private Activity activity;
 
     /**
@@ -38,6 +40,7 @@ public class PersonBuilder {
         email = new Email(DEFAULT_EMAIL);
         linkedIn = new LinkedIn(DEFAULT_LINKEDIN);
         tags = new HashSet<>();
+        followUpDate = FollowUpDate.NONE;
         activity = Activity.EMPTY;
     }
 
@@ -50,6 +53,7 @@ public class PersonBuilder {
         email = personToCopy.getEmail();
         linkedIn = personToCopy.getLinkedIn();
         tags = new HashSet<>(personToCopy.getTags());
+        followUpDate = personToCopy.getFollowUpDate();
         activity = personToCopy.getActivity();
     }
 
@@ -94,6 +98,14 @@ public class PersonBuilder {
     }
 
     /**
+     * Sets the {@code FollowUpDate} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withFollowUpDate(String followUpDate) {
+        this.followUpDate = new FollowUpDate(followUpDate);
+        return this;
+    }
+
+    /**
      * Sets the {@code Activity} of the {@code Person} that we are building.
      */
     public PersonBuilder withActivity(Activity activity) {
@@ -102,7 +114,7 @@ public class PersonBuilder {
     }
 
     public Person build() {
-        return new Person(name, phone, email, linkedIn, tags, activity);
+        return new Person(name, phone, email, linkedIn, tags, followUpDate, activity);
     }
 
 }

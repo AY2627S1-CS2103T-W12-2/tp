@@ -8,12 +8,14 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.CARL;
 import static seedu.address.testutil.TypicalTimes.EARLIER;
 import static seedu.address.testutil.TypicalTimes.EARLIEST;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 import static seedu.address.testutil.TypicalTimes.NOW;
 
 import java.time.ZoneId;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
 
@@ -81,6 +83,74 @@ public class ModelManagerTest {
 
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
+        assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    //=========== sorted view ================================================================================
+
+    @Test
+    public void updateSortedPersonList_comparator_ordersDisplayedList() {
+        modelManager.addPerson(BENSON);
+        modelManager.addPerson(ALICE);
+
+        modelManager.updateSortedPersonList(Comparator.comparing(person -> person.getName().fullName));
+
+        assertEquals(List.of(ALICE, BENSON), modelManager.getFilteredPersonList());
+        // the stored order is not touched
+        assertEquals(List.of(BENSON, ALICE), modelManager.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void updateSortedPersonList_null_restoresAddressBookOrder() {
+        modelManager.addPerson(BENSON);
+        modelManager.addPerson(ALICE);
+        modelManager.updateSortedPersonList(Comparator.comparing(person -> person.getName().fullName));
+
+        modelManager.updateSortedPersonList(null);
+
+        assertEquals(List.of(BENSON, ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void updateFilteredPersonList_resetsSortOrder() {
+        modelManager.addPerson(BENSON);
+        modelManager.addPerson(ALICE);
+        modelManager.updateSortedPersonList(Comparator.comparing(person -> person.getName().fullName));
+
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+
+        assertEquals(List.of(BENSON, ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void updateSortedPersonList_filteredAndSorted_appliesBoth() {
+        modelManager.addPerson(ALICE);
+        modelManager.addPerson(BENSON);
+        modelManager.addPerson(CARL);
+        // CARL does not match the filter; the other two are shown in reverse name order
+        modelManager.updateFilteredPersonList(person -> person.getName().fullName.contains("e"));
+        modelManager.updateSortedPersonList(Comparator.comparing((Person person) -> person.getName().fullName)
+                .reversed());
+
+        assertEquals(List.of(BENSON, ALICE), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void sortedList_personEdited_orderFollowsEdit() {
+        modelManager.addPerson(ALICE);
+        modelManager.addPerson(BENSON);
+        modelManager.updateSortedPersonList(Comparator.comparing(person -> person.getFollowUpDate().value,
+                Comparator.reverseOrder()));
+        Person aliceWithDate = new PersonBuilder(ALICE).withFollowUpDate("2026-10-25").build();
+
+        modelManager.setPerson(ALICE, aliceWithDate);
+
+        assertEquals(List.of(aliceWithDate, BENSON), modelManager.getFilteredPersonList());
+    }
+
+    @Test
+    public void updateSortedPersonList_modifyList_throwsUnsupportedOperationException() {
+        modelManager.addPerson(ALICE);
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
     }
 
