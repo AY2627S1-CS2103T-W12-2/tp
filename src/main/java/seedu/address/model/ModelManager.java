@@ -115,6 +115,21 @@ public class ModelManager implements Model {
     }
 
     @Override
+    public Snapshot createSnapshot() {
+        return new ModelSnapshot(new AddressBook(addressBook), viewedPerson.get(), filteredPersons.getPredicate());
+    }
+
+    @Override
+    public void restore(Snapshot snapshot) {
+        requireNonNull(snapshot);
+        ModelSnapshot toRestore = (ModelSnapshot) snapshot;
+
+        addressBook.resetData(toRestore.addressBook());
+        filteredPersons.setPredicate(toRestore.filter());
+        viewedPerson.set(toRestore.viewedPerson());
+    }
+
+    @Override
     public Clock getClock() {
         return clock;
     }
@@ -182,5 +197,12 @@ public class ModelManager implements Model {
                 && userPrefs.equals(otherModelManager.userPrefs)
                 && filteredPersons.equals(otherModelManager.filteredPersons);
     }
+
+    /**
+     * What {@link ModelManager#createSnapshot()} keeps. {@code addressBook} is a private copy. The {@code Person}
+     * objects in it are immutable, so the viewed person is still the same object as the one in the restored list.
+     */
+    private record ModelSnapshot(AddressBook addressBook, Person viewedPerson, Predicate<? super Person> filter)
+            implements Snapshot {}
 
 }

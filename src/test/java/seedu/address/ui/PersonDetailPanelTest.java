@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_LINKEDIN_AMY;
 
 import java.awt.GraphicsEnvironment;
+import java.time.Instant;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -17,6 +18,7 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
+import seedu.address.model.person.Activity;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -66,6 +68,52 @@ public class PersonDetailPanelTest {
         PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
 
         assertEquals("-", text(panel, "#linkedIn"));
+    }
+
+    @Test
+    public void constructor_unknownActivity_showsEmDash() {
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build()));
+
+        assertEquals("—", text(panel, "#createdAt"));
+        assertEquals("—", text(panel, "#lastEditedAt"));
+        assertEquals("—", text(panel, "#lastViewedAt"));
+    }
+
+    @Test
+    public void constructor_activityTimes_shownInSingaporeTime() {
+        // 20:00 UTC on the 17th is 04:00 on the 18th in Singapore (UTC+8)
+        Person person = new PersonBuilder().withActivity(new Activity(Instant.parse("2026-10-17T20:00:00Z"),
+                Instant.parse("2026-10-18T04:05:59Z"), Instant.parse("2026-12-31T16:00:00Z"))).build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
+
+        assertEquals("2026-10-18 04:00", text(panel, "#createdAt"));
+        assertEquals("2026-10-18 12:05", text(panel, "#lastEditedAt"));
+        assertEquals("2027-01-01 00:00", text(panel, "#lastViewedAt"));
+    }
+
+    @Test
+    public void constructor_partlyKnownActivity_showsDashOnlyForUnknown() {
+        Person person = new PersonBuilder().withActivity(new Activity(null, Instant.parse("2026-10-18T00:00:00Z"),
+                null)).build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
+
+        assertEquals("—", text(panel, "#createdAt"));
+        assertEquals("2026-10-18 08:00", text(panel, "#lastEditedAt"));
+        assertEquals("—", text(panel, "#lastViewedAt"));
+    }
+
+    @Test
+    public void viewedPersonChanges_activityTimesUpdate() {
+        ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>();
+        PersonDetailPanel panel = new PersonDetailPanel(viewedPerson);
+
+        viewedPerson.set(new PersonBuilder().build());
+        assertEquals("—", text(panel, "#lastViewedAt"));
+
+        // the same contact, now with a last viewed time (what the view command stores)
+        viewedPerson.set(new PersonBuilder().withActivity(new Activity(null, null,
+                Instant.parse("2026-10-20T01:02:03Z"))).build());
+        assertEquals("2026-10-20 09:02", text(panel, "#lastViewedAt"));
     }
 
     @Test

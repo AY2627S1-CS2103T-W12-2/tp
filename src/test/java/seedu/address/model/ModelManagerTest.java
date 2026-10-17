@@ -8,6 +8,7 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalPersons.CARL;
 import static seedu.address.testutil.TypicalTimes.EARLIER;
 import static seedu.address.testutil.TypicalTimes.EARLIEST;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
@@ -84,6 +85,75 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    //=========== snapshot ===================================================================================
+
+    @Test
+    public void restore_afterChanges_bringsBackAddressBookViewedPersonAndFilter() {
+        modelManager.addPerson(ALICE);
+        modelManager.addPerson(BENSON);
+        modelManager.viewPerson(modelManager.getFilteredPersonList().get(0));
+        modelManager.updateFilteredPersonList(person -> person.getName().equals(BENSON.getName()));
+        AddressBook addressBookBefore = new AddressBook(modelManager.getAddressBook());
+        List<Person> visibleBefore = List.copyOf(modelManager.getFilteredPersonList());
+        Person viewedBefore = modelManager.getViewedPerson().get();
+        Model.Snapshot snapshot = modelManager.createSnapshot();
+
+        modelManager.deletePerson(modelManager.getAddressBook().getPersonList().get(0));
+        modelManager.addPerson(CARL);
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        modelManager.setViewedPerson(null);
+        modelManager.restore(snapshot);
+
+        assertEquals(addressBookBefore, modelManager.getAddressBook());
+        assertEquals(visibleBefore, modelManager.getFilteredPersonList());
+        assertEquals(viewedBefore, modelManager.getViewedPerson().get());
+    }
+
+    @Test
+    public void restore_noViewedPerson_keepsNoViewedPerson() {
+        modelManager.addPerson(ALICE);
+        Model.Snapshot snapshot = modelManager.createSnapshot();
+
+        modelManager.viewPerson(ALICE);
+        modelManager.restore(snapshot);
+
+        assertNull(modelManager.getViewedPerson().get());
+        assertEquals(Activity.EMPTY, modelManager.getAddressBook().getPersonList().get(0).getActivity());
+    }
+
+    @Test
+    public void createSnapshot_laterChanges_doNotAffectSnapshot() {
+        modelManager.addPerson(ALICE);
+        Model.Snapshot snapshot = modelManager.createSnapshot();
+
+        modelManager.addPerson(BENSON);
+        modelManager.deletePerson(ALICE);
+        modelManager.restore(snapshot);
+
+        assertEquals(List.of(ALICE), modelManager.getAddressBook().getPersonList());
+        // restoring again after more changes gives the same state
+        modelManager.addPerson(CARL);
+        modelManager.restore(snapshot);
+        assertEquals(List.of(ALICE), modelManager.getAddressBook().getPersonList());
+    }
+
+    @Test
+    public void restore_doesNotChangeClockOrUserPrefs() {
+        ModelManager timedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
+        Model.Snapshot snapshot = timedModel.createSnapshot();
+        timedModel.setGuiSettings(new GuiSettings(1, 2, 3, 4));
+
+        timedModel.restore(snapshot);
+
+        assertEquals(new GuiSettings(1, 2, 3, 4), timedModel.getGuiSettings());
+        assertEquals(FIXED_CLOCK, timedModel.getClock());
+    }
+
+    @Test
+    public void restore_nullSnapshot_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.restore(null));
     }
 
     //=========== activity ===================================================================================

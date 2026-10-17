@@ -165,6 +165,16 @@ public class AddCommandTest {
         }
 
         @Override
+        public Snapshot createSnapshot() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void restore(Snapshot snapshot) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public void editPerson(Person target, Person editedPerson) {
             throw new AssertionError("This method should not be called.");
         }

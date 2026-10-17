@@ -22,6 +22,12 @@ public interface Model {
     Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
 
     /**
+     * An opaque copy of the parts of the model that a command can change: the contacts, the viewed contact and
+     * the visible-list filter. Created with {@link #createSnapshot()} and given back to {@link #restore(Snapshot)}.
+     */
+    interface Snapshot {}
+
+    /**
      * Returns the user prefs.
      */
     ReadOnlyUserPrefs getUserPrefs();
@@ -67,6 +73,19 @@ public interface Model {
      * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
      */
     void setPerson(Person target, Person editedPerson);
+
+    /**
+     * Returns a snapshot of the contacts, the viewed contact and the visible-list filter as they are now.
+     * Later changes to the model do not change the snapshot.
+     */
+    Snapshot createSnapshot();
+
+    /**
+     * Puts the contacts, the viewed contact and the visible-list filter back to what they were when
+     * {@code snapshot} was created. Used when a command's change could not be saved.
+     * {@code snapshot} must come from {@link #createSnapshot()} of this model.
+     */
+    void restore(Snapshot snapshot);
 
     /**
      * Returns the clock used to record when things happen.
