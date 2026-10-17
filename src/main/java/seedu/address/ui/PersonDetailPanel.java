@@ -1,6 +1,9 @@
 package seedu.address.ui;
 
+import java.time.Instant;
+import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
+import java.util.Optional;
 
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
@@ -8,6 +11,7 @@ import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
 /**
@@ -17,6 +21,9 @@ public class PersonDetailPanel extends UiPart<Region> {
 
     private static final String FXML = "PersonDetailPanel.fxml";
     private static final String EMPTY_FIELD_TEXT = "-";
+    private static final String UNKNOWN_TIME_TEXT = "\u2014"; // em dash
+    private static final DateTimeFormatter TIME_FORMAT =
+            DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(Model.DISPLAY_ZONE);
 
     @FXML
     private Label placeholder;
@@ -32,6 +39,12 @@ public class PersonDetailPanel extends UiPart<Region> {
     private Label linkedIn;
     @FXML
     private FlowPane tags;
+    @FXML
+    private Label createdAt;
+    @FXML
+    private Label lastEditedAt;
+    @FXML
+    private Label lastViewedAt;
 
     /**
      * Creates a {@code PersonDetailPanel} that shows the person held by {@code viewedPerson},
@@ -60,9 +73,19 @@ public class PersonDetailPanel extends UiPart<Region> {
         phone.setText(orPlaceholder(person.getPhone().value));
         email.setText(orPlaceholder(person.getEmail().value));
         linkedIn.setText(orPlaceholder(person.getLinkedIn().value));
+        createdAt.setText(formatTime(person.getActivity().getCreatedAt()));
+        lastEditedAt.setText(formatTime(person.getActivity().getLastEditedAt()));
+        lastViewedAt.setText(formatTime(person.getActivity().getLastViewedAt()));
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+    }
+
+    /**
+     * Formats {@code time} in Singapore time, or as an em dash if it is not known.
+     */
+    private static String formatTime(Optional<Instant> time) {
+        return time.map(TIME_FORMAT::format).orElse(UNKNOWN_TIME_TEXT);
     }
 
     private static String orPlaceholder(String value) {

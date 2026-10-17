@@ -3,6 +3,7 @@ package seedu.address.model;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.Clock;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -25,18 +26,27 @@ public class ModelManager implements Model {
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>();
+    private final Clock clock;
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
      */
     public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs) {
-        requireAllNonNull(addressBook, userPrefs);
+        this(addressBook, userPrefs, Clock.system(DISPLAY_ZONE));
+    }
+
+    /**
+     * Initializes a ModelManager with the given addressBook, userPrefs and the clock used to record activity.
+     */
+    public ModelManager(ReadOnlyAddressBook addressBook, ReadOnlyUserPrefs userPrefs, Clock clock) {
+        requireAllNonNull(addressBook, userPrefs, clock);
 
         logger.fine("Initializing with address book: " + addressBook + " and user prefs " + userPrefs);
 
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        this.clock = clock;
     }
 
     public ModelManager() {
@@ -104,6 +114,45 @@ public class ModelManager implements Model {
         }
     }
 
+    @Override
+    public Snapshot createSnapshot() {
+        return new ModelSnapshot(new AddressBook(addressBook), viewedPerson.get(), filteredPersons.getPredicate());
+    }
+
+    @Override
+    public void restore(Snapshot snapshot) {
+        requireNonNull(snapshot);
+        ModelSnapshot toRestore = (ModelSnapshot) snapshot;
+
+        addressBook.resetData(toRestore.addressBook());
+        filteredPersons.setPredicate(toRestore.filter());
+        viewedPerson.set(toRestore.viewedPerson());
+    }
+
+    @Override
+    public Clock getClock() {
+        return clock;
+    }
+
+    @Override
+    public void editPerson(Person target, Person editedPerson) {
+        requireAllNonNull(target, editedPerson);
+
+        if (editedPerson.hasSameDetails(target)) {
+            return;
+        }
+        setPerson(target, editedPerson.withActivity(target.getActivity().withLastEditedAt(now())));
+    }
+
+    @Override
+    public void viewPerson(Person person) {
+        requireNonNull(person);
+
+        Person viewed = person.withActivity(person.getActivity().withLastViewedAt(now()));
+        addressBook.setPerson(person, viewed);
+        viewedPerson.set(viewed);
+    }
+
     //=========== Filtered Person List Accessors =============================================================
 
     /**
@@ -148,5 +197,12 @@ public class ModelManager implements Model {
                 && userPrefs.equals(otherModelManager.userPrefs)
                 && filteredPersons.equals(otherModelManager.filteredPersons);
     }
+
+    /**
+     * What {@link ModelManager#createSnapshot()} keeps. {@code addressBook} is a private copy. The {@code Person}
+     * objects in it are immutable, so the viewed person is still the same object as the one in the restored list.
+     */
+    private record ModelSnapshot(AddressBook addressBook, Person viewedPerson, Predicate<? super Person> filter)
+            implements Snapshot {}
 
 }
