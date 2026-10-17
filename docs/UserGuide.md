@@ -59,7 +59,7 @@ LarperBoard is a desktop app for keeping track of people you meet at hackathons.
 * Put a required `INDEX` first; prefixed parameters can then be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `due`, `exit`, and `clear`, are ignored.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -131,6 +131,51 @@ Examples:
 * `tag 1 t/frontend t/React` adds `frontend` and `react` to the 1st displayed contact.
 * `find Aisha` followed by `tag 1 t/mentor` adds `mentor` to the 1st contact in the search results.
 * `tag 1 t/Java t/java` adds only one `java` tag.
+
+### Setting a follow-up date: `followup`
+
+Sets, replaces or clears the date on which you want to follow up with a contact. Use it to remember who needs a reply.
+
+Format: `followup INDEX d/DATE`
+
+* `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
+* `DATE` is a real calendar date written as `YYYY-MM-DD`, for example `2026-10-25`. Dates in the past are allowed.
+* A new date replaces the old one. The date is not tied to a time of day.
+* To clear the date, enter `d/` without a date. Clearing a date that is already empty changes nothing and says so.
+* A successful command reports `Set follow-up date:` or `Cleared follow-up date:` followed by the contact's details. Setting the same date again changes nothing.
+* The date is shown on the contact's card and in the detail panel. A date before today is marked **OVERDUE**. A date that is today is not overdue yet. The marker is worked out from the computer's date each time the list or detail panel is redrawn.
+* The date is saved in the data file.
+
+Examples:
+* `followup 1 d/2026-10-25` sets the 1st displayed contact's follow-up date to 25 October 2026.
+* `followup 1 d/2026-11-02` then replaces it with 2 November 2026.
+* `followup 1 d/` clears the date.
+
+If the date cannot be set, LarperBoard shows these errors:
+
+Input or situation | Message
+-------------------|--------
+`followup 1` or `followup 1 2026-10-25` (missing `d/`) | `Invalid command format!` followed by the command usage
+`followup d/2026-10-25` (missing index) | `Invalid command format!` followed by the command usage
+`followup 1 d/tomorrow`, `followup 1 d/2026-02-30`, or `followup 1 d/25-10-2026` | `Follow-up dates must be real calendar dates in the format YYYY-MM-DD, for example 2026-10-25.`
+`followup 0 d/2026-10-25`, `followup abc d/2026-10-25`, or an index that is too large | `The person index provided is invalid.`
+`followup 99 d/2026-10-25` when the displayed list has fewer than 99 contacts | `The person index provided is invalid.`
+`followup 1 d/2026-10-25 d/2026-10-26` (more than one `d/`) | `Multiple values specified for the following single-valued field(s): d/`
+
+### Listing contacts to follow up: `due`
+
+Shows the contacts whose follow-up date is today or earlier, with the earliest date first.
+
+Format: `due`
+
+* Today is the date on your computer when you run the command.
+* Contacts with no follow-up date, or a date after today, are not shown.
+* Contacts with the same date stay in the order they have in the full list.
+* The command searches all contacts, not only the ones currently displayed. It reports `N person(s) due for follow-up.`, or `No one is due for follow-up.` and an empty list if nobody is due.
+* The list stays in this order until you run `list`, `find` or another command that changes the displayed list. Commands that take an `INDEX`, such as `view`, `edit` and `followup`, use the position shown in this list.
+
+Example:
+* `due` followed by `view 1` shows the contact with the earliest follow-up date.
 
 ### Locating contacts by name: `find`
 
@@ -223,6 +268,17 @@ If your changes make the data file invalid, LarperBoard starts with an empty con
 Furthermore, certain edits can cause LarperBoard to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
+Each contact in the data file can have these optional fields. A missing or `null` field means the value is not set.
+
+Field | Meaning | Format
+------|---------|-------
+`followUpDate` | The follow-up date | `YYYY-MM-DD`, for example `"2026-10-25"`. An empty string `""` means no date.
+`createdAt` | When the contact was added | ISO-8601 UTC time, for example `"2026-10-17T04:12:33Z"`
+`lastEditedAt` | When the contact's details last changed | Same as `createdAt`
+`lastViewedAt` | When the `view` command last showed the contact | Same as `createdAt`
+
+LarperBoard fills in the three times for you. Contacts saved by an older version have no times and keep none until they are added, changed or viewed. A value in the wrong format makes the data file invalid.
+
 ### Archiving data files `[coming in v2.0]`
 
 _Details coming soon ..._
@@ -252,7 +308,9 @@ Action | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Exit** | `exit`
+**Due** | `due`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…​`<br> e.g., `find James Jake`
+**Follow up** | `followup INDEX d/DATE`<br> e.g., `followup 1 d/2026-10-25`; `followup 1 d/` clears the date
 **Help** | `help`
 **List** | `list`
 **Tag** | `tag INDEX t/TAG [t/TAG]…​`<br> e.g., `tag 1 t/frontend t/react`

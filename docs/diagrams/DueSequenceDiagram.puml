@@ -1,0 +1,62 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+box Logic LOGIC_COLOR_T1
+participant ":LogicManager" as LogicManager LOGIC_COLOR
+participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant "d:DueCommand" as DueCommand LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:ModelManager" as Model MODEL_COLOR
+participant "p:FollowUpDuePredicate" as Predicate MODEL_COLOR
+end box
+
+[-> LogicManager : execute("due")
+activate LogicManager
+
+LogicManager -> AddressBookParser : parseCommand("due")
+activate AddressBookParser
+
+create DueCommand
+AddressBookParser -> DueCommand
+activate DueCommand
+DueCommand --> AddressBookParser : d
+deactivate DueCommand
+
+AddressBookParser --> LogicManager : d
+deactivate AddressBookParser
+
+LogicManager -> DueCommand : execute(m)
+activate DueCommand
+
+DueCommand -> Model : getClock()
+activate Model
+Model --> DueCommand : clock
+deactivate Model
+
+note right of DueCommand : today = LocalDate.now(clock)
+
+create Predicate
+DueCommand -> Predicate : FollowUpDuePredicate(today)
+activate Predicate
+Predicate --> DueCommand : p
+deactivate Predicate
+
+DueCommand -> Model : updateFilteredPersonList(p)
+activate Model
+Model --> DueCommand
+deactivate Model
+
+DueCommand -> Model : updateSortedPersonList(byFollowUpDate)
+activate Model
+Model --> DueCommand
+deactivate Model
+
+DueCommand --> LogicManager : result
+deactivate DueCommand
+
+[<-- LogicManager : result
+deactivate LogicManager
+@enduml

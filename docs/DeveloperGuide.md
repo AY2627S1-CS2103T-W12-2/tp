@@ -125,9 +125,10 @@ The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* stores the `Person` objects selected by the current filter in a _sorted_ view of the filtered list (`SortedList`). `Model#getFilteredPersonList` returns this view, so a displayed index is a position in the sorted view. `Model#updateFilteredPersonList` resets the order to the address book order, and `Model#updateSortedPersonList` sets a new one.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
-* gives every `Person` an immutable `Activity` holding when the person was created, last edited and last viewed. Each time is optional: an unknown time is absent, never invented. `Person#withActivity` copies a person with new activity, and `Person#hasSameDetails` compares two persons while ignoring activity.
+* gives every `Person` an optional `FollowUpDate` (`FollowUpDate.NONE` when not set) and an immutable `Activity` holding when the person was created, last edited and last viewed. Each time is optional: an unknown time is absent, never invented. `Person#withActivity` copies a person with new activity, and `Person#hasSameDetails` compares two persons while ignoring activity.
 
 <div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
 
@@ -146,6 +147,7 @@ The `Storage` component,
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+* saves a person's follow-up date as an optional `followUpDate` field, written as `YYYY-MM-DD` (`""` when not set). A missing or `null` field loads as no date, so older data files still load. A value that is not a real calendar date in that format makes the file fail to load.
 * saves a person's activity as optional `createdAt`, `lastEditedAt` and `lastViewedAt` fields in `addressbook.json`. Each is an ISO-8601 UTC timestamp such as `2026-10-17T04:12:33Z`. A missing or `null` field loads as an absent time, so data files from v1.3 still load. A value that is not an ISO-8601 timestamp makes the file fail to load, like any other invalid field.
 
 ### Common classes
@@ -173,6 +175,23 @@ Design considerations:
 
 * **Stamp in the model, not in each command.** Each command would otherwise repeat the "was anything really changed?" check and could drift apart. The trade-off is that `Model` gains two methods.
 * **Ignore the edited person's activity.** Commands build the edited `Person` from the old one, and a new field that someone forgets to copy would silently reset the times. Always taking the activity from `target` makes that mistake harmless.
+
+### Follow-up dates
+
+A `Person` has an optional `FollowUpDate` that records when the user wants to follow up. It is a plain date with no time of day, so it carries no time zone.
+
+* `FollowUpDate` accepts only `YYYY-MM-DD` with a four digit year and a real calendar day (`2026-02-30` is rejected). An empty string is `FollowUpDate.NONE`. `isDueOn(today)` is true for a date that is today or earlier. `isOverdueOn(today)` is true only for a date before today, so a contact due today is due but not yet overdue.
+* `followup INDEX d/DATE` is parsed by `FollowUpCommandParser`. An empty `d/` gives `FollowUpDate.NONE`, which clears the date. `FollowUpCommand` builds the updated `Person` and stores it with `Model#editPerson`, so changing the date records the last edited time (see [Contact activity](#contact-activity)) and setting the same date again, or clearing an empty date, changes nothing.
+* `due` is handled by `DueCommand`. It reads today from `LocalDate.now(model.getClock())`, so "today" is the local date where the command runs and there is no scheduler. It filters with `FollowUpDuePredicate(today)`, then calls `Model#updateSortedPersonList` with a comparator on the date. The sort is stable, so contacts with the same date keep their address book order.
+* The UI shows the date on `PersonCard` and `PersonDetailPanel`, with an `OVERDUE` marker when `isOverdueOn(today)`. The marker is worked out when the card or panel is built, so it can be out of date if the app stays open past midnight until the list is redrawn.
+
+<img src="images/DueSequenceDiagram.png" width="650" />
+
+Design considerations:
+
+* **Sorting inside `Model`, not in `DueCommand`.** Commands such as `view 1` and `delete 1` read `Model#getFilteredPersonList`. If only the UI sorted, index 1 would mean a different contact in the list and in the command. Sorting in the model keeps the displayed index and the command index the same. The trade-off is that `getFilteredPersonList` is now a `SortedList`, which is unmodifiable (it was before too).
+* **Filtering resets the order.** After `due`, a later `find`, `list`, `edit` or `add` shows the address book order again. This is simple and predictable. A feature that wants to filter and then sort must call `updateFilteredPersonList` first and `updateSortedPersonList` second.
+* **A separate `followup` command, not an `edit` prefix.** `edit` replaces fields and takes several at once. A dedicated command keeps clearing a date to `followup 1 d/` and gives clear error messages. The trade-off is one more command word.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -325,6 +344,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 | Nice-to-have | power user | export my contact list to JSON, CSV, or Markdown | import it into my personal CRM, Notion, or address book |
 | Must-have | offline user | have all data stored locally | use the app without an internet connection at crowded venues |
 | Nice-to-have | hackathon participant | archive or hide contacts I don't need anymore | avoid being distracted by people I no longer need to see in my active list |
+| Nice-to-have | forgetful participant | set a follow-up date on a contact and list who is due | remember who needs a reply without relying on network services or notifications |
 | Nice-to-have | hackathon participant | be flagged when I try to add someone who is already in my list | avoid accidentally creating two separate entries for the same person met at different events |
 
 ### Use cases
@@ -348,6 +368,36 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
   * 1a2. Use case resumes at step 1.
 * 2a. The person already exists in the address book.
   * 2a1. LarperBoard displays a duplicate-person error message.
+
+    Use case ends.
+
+**Use case: Set a follow-up date and list who is due**
+
+**MSS**
+
+1. User requests to list persons.
+2. LarperBoard shows a list of persons.
+3. User requests to set a follow-up date on a person in the list.
+4. LarperBoard saves the date and displays a confirmation message.
+5. User later requests to list the persons who are due.
+6. LarperBoard shows the persons whose date is today or earlier, earliest first, and marks the ones before today as overdue.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+
+  Use case ends.
+* 3a. The index is invalid, or the date is not a real `YYYY-MM-DD` date.
+  * 3a1. LarperBoard displays an error message.
+  * 3a2. Use case resumes at step 3.
+* 3b. The user clears the date by entering an empty date.
+  * 3b1. LarperBoard removes the date, or says there is nothing to clear.
+
+    Use case ends.
+* 6a. Nobody is due.
+  * 6a1. LarperBoard says that no one is due and shows an empty list.
 
     Use case ends.
 
@@ -651,6 +701,46 @@ Given below are instructions to test the app manually.
       Expected: Similar to previous.
 
 1. _{ more test cases …​ }_
+
+### Setting follow-up dates and listing who is due
+
+1. Setting, replacing and clearing a follow-up date
+
+   1. Prerequisites: List all persons using the `list` command, with at least 2 persons in the list.
+
+   1. Test case: `followup 1 d/2026-10-25`<br>
+      Expected: The first contact now shows `Follow up: 2026-10-25` on its card. The status message starts with `Set follow-up date:`.
+
+   1. Test case: `followup 1 d/2026-11-02`<br>
+      Expected: The date on the first contact is replaced.
+
+   1. Test case: `followup 1 d/`<br>
+      Expected: The date is removed. Running it again says `This person has no follow-up date to clear`.
+
+   1. Test case: `followup 1 d/2020-01-01`, then `view 1`<br>
+      Expected: The card and the detail panel show the date with an `OVERDUE` marker.
+
+   1. Test cases: `followup 1 d/2026-02-30`, `followup 1 d/tomorrow`, `followup 0 d/2026-10-25`, `followup 1`<br>
+      Expected: No date changes. The status message shows an error.
+
+1. Listing who is due
+
+   1. Prerequisites: Set `followup 1 d/2020-01-01`, `followup 2 d/2020-06-01` and `followup 3 d/2999-01-01`. Contact 1 is the one with the earliest date.
+
+   1. Test case: `due`<br>
+      Expected: Only the contacts with the dates in 2020 are listed, the 2020-01-01 contact first. The status message says `2 person(s) due for follow-up.`
+
+   1. Test case: `due`, then `view 1`<br>
+      Expected: The detail panel shows the contact with the earliest date.
+
+   1. Test case: `due`, then `list`<br>
+      Expected: All contacts are shown again in their normal order.
+
+   1. Test case: clear every date, then `due`<br>
+      Expected: `No one is due for follow-up.` and an empty list.
+
+   1. Test case: edit the data file so a contact has `"followUpDate": "not a date"`, then start the app<br>
+      Expected: The app starts with an empty contact list because the data file is invalid. Restore the file afterwards.
 
 ### Saving data
 
