@@ -174,7 +174,7 @@ A valid `delete INDEX` when the displayed list is empty | `The person list is em
 
 ### Viewing a contact: `view`
 
-Shows the selected contact's full details in the detail panel, next to the contact list, without changing the contact.
+Shows the selected contact's full details in the detail panel, next to the contact list. It does not change the contact's details, but it does record the time you last viewed the contact. This time is saved in the data file.
 
 Format: `view INDEX`
 

@@ -10,6 +10,10 @@ import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalTimes.EARLIER;
+import static seedu.address.testutil.TypicalTimes.EARLIEST;
+import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
+import static seedu.address.testutil.TypicalTimes.NOW;
 
 import org.junit.jupiter.api.Test;
 
@@ -18,6 +22,7 @@ import seedu.address.logic.Messages;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Activity;
 import seedu.address.model.person.Person;
 
 /**
@@ -26,7 +31,7 @@ import seedu.address.model.person.Person;
  */
 public class ViewCommandTest {
 
-    private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+    private Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs(), FIXED_CLOCK);
 
     @Test
     public void execute_validIndexUnfilteredList_success() {
@@ -36,11 +41,13 @@ public class ViewCommandTest {
         String expectedMessage = String.format(ViewCommand.MESSAGE_VIEW_PERSON_SUCCESS,
                 Messages.format(personToView));
 
-        // viewing a person does not change the address book data
-        ModelManager expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        // viewing a person only records the last viewed time
+        ModelManager expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs(), FIXED_CLOCK);
+        expectedModel.viewPerson(personToView);
 
         assertCommandSuccess(viewCommand, model, expectedMessage, expectedModel);
-        assertEquals(personToView, model.getViewedPerson().get());
+        assertTrue(personToView.hasSameDetails(model.getViewedPerson().get()));
+        assertEquals(new Activity(null, null, NOW), model.getViewedPerson().get().getActivity());
     }
 
     @Test
@@ -50,7 +57,7 @@ public class ViewCommandTest {
 
         new ViewCommand(INDEX_SECOND_PERSON).execute(model);
 
-        assertEquals(secondPerson, model.getViewedPerson().get());
+        assertTrue(secondPerson.hasSameDetails(model.getViewedPerson().get()));
     }
 
     @Test
@@ -93,8 +100,9 @@ public class ViewCommandTest {
         String expectedMessage = String.format(ViewCommand.MESSAGE_VIEW_PERSON_SUCCESS,
                 Messages.format(personToView));
 
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs(), FIXED_CLOCK);
         showPersonAtIndex(expectedModel, INDEX_FIRST_PERSON);
+        expectedModel.viewPerson(personToView);
 
         assertCommandSuccess(viewCommand, model, expectedMessage, expectedModel);
     }
@@ -140,5 +148,25 @@ public class ViewCommandTest {
         ViewCommand viewCommand = new ViewCommand(targetIndex);
         String expected = ViewCommand.class.getCanonicalName() + "{targetIndex=" + targetIndex + "}";
         assertEquals(expected, viewCommand.toString());
+    }
+
+    @Test
+    public void execute_viewedPerson_keepsCreatedAndLastEdited() throws Exception {
+        Person original = model.getFilteredPersonList().get(0);
+        model.setPerson(original, original.withActivity(new Activity(EARLIEST, EARLIER, null)));
+
+        new ViewCommand(INDEX_FIRST_PERSON).execute(model);
+
+        assertEquals(new Activity(EARLIEST, EARLIER, NOW), model.getFilteredPersonList().get(0).getActivity());
+        assertEquals(model.getFilteredPersonList().get(0), model.getViewedPerson().get());
+    }
+
+    @Test
+    public void execute_failedView_doesNotChangeActivity() {
+        Index outOfBoundIndex = Index.fromOneBased(model.getFilteredPersonList().size() + 1);
+
+        assertCommandFailure(new ViewCommand(outOfBoundIndex), model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+
+        assertEquals(Activity.EMPTY, model.getFilteredPersonList().get(0).getActivity());
     }
 }

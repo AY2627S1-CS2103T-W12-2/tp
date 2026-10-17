@@ -1,5 +1,8 @@
 package seedu.address.model;
 
+import java.time.Clock;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.function.Predicate;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -60,6 +63,38 @@ public interface Model {
      * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
      */
     void setPerson(Person target, Person editedPerson);
+
+    /**
+     * Returns the clock used to record when things happen.
+     */
+    Clock getClock();
+
+    /**
+     * Returns the current time from {@link #getClock()}, in whole seconds.
+     */
+    default Instant now() {
+        return Instant.now(getClock()).truncatedTo(ChronoUnit.SECONDS);
+    }
+
+    /**
+     * Replaces {@code target} with {@code editedPerson} as a user edit, and records the edit time.
+     * This is the one place that decides when "last edited" changes, so every command that changes a
+     * contact should use it instead of {@link #setPerson(Person, Person)}:
+     * <ul>
+     * <li>If {@code editedPerson} has the same details as {@code target} (see
+     * {@link Person#hasSameDetails(Person)}), nothing happens and no time changes.</li>
+     * <li>Otherwise the stored person gets {@code target}'s activity with last edited set to now. The activity of
+     * {@code editedPerson} is ignored, so a copy built without activity cannot wipe the other times.</li>
+     * </ul>
+     * {@code target} must exist in the address book. The same identity rule as {@code setPerson} applies.
+     */
+    void editPerson(Person target, Person editedPerson);
+
+    /**
+     * Records that {@code person} was viewed (sets last viewed to now) and makes it the viewed person.
+     * {@code person} must exist in the address book.
+     */
+    void viewPerson(Person person);
 
     /** Returns an unmodifiable view of the filtered person list */
     ObservableList<Person> getFilteredPersonList();

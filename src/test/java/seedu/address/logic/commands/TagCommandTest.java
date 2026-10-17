@@ -12,8 +12,11 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
+import static seedu.address.testutil.TypicalTimes.EARLIER;
+import static seedu.address.testutil.TypicalTimes.EARLIEST;
+import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
+import static seedu.address.testutil.TypicalTimes.NOW;
 
-import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -32,7 +35,7 @@ import seedu.address.model.tag.Tag;
 
 public class TagCommandTest {
 
-    private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs());
+    private final Model model = new ModelManager(getTypicalAddressBook(), new UserPrefs(), FIXED_CLOCK);
 
     @Test
     public void execute_addsTagsWithoutRemovingExistingTags_success() {
@@ -40,8 +43,8 @@ public class TagCommandTest {
         updatedTags.add(new Tag("work"));
         Person updatedPerson = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(), ALICE.getLinkedIn(),
                 updatedTags);
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(ALICE, updatedPerson);
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), FIXED_CLOCK);
+        expectedModel.editPerson(ALICE, updatedPerson);
 
         TagCommand command = new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("work")));
         String expectedMessage = String.format(TagCommand.MESSAGE_SUCCESS, Messages.format(updatedPerson));
@@ -55,8 +58,8 @@ public class TagCommandTest {
         updatedTags.add(new Tag("work"));
         Person updatedPerson = new Person(BENSON.getName(), BENSON.getPhone(), BENSON.getEmail(),
                 BENSON.getLinkedIn(), updatedTags);
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(BENSON, updatedPerson);
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), FIXED_CLOCK);
+        expectedModel.editPerson(BENSON, updatedPerson);
 
         TagCommand command = new TagCommand(INDEX_SECOND_PERSON, Set.of(new Tag("work")));
         String expectedMessage = String.format(TagCommand.MESSAGE_SUCCESS, Messages.format(updatedPerson));
@@ -66,7 +69,7 @@ public class TagCommandTest {
 
     @Test
     public void execute_existingTag_doesNotReplacePerson() {
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), FIXED_CLOCK);
         TagCommand command = new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("friends")));
         String expectedMessage = String.format(TagCommand.MESSAGE_SUCCESS, Messages.format(ALICE));
 
@@ -84,8 +87,8 @@ public class TagCommandTest {
         updatedTags.add(new Tag("java"));
         Person updatedPerson = new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
                 ALICE.getLinkedIn(), updatedTags);
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
-        expectedModel.setPerson(ALICE, updatedPerson);
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), FIXED_CLOCK);
+        expectedModel.editPerson(ALICE, updatedPerson);
         String expectedMessage = String.format(TagCommand.MESSAGE_SUCCESS, Messages.format(updatedPerson));
 
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
@@ -99,9 +102,9 @@ public class TagCommandTest {
         updatedTags.add(new Tag("work"));
         Person updatedPerson = new Person(BENSON.getName(), BENSON.getPhone(), BENSON.getEmail(),
                 BENSON.getLinkedIn(), updatedTags);
-        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs());
+        Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), FIXED_CLOCK);
         showPersonAtIndex(expectedModel, INDEX_SECOND_PERSON);
-        expectedModel.setPerson(BENSON, updatedPerson);
+        expectedModel.editPerson(BENSON, updatedPerson);
 
         TagCommand command = new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("work")));
         String expectedMessage = String.format(TagCommand.MESSAGE_SUCCESS, Messages.format(updatedPerson));
@@ -151,14 +154,32 @@ public class TagCommandTest {
     }
 
     @Test
-    public void execute_personWithActivity_activityKeptAfterTag() throws Exception {
-        Activity activity = new Activity(Instant.parse("2026-10-17T04:12:33Z"),
-                Instant.parse("2026-10-18T09:00:00Z"), null);
-        model.setPerson(ALICE, ALICE.withActivity(activity));
+    public void execute_newTag_setsLastEditedAndKeepsOtherTimes() throws Exception {
+        model.setPerson(ALICE, ALICE.withActivity(new Activity(EARLIEST, EARLIER, EARLIER)));
 
         new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("work"))).execute(model);
 
+        Person tagged = model.getFilteredPersonList().get(0);
+        assertTrue(tagged.getTags().contains(new Tag("work")));
+        assertEquals(new Activity(EARLIEST, NOW, EARLIER), tagged.getActivity());
+    }
+
+    @Test
+    public void execute_existingTag_doesNotChangeActivity() throws Exception {
+        Activity activity = new Activity(EARLIEST, EARLIER, EARLIER);
+        model.setPerson(ALICE, ALICE.withActivity(activity));
+
+        new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("friends"))).execute(model);
+
         assertEquals(activity, model.getFilteredPersonList().get(0).getActivity());
-        assertTrue(model.getFilteredPersonList().get(0).getTags().contains(new Tag("work")));
+    }
+
+    @Test
+    public void execute_invalidIndex_doesNotChangeActivity() {
+        TagCommand command = new TagCommand(Index.fromOneBased(model.getFilteredPersonList().size() + 1),
+                Set.of(new Tag("work")));
+
+        assertCommandFailure(command, model, Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertEquals(Activity.EMPTY, model.getFilteredPersonList().get(0).getActivity());
     }
 }
