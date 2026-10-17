@@ -28,6 +28,26 @@ public class ActivityTest {
     }
 
     @Test
+    public void constructor_subSecondPrecision_truncatedToWholeSeconds() {
+        Activity activity = new Activity(Instant.parse("2026-10-17T04:12:33.987Z"),
+                Instant.parse("2026-10-18T09:00:00.001Z"), Instant.parse("2026-10-19T10:30:15.999999999Z"));
+
+        assertEquals(Optional.of(Instant.parse("2026-10-17T04:12:33Z")), activity.getCreatedAt());
+        assertEquals(Optional.of(Instant.parse("2026-10-18T09:00:00Z")), activity.getLastEditedAt());
+        assertEquals(Optional.of(Instant.parse("2026-10-19T10:30:15Z")), activity.getLastViewedAt());
+    }
+
+    @Test
+    public void withers_subSecondPrecision_truncatedToWholeSeconds() {
+        Instant withFraction = Instant.parse("2026-10-17T04:12:33.5Z");
+        Instant whole = Instant.parse("2026-10-17T04:12:33Z");
+
+        assertEquals(new Activity(whole, null, null), Activity.EMPTY.withCreatedAt(withFraction));
+        assertEquals(new Activity(null, whole, null), Activity.EMPTY.withLastEditedAt(withFraction));
+        assertEquals(new Activity(null, null, whole), Activity.EMPTY.withLastViewedAt(withFraction));
+    }
+
+    @Test
     public void getters_returnStoredValues() {
         Activity activity = new Activity(T1, T2, T3);
         assertEquals(Optional.of(T1), activity.getCreatedAt());

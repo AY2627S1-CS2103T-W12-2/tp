@@ -29,7 +29,9 @@ public class Person {
     private final Activity activity;
 
     /**
-     * Creates a person with no known activity times.
+     * Creates a new person with no known activity times.
+     * Use this for a contact that does not exist yet, and in tests. To change an existing contact, copy it with
+     * {@link #withActivity(Activity)} or the model's edit operation so its activity times are kept.
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags) {
@@ -37,7 +39,8 @@ public class Person {
     }
 
     /**
-     * Every field must be present and not null.
+     * Creates a person with the given activity times. Every field must be present and not null.
+     * To change an existing contact, copy it with {@link #withActivity(Activity)} or the model's edit operation.
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity) {
         requireAllNonNull(name, phone, email, linkedIn, tags, activity);

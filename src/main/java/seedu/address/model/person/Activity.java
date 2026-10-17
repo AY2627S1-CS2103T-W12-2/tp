@@ -1,6 +1,7 @@
 package seedu.address.model.person;
 
 import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Objects;
 import java.util.Optional;
 
@@ -23,11 +24,16 @@ public class Activity {
 
     /**
      * Any of the times may be null, which means the time is not known.
+     * Times are kept in whole seconds: anything finer is dropped.
      */
     public Activity(Instant createdAt, Instant lastEditedAt, Instant lastViewedAt) {
-        this.createdAt = createdAt;
-        this.lastEditedAt = lastEditedAt;
-        this.lastViewedAt = lastViewedAt;
+        this.createdAt = toWholeSeconds(createdAt);
+        this.lastEditedAt = toWholeSeconds(lastEditedAt);
+        this.lastViewedAt = toWholeSeconds(lastViewedAt);
+    }
+
+    private static Instant toWholeSeconds(Instant time) {
+        return time == null ? null : time.truncatedTo(ChronoUnit.SECONDS);
     }
 
     public Optional<Instant> getCreatedAt() {
