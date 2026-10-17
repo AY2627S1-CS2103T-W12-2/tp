@@ -210,6 +210,22 @@ Exits the program.
 
 Format: `exit`
 
+### Recalling previous commands: Up and Down arrows
+
+Brings back commands that you submitted earlier in the same session, so that you can run or fix them without typing them again.
+
+* While the command box is selected, press the **Up** arrow to bring back the previous command, and press it again to go further back.
+* Press the **Down** arrow to move forward again. After the newest command, the command box shows the text that you had typed before you started browsing.
+* Every command you submit is remembered, including commands that fail, such as an unknown command or an invalid index. A command that is the same as the one just before it is remembered only once.
+* LarperBoard remembers the latest 50 commands. The history is cleared when you close the app and is not saved in the data file.
+* You can edit a recalled command before you submit it. Editing does not change the remembered command.
+* The arrow keys only work in the command box, and only when no other key such as `Shift` or `Ctrl` is held down.
+* Commands such as `list` and `clear` do not affect the history.
+
+Examples:
+* Submit `find Aisha` and then `view 1`. Press **Up** once to bring back `view 1`, and press **Up** again to bring back `find Aisha`.
+* Type `tag 1 t/` without submitting it, press **Up** to bring back an earlier command, then press **Down** to get `tag 1 t/` back.
+
 ### Saving the data
 
 LarperBoard automatically saves data after every successful command. You do not need to save manually.
