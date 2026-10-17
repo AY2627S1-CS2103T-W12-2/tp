@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
@@ -26,8 +27,13 @@ import seedu.address.model.tag.Tag;
 class JsonAdaptedPerson {
 
     public static final String MISSING_FIELD_MESSAGE_FORMAT = "Person's %s field is missing!";
-    public static final String MESSAGE_INVALID_TIME_FORMAT =
-            "Activity times must be ISO-8601 UTC timestamps, for example 2026-10-17T04:12:33Z.";
+    /** Message for a malformed field in the data file, as {@code Invalid contact data: '<field>' <reason>.} */
+    public static final String INVALID_FIELD_MESSAGE_FORMAT = "Invalid contact data: '%s' %s.";
+    public static final String REASON_INVALID_TIME = "must be an ISO-8601 UTC timestamp";
+
+    /** A whole-second UTC time such as {@code 2026-10-17T04:12:33Z}. */
+    private static final Pattern WHOLE_SECOND_UTC =
+            Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z");
 
     private final String name;
     private final String phone;
@@ -122,25 +128,34 @@ class JsonAdaptedPerson {
         final Set<Tag> modelTags = new HashSet<>(personTags);
 
         // Missing activity times (for example, in older data files) stay absent instead of being invented.
-        final Activity modelActivity = new Activity(parseTime(createdAt), parseTime(lastEditedAt),
-                parseTime(lastViewedAt));
+        final Activity modelActivity = new Activity(parseTime("createdAt", createdAt),
+                parseTime("lastEditedAt", lastEditedAt), parseTime("lastViewedAt", lastViewedAt));
         return new Person(modelName, modelPhone, modelEmail, modelLinkedIn, modelTags, modelActivity);
     }
 
     /**
-     * Parses an ISO-8601 UTC timestamp such as {@code 2026-10-17T04:12:33Z}. Returns null if {@code time} is null.
+     * Parses a whole-second ISO-8601 UTC timestamp such as {@code 2026-10-17T04:12:33Z}.
+     * Returns null if {@code time} is null. Fractions of a second, offsets other than {@code Z},
+     * surrounding spaces and empty text are rejected.
      *
-     * @throws IllegalValueException if {@code time} is not an ISO-8601 UTC timestamp.
+     * @throws IllegalValueException if {@code time} is not such a timestamp, naming {@code field}.
      */
-    private static Instant parseTime(String time) throws IllegalValueException {
+    private static Instant parseTime(String field, String time) throws IllegalValueException {
         if (time == null) {
             return null;
         }
         try {
-            return Instant.parse(time);
+            if (WHOLE_SECOND_UTC.matcher(time).matches()) {
+                Instant parsed = Instant.parse(time);
+                // Instant.parse also accepts 24:00:00 and leap seconds, which it moves to another time
+                if (parsed.toString().equals(time)) {
+                    return parsed;
+                }
+            }
         } catch (DateTimeParseException e) {
-            throw new IllegalValueException(MESSAGE_INVALID_TIME_FORMAT);
+            // fall through: the text looks like a time but is not a real one, such as 2026-02-30
         }
+        throw new IllegalValueException(String.format(INVALID_FIELD_MESSAGE_FORMAT, field, REASON_INVALID_TIME));
     }
 
 }

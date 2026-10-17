@@ -30,7 +30,6 @@ public class JsonAdaptedPersonTest {
     private static final String INVALID_LINKEDIN = "benson_meier";
     private static final String INVALID_TAG = "#friend";
     private static final String INVALID_TIME = "yesterday";
-    private static final String NON_UTC_TIME = "2026-10-17T12:12:33+08:00";
 
     private static final String VALID_NAME = BENSON.getName().toString();
     private static final String VALID_PHONE = BENSON.getPhone().toString();
@@ -173,44 +172,70 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
-    public void toModelType_invalidCreatedAt_throwsIllegalValueException() {
+    public void toModelType_invalidCreatedAt_throwsFieldSpecificMessage() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
                 VALID_TAGS, INVALID_TIME, null, null);
-        assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_TIME_FORMAT,
-                person::toModelType);
+        assertThrows(IllegalValueException.class, timeError("createdAt"), person::toModelType);
     }
 
     @Test
-    public void toModelType_invalidLastEditedAt_throwsIllegalValueException() {
+    public void toModelType_invalidLastEditedAt_throwsFieldSpecificMessage() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
                 VALID_TAGS, null, INVALID_TIME, null);
-        assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_TIME_FORMAT,
-                person::toModelType);
+        assertThrows(IllegalValueException.class, timeError("lastEditedAt"), person::toModelType);
     }
 
     @Test
-    public void toModelType_invalidLastViewedAt_throwsIllegalValueException() {
+    public void toModelType_invalidLastViewedAt_throwsFieldSpecificMessage() {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
                 VALID_TAGS, null, null, INVALID_TIME);
-        assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_TIME_FORMAT,
-                person::toModelType);
+        assertThrows(IllegalValueException.class, timeError("lastViewedAt"), person::toModelType);
     }
 
     @Test
-    public void toModelType_timeWithOffset_normalisedToSameInstant() throws Exception {
-        // hand-edited files may use an offset; it is read as the same instant and saved back as UTC
-        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
-                VALID_TAGS, NON_UTC_TIME, null, null);
-        assertEquals(Instant.parse("2026-10-17T04:12:33Z"),
-                person.toModelType().getActivity().getCreatedAt().get());
+    public void toModelType_timesThatAreNotWholeSecondUtc_throwsIllegalValueException() {
+        String[] notWholeSecondUtc = {
+            "2026-10-17T04:12:33.123Z", // fraction of a second
+            "2026-10-17T04:12:33.0Z", // even a zero fraction
+            "2026-10-17T12:12:33+08:00", // offset instead of Z
+            "2026-10-17T04:12:33", // no Z
+            "2026-10-17 04:12:33Z", // space instead of T
+            "2026-10-17T04:12Z", // no seconds
+            "2026-02-30T04:12:33Z", // no such day
+            "2026-10-17T24:00:00Z", // no such hour (end of day is accepted by Instant.parse, but not here)
+            "2026-10-17T23:59:60Z", // leap second
+            " 2026-10-17T04:12:33Z", // leading space
+            "2026-10-17T04:12:33Z ", // trailing space
+            "" // empty
+        };
+
+        for (String time : notWholeSecondUtc) {
+            JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
+                    VALID_TAGS, time, time, time);
+            assertThrows(IllegalValueException.class, timeError("createdAt"), person::toModelType);
+        }
     }
 
     @Test
-    public void toModelType_emptyTimeString_throwsIllegalValueException() {
+    public void toModelType_wholeSecondUtcTimes_accepted() throws Exception {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
-                VALID_TAGS, "", null, null);
-        assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_TIME_FORMAT,
-                person::toModelType);
+                VALID_TAGS, "2026-10-17T00:00:00Z", "2028-02-29T23:59:59Z", "1999-12-31T23:59:59Z");
+
+        Activity activity = person.toModelType().getActivity();
+
+        assertEquals(Instant.parse("2026-10-17T00:00:00Z"), activity.getCreatedAt().get());
+        assertEquals(Instant.parse("2028-02-29T23:59:59Z"), activity.getLastEditedAt().get());
+        assertEquals(Instant.parse("1999-12-31T23:59:59Z"), activity.getLastViewedAt().get());
+    }
+
+    @Test
+    public void invalidFieldMessageFormat_matchesAgreedWording() {
+        assertEquals("Invalid contact data: 'note' must be a string.",
+                String.format(JsonAdaptedPerson.INVALID_FIELD_MESSAGE_FORMAT, "note", "must be a string"));
+    }
+
+    private static String timeError(String field) {
+        return "Invalid contact data: '" + field + "' must be an ISO-8601 UTC timestamp.";
     }
 
 }
