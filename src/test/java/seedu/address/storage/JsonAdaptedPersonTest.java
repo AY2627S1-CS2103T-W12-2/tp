@@ -1,10 +1,12 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,9 +15,11 @@ import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.JsonUtil;
+import seedu.address.model.person.Activity;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.LinkedIn;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.testutil.PersonBuilder;
 
@@ -25,6 +29,8 @@ public class JsonAdaptedPersonTest {
     private static final String INVALID_EMAIL = "example.com";
     private static final String INVALID_LINKEDIN = "benson_meier";
     private static final String INVALID_TAG = "#friend";
+    private static final String INVALID_TIME = "yesterday";
+    private static final String NON_UTC_TIME = "2026-10-17T12:12:33+08:00";
 
     private static final String VALID_NAME = BENSON.getName().toString();
     private static final String VALID_PHONE = BENSON.getPhone().toString();
@@ -120,6 +126,91 @@ public class JsonAdaptedPersonTest {
         JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL,
                 null, VALID_TAGS);
         assertEquals(new LinkedIn(""), person.toModelType().getLinkedIn());
+    }
+
+    @Test
+    public void toModelType_activityRoundTrip_preservesTimestamps() throws Exception {
+        Activity activity = new Activity(Instant.parse("2026-10-17T04:12:33Z"),
+                Instant.parse("2026-10-18T09:00:00Z"), Instant.parse("2026-10-19T10:30:15Z"));
+        Person person = new PersonBuilder(BENSON).withActivity(activity).build();
+
+        assertEquals(person, new JsonAdaptedPerson(person).toModelType());
+    }
+
+    @Test
+    public void toModelType_partialActivityRoundTrip_keepsAbsentFieldsAbsent() throws Exception {
+        Activity activity = new Activity(Instant.parse("2026-10-17T04:12:33Z"), null, null);
+        Person person = new PersonBuilder(BENSON).withActivity(activity).build();
+
+        assertEquals(activity, new JsonAdaptedPerson(person).toModelType().getActivity());
+    }
+
+    @Test
+    public void toJson_activity_usesIsoUtcStrings() throws Exception {
+        Activity activity = new Activity(Instant.parse("2026-10-17T04:12:33Z"), null, null);
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(new PersonBuilder(BENSON)
+                .withActivity(activity).build()));
+
+        assertTrue(json.contains("\"createdAt\""));
+        assertTrue(json.contains("2026-10-17T04:12:33Z"));
+    }
+
+    @Test
+    public void toModelType_missingActivityFields_returnsEmptyActivity() throws Exception {
+        // a v1.3 data file has none of the activity fields
+        String json = "{\"name\":\"" + VALID_NAME + "\",\"phone\":\"" + VALID_PHONE
+                + "\",\"email\":\"" + VALID_EMAIL + "\",\"linkedIn\":\"" + VALID_LINKEDIN + "\"}";
+        JsonAdaptedPerson person = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+
+        assertEquals(Activity.EMPTY, person.toModelType().getActivity());
+    }
+
+    @Test
+    public void toModelType_explicitNullActivityFields_returnsEmptyActivity() throws Exception {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
+                VALID_TAGS, null, null, null);
+        assertEquals(Activity.EMPTY, person.toModelType().getActivity());
+    }
+
+    @Test
+    public void toModelType_invalidCreatedAt_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
+                VALID_TAGS, INVALID_TIME, null, null);
+        assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_TIME_FORMAT,
+                person::toModelType);
+    }
+
+    @Test
+    public void toModelType_invalidLastEditedAt_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
+                VALID_TAGS, null, INVALID_TIME, null);
+        assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_TIME_FORMAT,
+                person::toModelType);
+    }
+
+    @Test
+    public void toModelType_invalidLastViewedAt_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
+                VALID_TAGS, null, null, INVALID_TIME);
+        assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_TIME_FORMAT,
+                person::toModelType);
+    }
+
+    @Test
+    public void toModelType_timeWithOffset_normalisedToSameInstant() throws Exception {
+        // hand-edited files may use an offset; it is read as the same instant and saved back as UTC
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
+                VALID_TAGS, NON_UTC_TIME, null, null);
+        assertEquals(Instant.parse("2026-10-17T04:12:33Z"),
+                person.toModelType().getActivity().getCreatedAt().get());
+    }
+
+    @Test
+    public void toModelType_emptyTimeString_throwsIllegalValueException() {
+        JsonAdaptedPerson person = new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN,
+                VALID_TAGS, "", null, null);
+        assertThrows(IllegalValueException.class, JsonAdaptedPerson.MESSAGE_INVALID_TIME_FORMAT,
+                person::toModelType);
     }
 
 }

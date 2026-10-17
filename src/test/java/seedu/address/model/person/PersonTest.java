@@ -12,11 +12,17 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.time.Instant;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
+
+    private static final Instant T1 = Instant.parse("2026-10-17T04:12:33Z");
+    private static final Instant T2 = Instant.parse("2026-10-18T09:00:00Z");
+    private static final Instant T3 = Instant.parse("2026-10-19T10:30:15Z");
 
     @Test
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
@@ -92,6 +98,56 @@ public class PersonTest {
         // different tags -> returns false
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different activity -> returns false
+        editedAlice = new PersonBuilder(ALICE).withActivity(new Activity(T1, null, null)).build();
+        assertFalse(ALICE.equals(editedAlice));
+    }
+
+    @Test
+    public void constructor_withoutActivity_hasEmptyActivity() {
+        assertEquals(Activity.EMPTY, new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getLinkedIn(), ALICE.getTags()).getActivity());
+    }
+
+    @Test
+    public void withActivity_copiesEverythingElse() {
+        Activity activity = new Activity(T1, T2, null);
+        Person copy = ALICE.withActivity(activity);
+
+        assertEquals(activity, copy.getActivity());
+        assertEquals(ALICE.getName(), copy.getName());
+        assertEquals(ALICE.getPhone(), copy.getPhone());
+        assertEquals(ALICE.getEmail(), copy.getEmail());
+        assertEquals(ALICE.getLinkedIn(), copy.getLinkedIn());
+        assertEquals(ALICE.getTags(), copy.getTags());
+        // original untouched
+        assertEquals(Activity.EMPTY, ALICE.getActivity());
+    }
+
+    @Test
+    public void withActivity_nullActivity_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ALICE.withActivity(null));
+    }
+
+    @Test
+    public void hasSameDetails() {
+        // same object -> true
+        assertTrue(ALICE.hasSameDetails(ALICE));
+
+        // null -> false
+        assertFalse(ALICE.hasSameDetails(null));
+
+        // only activity differs -> true
+        assertTrue(ALICE.hasSameDetails(new PersonBuilder(ALICE).withActivity(new Activity(T1, T2, T3)).build()));
+
+        // a detail differs -> false
+        assertFalse(ALICE.hasSameDetails(new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB).build()));
+        assertFalse(ALICE.hasSameDetails(new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build()));
+
+        // detail and activity both differ -> false
+        assertFalse(ALICE.hasSameDetails(new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB)
+                .withActivity(new Activity(T1, null, null)).build()));
     }
 
     @Test
@@ -104,7 +160,8 @@ public class PersonTest {
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail()
-                + ", linkedIn=" + ALICE.getLinkedIn() + ", tags=" + ALICE.getTags() + "}";
+                + ", linkedIn=" + ALICE.getLinkedIn() + ", tags=" + ALICE.getTags()
+                + ", activity=" + ALICE.getActivity() + "}";
         assertEquals(expected, ALICE.toString());
     }
 }
