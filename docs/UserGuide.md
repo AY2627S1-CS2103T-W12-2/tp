@@ -174,7 +174,7 @@ A valid `delete INDEX` when the displayed list is empty | `The person list is em
 
 ### Viewing a contact: `view`
 
-Shows the selected contact's full details in the detail panel, next to the contact list, without changing the contact.
+Shows the selected contact's full details in the detail panel, next to the contact list. It does not change the contact's details, but it does record the time you last viewed the contact. This time is saved in the data file.
 
 Format: `view INDEX`
 
@@ -222,6 +222,16 @@ LarperBoard data is saved automatically as a JSON file `[JAR file location]/data
 If your changes make the data file invalid, LarperBoard starts with an empty contact list at the next run. The invalid file remains on disk until you run a successful command. We recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause LarperBoard to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
+
+Each contact in the data file can also have these optional time fields. A missing or `null` field means the time is not known.
+
+Field | Meaning | Format
+------|---------|-------
+`createdAt` | When the contact was added | Whole-second UTC time written exactly like `"2026-10-17T04:12:33Z"`
+`lastEditedAt` | When the contact's details last really changed | Same as `createdAt`
+`lastViewedAt` | When the `view` command last showed the contact | Same as `createdAt`
+
+LarperBoard fills these in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid, and LarperBoard reports `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem). Times are shown in Singapore time (Asia/Singapore).
 
 ### Archiving data files `[coming in v2.0]`
 

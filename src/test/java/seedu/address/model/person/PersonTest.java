@@ -12,11 +12,20 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
+import java.time.Instant;
+import java.util.HashSet;
+import java.util.Set;
+
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.tag.Tag;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonTest {
+
+    private static final Instant T1 = Instant.parse("2026-10-17T04:12:33Z");
+    private static final Instant T2 = Instant.parse("2026-10-18T09:00:00Z");
+    private static final Instant T3 = Instant.parse("2026-10-19T10:30:15Z");
 
     @Test
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
@@ -92,6 +101,56 @@ public class PersonTest {
         // different tags -> returns false
         editedAlice = new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build();
         assertFalse(ALICE.equals(editedAlice));
+
+        // different activity -> returns false
+        editedAlice = new PersonBuilder(ALICE).withActivity(new Activity(T1, null, null)).build();
+        assertFalse(ALICE.equals(editedAlice));
+    }
+
+    @Test
+    public void constructor_withoutActivity_hasEmptyActivity() {
+        assertEquals(Activity.EMPTY, new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getLinkedIn(), ALICE.getTags()).getActivity());
+    }
+
+    @Test
+    public void withActivity_copiesEverythingElse() {
+        Activity activity = new Activity(T1, T2, null);
+        Person copy = ALICE.withActivity(activity);
+
+        assertEquals(activity, copy.getActivity());
+        assertEquals(ALICE.getName(), copy.getName());
+        assertEquals(ALICE.getPhone(), copy.getPhone());
+        assertEquals(ALICE.getEmail(), copy.getEmail());
+        assertEquals(ALICE.getLinkedIn(), copy.getLinkedIn());
+        assertEquals(ALICE.getTags(), copy.getTags());
+        // original untouched
+        assertEquals(Activity.EMPTY, ALICE.getActivity());
+    }
+
+    @Test
+    public void withActivity_nullActivity_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ALICE.withActivity(null));
+    }
+
+    @Test
+    public void hasSameDetails() {
+        // same object -> true
+        assertTrue(ALICE.hasSameDetails(ALICE));
+
+        // null -> false
+        assertFalse(ALICE.hasSameDetails(null));
+
+        // only activity differs -> true
+        assertTrue(ALICE.hasSameDetails(new PersonBuilder(ALICE).withActivity(new Activity(T1, T2, T3)).build()));
+
+        // a detail differs -> false
+        assertFalse(ALICE.hasSameDetails(new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB).build()));
+        assertFalse(ALICE.hasSameDetails(new PersonBuilder(ALICE).withTags(VALID_TAG_HUSBAND).build()));
+
+        // detail and activity both differ -> false
+        assertFalse(ALICE.hasSameDetails(new PersonBuilder(ALICE).withEmail(VALID_EMAIL_BOB)
+                .withActivity(new Activity(T1, null, null)).build()));
     }
 
     @Test
@@ -104,7 +163,99 @@ public class PersonTest {
     public void toStringMethod() {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail()
-                + ", linkedIn=" + ALICE.getLinkedIn() + ", tags=" + ALICE.getTags() + "}";
+                + ", linkedIn=" + ALICE.getLinkedIn() + ", tags=" + ALICE.getTags()
+                + ", activity=" + ALICE.getActivity() + "}";
         assertEquals(expected, ALICE.toString());
+    }
+
+    // ---- toBuilder ----
+
+    @Test
+    public void toBuilder_build_returnsEqualPerson() {
+        Person withEverything = new PersonBuilder(ALICE).withActivity(new Activity(T1, T2, T3)).build();
+
+        assertEquals(withEverything, withEverything.toBuilder().build());
+    }
+
+    @Test
+    public void toBuilder_setters_changeOnlyTheirOwnField() {
+        Person original = new PersonBuilder(ALICE).withActivity(new Activity(T1, T2, T3)).build();
+
+        Person renamed = original.toBuilder().withName(BOB.getName()).build();
+        assertEquals(BOB.getName(), renamed.getName());
+        assertEquals(original.toBuilder().withName(original.getName()).build(), original);
+        assertEquals(original.getPhone(), renamed.getPhone());
+        assertEquals(original.getEmail(), renamed.getEmail());
+        assertEquals(original.getLinkedIn(), renamed.getLinkedIn());
+        assertEquals(original.getTags(), renamed.getTags());
+        assertEquals(original.getActivity(), renamed.getActivity());
+
+        Person rephoned = original.toBuilder().withPhone(BOB.getPhone()).build();
+        assertEquals(BOB.getPhone(), rephoned.getPhone());
+        assertEquals(original.getName(), rephoned.getName());
+        assertEquals(original.getActivity(), rephoned.getActivity());
+
+        Person reemailed = original.toBuilder().withEmail(BOB.getEmail()).build();
+        assertEquals(BOB.getEmail(), reemailed.getEmail());
+        assertEquals(original.getActivity(), reemailed.getActivity());
+
+        Person relinked = original.toBuilder().withLinkedIn(BOB.getLinkedIn()).build();
+        assertEquals(BOB.getLinkedIn(), relinked.getLinkedIn());
+        assertEquals(original.getActivity(), relinked.getActivity());
+
+        Person retagged = original.toBuilder().withTags(Set.of(new Tag("solo"))).build();
+        assertEquals(Set.of(new Tag("solo")), retagged.getTags());
+        assertEquals(original.getActivity(), retagged.getActivity());
+
+        Person reactive = original.toBuilder().withActivity(Activity.EMPTY).build();
+        assertEquals(Activity.EMPTY, reactive.getActivity());
+        assertEquals(original.getName(), reactive.getName());
+        assertEquals(original.getTags(), reactive.getTags());
+    }
+
+    @Test
+    public void toBuilder_build_doesNotChangeOriginal() {
+        Person original = new PersonBuilder(ALICE).build();
+        Person copy = original.toBuilder().withName(BOB.getName()).withPhone(BOB.getPhone()).build();
+
+        assertEquals(new PersonBuilder(ALICE).build(), original);
+        assertFalse(copy.equals(original));
+    }
+
+    @Test
+    public void toBuilder_tags_areDefensivelyCopied() {
+        Set<Tag> tags = new HashSet<>(Set.of(new Tag("one")));
+        Person.Builder builder = ALICE.toBuilder().withTags(tags);
+        tags.add(new Tag("two"));
+
+        assertEquals(Set.of(new Tag("one")), builder.build().getTags());
+    }
+
+    @Test
+    public void toBuilder_buildTwice_givesIndependentEqualPersons() {
+        Person.Builder builder = ALICE.toBuilder();
+
+        assertEquals(builder.build(), builder.build());
+    }
+
+    @Test
+    public void toBuilder_nullValues_throwNullPointerException() {
+        Person.Builder builder = ALICE.toBuilder();
+
+        assertThrows(NullPointerException.class, () -> builder.withName(null));
+        assertThrows(NullPointerException.class, () -> builder.withPhone(null));
+        assertThrows(NullPointerException.class, () -> builder.withEmail(null));
+        assertThrows(NullPointerException.class, () -> builder.withLinkedIn(null));
+        assertThrows(NullPointerException.class, () -> builder.withTags(null));
+        assertThrows(NullPointerException.class, () -> builder.withActivity(null));
+    }
+
+    @Test
+    public void toBuilder_keepsIdentityRule() {
+        // identity is still name (ignoring case) plus phone, whatever else the builder changes
+        Person changed = ALICE.toBuilder().withEmail(BOB.getEmail()).withTags(Set.of()).build();
+
+        assertTrue(ALICE.isSamePerson(changed));
+        assertFalse(ALICE.hasSameDetails(changed));
     }
 }
