@@ -13,6 +13,7 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.time.Instant;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -25,6 +26,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Activity;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
 
@@ -146,5 +148,17 @@ public class TagCommandTest {
                 + ", tagsToAdd=[[work]]}";
 
         assertEquals(expected, command.toString());
+    }
+
+    @Test
+    public void execute_personWithActivity_activityKeptAfterTag() throws Exception {
+        Activity activity = new Activity(Instant.parse("2026-10-17T04:12:33Z"),
+                Instant.parse("2026-10-18T09:00:00Z"), null);
+        model.setPerson(ALICE, ALICE.withActivity(activity));
+
+        new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("work"))).execute(model);
+
+        assertEquals(activity, model.getFilteredPersonList().get(0).getActivity());
+        assertTrue(model.getFilteredPersonList().get(0).getTags().contains(new Tag("work")));
     }
 }
