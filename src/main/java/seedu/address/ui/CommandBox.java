@@ -54,8 +54,7 @@ public class CommandBox extends UiPart<Region> {
     }
 
     private static boolean hasModifier(KeyEvent keyEvent) {
-        return keyEvent.isShiftDown() || keyEvent.isControlDown() || keyEvent.isAltDown()
-                || keyEvent.isMetaDown() || keyEvent.isShortcutDown();
+        return keyEvent.isShiftDown() || keyEvent.isControlDown() || keyEvent.isAltDown() || keyEvent.isMetaDown();
     }
 
     /**

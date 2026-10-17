@@ -177,6 +177,23 @@ public class CommandBoxTest {
     }
 
     @Test
+    public void otherKeys_areNotIntercepted() throws Exception {
+        runOnFxThread(() -> {
+            TextField field = createCommandField();
+            submit(field, "list");
+            field.setText("half typed");
+
+            for (KeyCode code : new KeyCode[] {KeyCode.A, KeyCode.LEFT, KeyCode.BACK_SPACE}) {
+                KeyEvent event = new KeyEvent(KeyEvent.KEY_PRESSED, "", "", code, false, false, false, false);
+                field.fireEvent(event);
+
+                assertFalse(event.isConsumed());
+                assertEquals("half typed", field.getText());
+            }
+        });
+    }
+
+    @Test
     public void arrowKeys_inOtherControl_doNotChangeCommandBox() throws Exception {
         runOnFxThread(() -> {
             CommandBox commandBox = createCommandBox(text -> new CommandResult("ok"));

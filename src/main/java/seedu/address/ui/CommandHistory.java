@@ -60,8 +60,7 @@ public class CommandHistory {
         } else if (position > 0) {
             position--;
         }
-        assert isPositionValid();
-        return Optional.of(entries.get(position));
+        return Optional.of(entryAtPosition());
     }
 
     /**
@@ -75,8 +74,7 @@ public class CommandHistory {
 
         if (position < entries.size() - 1) {
             position++;
-            assert isPositionValid();
-            return Optional.of(entries.get(position));
+            return Optional.of(entryAtPosition());
         }
 
         String restoredDraft = draft;
@@ -93,7 +91,8 @@ public class CommandHistory {
         draft = "";
     }
 
-    private boolean isPositionValid() {
-        return position >= 0 && position < entries.size();
+    private String entryAtPosition() {
+        assert isBrowsing();
+        return entries.get(position);
     }
 }
