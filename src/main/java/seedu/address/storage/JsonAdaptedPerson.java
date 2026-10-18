@@ -40,9 +40,10 @@ class JsonAdaptedPerson {
     private final String email;
     private final String linkedIn;
     private final List<JsonAdaptedTag> tags = new ArrayList<>();
-    private final String createdAt;
-    private final String lastEditedAt;
-    private final String lastViewedAt;
+    // Object, not String, so that a non-string value reaches parseTime and gets the field-specific message
+    private final Object createdAt;
+    private final Object lastEditedAt;
+    private final Object lastViewedAt;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details and no activity times.
@@ -59,8 +60,8 @@ class JsonAdaptedPerson {
     @JsonCreator
     public JsonAdaptedPerson(@JsonProperty("name") String name, @JsonProperty("phone") String phone,
             @JsonProperty("email") String email, @JsonProperty("linkedIn") String linkedIn,
-            @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("createdAt") String createdAt,
-            @JsonProperty("lastEditedAt") String lastEditedAt, @JsonProperty("lastViewedAt") String lastViewedAt) {
+            @JsonProperty("tags") List<JsonAdaptedTag> tags, @JsonProperty("createdAt") Object createdAt,
+            @JsonProperty("lastEditedAt") Object lastEditedAt, @JsonProperty("lastViewedAt") Object lastViewedAt) {
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -136,14 +137,20 @@ class JsonAdaptedPerson {
     /**
      * Parses a whole-second ISO-8601 UTC timestamp such as {@code 2026-10-17T04:12:33Z}.
      * Returns null if {@code time} is null. Fractions of a second, offsets other than {@code Z},
-     * surrounding spaces and empty text are rejected.
+     * surrounding spaces, empty text and values that are not JSON strings are rejected.
      *
      * @throws IllegalValueException if {@code time} is not such a timestamp, naming {@code field}.
      */
-    private static Instant parseTime(String field, String time) throws IllegalValueException {
-        if (time == null) {
+    private static Instant parseTime(String field, Object value) throws IllegalValueException {
+        if (value == null) {
             return null;
         }
+        if (!(value instanceof String)) {
+            // a JSON object, array, number or boolean
+            throw new IllegalValueException(
+                    String.format(INVALID_FIELD_MESSAGE_FORMAT, field, REASON_INVALID_TIME));
+        }
+        String time = (String) value;
         try {
             if (WHOLE_SECOND_UTC.matcher(time).matches()) {
                 Instant parsed = Instant.parse(time);
