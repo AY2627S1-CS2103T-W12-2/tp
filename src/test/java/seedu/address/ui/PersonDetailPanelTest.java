@@ -17,6 +17,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
 import seedu.address.model.person.Activity;
 import seedu.address.model.person.Person;
@@ -44,6 +45,16 @@ public class PersonDetailPanelTest {
 
         assertTrue(lookup(panel, "#placeholder").isVisible());
         assertFalse(lookup(panel, "#content").isVisible());
+    }
+
+    @Test
+    public void constructor_viewedPerson_contentScrollsVertically() {
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build()));
+
+        ScrollPane scroll = (ScrollPane) lookup(panel, "#content");
+        assertTrue(scroll.isFitToWidth());
+        assertEquals(ScrollPane.ScrollBarPolicy.NEVER, scroll.getHbarPolicy());
+        assertEquals(ScrollPane.ScrollBarPolicy.AS_NEEDED, scroll.getVbarPolicy());
     }
 
     @Test
@@ -135,7 +146,12 @@ public class PersonDetailPanelTest {
     }
 
     private Node lookup(PersonDetailPanel panel, String selector) {
-        return panel.getRoot().lookup(selector);
+        Node found = panel.getRoot().lookup(selector);
+        if (found != null) {
+            return found;
+        }
+        // a ScrollPane without a skin does not expose its content to lookup
+        return ((ScrollPane) panel.getRoot().lookup("#content")).getContent().lookup(selector);
     }
 
     private String text(PersonDetailPanel panel, String selector) {

@@ -8,9 +8,9 @@ import java.util.Optional;
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
-import javafx.scene.layout.VBox;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
@@ -28,7 +28,7 @@ public class PersonDetailPanel extends UiPart<Region> {
     @FXML
     private Label placeholder;
     @FXML
-    private VBox content;
+    private ScrollPane content;
     @FXML
     private Label name;
     @FXML

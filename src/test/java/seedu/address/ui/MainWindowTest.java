@@ -18,6 +18,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import seedu.address.logic.Logic;
@@ -67,7 +68,9 @@ public class MainWindowTest {
 
             assertFalse(detailPanel.lookup("#placeholder").isVisible());
             String viewedName = logic.getFilteredPersonList().get(0).getName().fullName;
-            assertEquals(viewedName, ((Label) detailPanel.lookup("#name")).getText());
+            // a ScrollPane without a skin does not expose its content to lookup
+            ScrollPane content = (ScrollPane) detailPanel.lookup("#content");
+            assertEquals(viewedName, ((Label) content.getContent().lookup("#name")).getText());
         });
     }
 

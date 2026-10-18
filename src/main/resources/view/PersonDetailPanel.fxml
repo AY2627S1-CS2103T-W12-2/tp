@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
@@ -10,7 +11,8 @@
 
 <StackPane styleClass="detail-panel" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
   <Label fx:id="placeholder" styleClass="detail-placeholder" text="No contact selected" />
-  <VBox fx:id="content" spacing="12" alignment="TOP_LEFT">
+  <ScrollPane fx:id="content" fitToWidth="true" hbarPolicy="NEVER" style="-fx-background-color: transparent;">
+  <VBox spacing="12" alignment="TOP_LEFT">
     <padding>
       <Insets top="15" right="20" bottom="15" left="20" />
     </padding>
@@ -42,4 +44,5 @@
       <Label fx:id="lastViewedAt" styleClass="detail-value" GridPane.columnIndex="1" GridPane.rowIndex="2" />
     </GridPane>
   </VBox>
+  </ScrollPane>
 </StackPane>
