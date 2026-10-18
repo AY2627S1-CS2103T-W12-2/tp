@@ -25,6 +25,7 @@ import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Activity;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.exceptions.PersonNotFoundException;
 import seedu.address.model.tag.Tag;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.PersonBuilder;
@@ -144,6 +145,11 @@ public class ModelManagerTest {
         timedModel.editPerson(ALICE, new PersonBuilder(ALICE).withTags("work").build());
 
         assertEquals(new Activity(null, NOW, null), timedModel.getAddressBook().getPersonList().get(0).getActivity());
+    }
+
+    @Test
+    public void editPerson_identicalDetailsButTargetMissing_throwsPersonNotFoundException() {
+        assertThrows(PersonNotFoundException.class, () -> modelManager.editPerson(ALICE, ALICE));
     }
 
     @Test
