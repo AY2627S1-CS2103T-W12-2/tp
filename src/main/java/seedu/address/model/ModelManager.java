@@ -15,6 +15,7 @@ import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.exceptions.PersonNotFoundException;
 
 /**
  * Represents the in-memory model of the address book data.
@@ -138,6 +139,10 @@ public class ModelManager implements Model {
     public void editPerson(Person target, Person editedPerson) {
         requireAllNonNull(target, editedPerson);
 
+        // checked first so that a no-op edit of a missing or stale target fails like any other edit
+        if (!addressBook.getPersonList().contains(target)) {
+            throw new PersonNotFoundException();
+        }
         if (editedPerson.hasSameDetails(target)) {
             return;
         }

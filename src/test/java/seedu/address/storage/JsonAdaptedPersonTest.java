@@ -229,6 +229,22 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_nonStringJsonTimes_throwsFieldSpecificError() throws Exception {
+        String[] nonStrings = {"{}", "[]", "[\"2026-10-17T04:12:33Z\"]", "123", "true"};
+        String[] fields = {"createdAt", "lastEditedAt", "lastViewedAt"};
+
+        for (String field : fields) {
+            for (String value : nonStrings) {
+                String json = "{\"name\":\"" + VALID_NAME + "\",\"phone\":\"" + VALID_PHONE
+                        + "\",\"email\":\"" + VALID_EMAIL + "\",\"linkedIn\":\"" + VALID_LINKEDIN
+                        + "\",\"" + field + "\":" + value + "}";
+                JsonAdaptedPerson person = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+                assertThrows(IllegalValueException.class, timeError(field), person::toModelType);
+            }
+        }
+    }
+
+    @Test
     public void invalidFieldMessageFormat_matchesAgreedWording() {
         assertEquals("Invalid contact data: 'note' must be a string.",
                 String.format(JsonAdaptedPerson.INVALID_FIELD_MESSAGE_FORMAT, "note", "must be a string"));
