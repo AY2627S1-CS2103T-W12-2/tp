@@ -10,6 +10,8 @@ import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
+import static seedu.address.testutil.TypicalTimes.NOW;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
@@ -24,10 +26,12 @@ import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Activity;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
@@ -42,7 +46,7 @@ public class LogicManagerTest {
     @TempDir
     public Path temporaryFolder;
 
-    private Model model = new ModelManager();
+    private Model model = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
     private Logic logic;
 
     @BeforeEach
@@ -100,7 +104,8 @@ public class LogicManagerTest {
 
         logic.execute("view 1");
 
-        assertEquals(AMY, logic.getViewedPerson().get());
+        assertTrue(AMY.hasSameDetails(logic.getViewedPerson().get()));
+        assertEquals(new Activity(null, null, NOW), logic.getViewedPerson().get().getActivity());
     }
 
     @Test
@@ -183,7 +188,7 @@ public class LogicManagerTest {
      */
     private void assertCommandFailure(String inputCommand, Class<? extends Throwable> expectedException,
             String expectedMessage) {
-        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs());
+        Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs(), FIXED_CLOCK);
         assertCommandFailure(inputCommand, expectedException, expectedMessage, expectedModel);
     }
 
@@ -226,9 +231,20 @@ public class LogicManagerTest {
         // Triggers the saveAddressBook method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).withTags().build();
-        ModelManager expectedModel = new ModelManager();
+        Person expectedPerson = new PersonBuilder(AMY).withTags().withActivity(new Activity(NOW, null, null)).build();
+        ModelManager expectedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
         expectedModel.addPerson(expectedPerson);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
+    }
+
+    @Test
+    public void execute_addThenView_activitySurvivesSaveAndReload() throws Exception {
+        logic.execute(AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY);
+        logic.execute("view 1");
+
+        JsonAddressBookStorage reader = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"));
+        Person reloaded = reader.readAddressBook().get().getPersonList().get(0);
+
+        assertEquals(new Activity(NOW, null, NOW), reloaded.getActivity());
     }
 }

@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.util.Collections;
@@ -84,7 +85,15 @@ public class Person {
      * Returns a copy of this person with every field kept except {@code activity}, which is replaced.
      */
     public Person withActivity(Activity activity) {
-        return new Person(name, phone, email, linkedIn, tags, activity);
+        return toBuilder().withActivity(activity).build();
+    }
+
+    /**
+     * Returns a builder that starts with every field of this person. Use it to copy a contact with some fields
+     * changed, so that no field (including ones added by later features) is lost by an incomplete constructor call.
+     */
+    public Builder toBuilder() {
+        return new Builder(this);
     }
 
     /**
@@ -149,6 +158,90 @@ public class Person {
                 .add("tags", tags)
                 .add("activity", activity)
                 .toString();
+    }
+
+    /**
+     * Builds a {@code Person} by copying another one and changing some fields.
+     * Obtained with {@link Person#toBuilder()}. Every field of the source person is carried over, so a field that
+     * is not set here keeps its old value. A new {@code Person} field must be added to this class too.
+     */
+    public static class Builder {
+        private Name name;
+        private Phone phone;
+        private Email email;
+        private LinkedIn linkedIn;
+        private Set<Tag> tags;
+        private Activity activity;
+
+        private Builder(Person source) {
+            name = source.name;
+            phone = source.phone;
+            email = source.email;
+            linkedIn = source.linkedIn;
+            tags = new HashSet<>(source.tags);
+            activity = source.activity;
+        }
+
+        /**
+         * Replaces the name.
+         */
+        public Builder withName(Name name) {
+            requireNonNull(name);
+            this.name = name;
+            return this;
+        }
+
+        /**
+         * Replaces the phone.
+         */
+        public Builder withPhone(Phone phone) {
+            requireNonNull(phone);
+            this.phone = phone;
+            return this;
+        }
+
+        /**
+         * Replaces the email.
+         */
+        public Builder withEmail(Email email) {
+            requireNonNull(email);
+            this.email = email;
+            return this;
+        }
+
+        /**
+         * Replaces the LinkedIn handle.
+         */
+        public Builder withLinkedIn(LinkedIn linkedIn) {
+            requireNonNull(linkedIn);
+            this.linkedIn = linkedIn;
+            return this;
+        }
+
+        /**
+         * Replaces the tags. A copy of {@code tags} is kept.
+         */
+        public Builder withTags(Set<Tag> tags) {
+            requireNonNull(tags);
+            this.tags = new HashSet<>(tags);
+            return this;
+        }
+
+        /**
+         * Replaces the activity times.
+         */
+        public Builder withActivity(Activity activity) {
+            requireNonNull(activity);
+            this.activity = activity;
+            return this;
+        }
+
+        /**
+         * Returns a new {@code Person} with the fields set so far.
+         */
+        public Person build() {
+            return new Person(name, phone, email, linkedIn, tags, activity);
+        }
     }
 
 }

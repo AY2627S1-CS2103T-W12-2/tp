@@ -8,14 +8,25 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
+import static seedu.address.testutil.TypicalTimes.EARLIER;
+import static seedu.address.testutil.TypicalTimes.EARLIEST;
+import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
+import static seedu.address.testutil.TypicalTimes.NOW;
 
+import java.time.Instant;
+import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
 import java.util.List;
+import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.GuiSettings;
+import seedu.address.model.person.Activity;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
+import seedu.address.model.person.exceptions.PersonNotFoundException;
+import seedu.address.model.tag.Tag;
 import seedu.address.testutil.AddressBookBuilder;
 import seedu.address.testutil.PersonBuilder;
 
@@ -74,6 +85,140 @@ public class ModelManagerTest {
     @Test
     public void getFilteredPersonList_modifyList_throwsUnsupportedOperationException() {
         assertThrows(UnsupportedOperationException.class, () -> modelManager.getFilteredPersonList().remove(0));
+    }
+
+    //=========== activity ===================================================================================
+
+    @Test
+    public void getClock_default_isSingaporeClock() {
+        assertEquals(ZoneId.of("Asia/Singapore"), Model.DISPLAY_ZONE);
+        assertEquals(Model.DISPLAY_ZONE, modelManager.getClock().getZone());
+    }
+
+    @Test
+    public void now_defaultClock_isCloseToSystemTime() {
+        Instant before = Instant.now().truncatedTo(ChronoUnit.SECONDS);
+        Instant now = modelManager.now();
+        Instant after = Instant.now();
+
+        assertFalse(now.isBefore(before));
+        assertFalse(now.isAfter(after));
+    }
+
+    @Test
+    public void now_fixedClock_dropsSubSecondPrecision() {
+        ModelManager timedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
+        assertEquals(FIXED_CLOCK, timedModel.getClock());
+        assertEquals(NOW, timedModel.now());
+    }
+
+    @Test
+    public void constructor_nullClock_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new ModelManager(new AddressBook(), new UserPrefs(), null));
+    }
+
+    @Test
+    public void editPerson_nullArguments_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.editPerson(null, ALICE));
+        assertThrows(NullPointerException.class, () -> modelManager.editPerson(ALICE, null));
+    }
+
+    @Test
+    public void editPerson_changedDetails_setsLastEditedAndKeepsOtherTimes() {
+        ModelManager timedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
+        Person original = new PersonBuilder(ALICE)
+                .withActivity(new Activity(EARLIEST, EARLIER, EARLIER)).build();
+        timedModel.addPerson(original);
+
+        timedModel.editPerson(original, new PersonBuilder(original).withName("Alice Pauline Tan").build());
+
+        Person stored = timedModel.getAddressBook().getPersonList().get(0);
+        assertEquals("Alice Pauline Tan", stored.getName().fullName);
+        assertEquals(new Activity(EARLIEST, NOW, EARLIER), stored.getActivity());
+    }
+
+    @Test
+    public void editPerson_personWithNoRecordedActivity_setsOnlyLastEdited() {
+        ModelManager timedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
+        timedModel.addPerson(ALICE);
+
+        timedModel.editPerson(ALICE, new PersonBuilder(ALICE).withTags("work").build());
+
+        assertEquals(new Activity(null, NOW, null), timedModel.getAddressBook().getPersonList().get(0).getActivity());
+    }
+
+    @Test
+    public void editPerson_identicalDetailsButTargetMissing_throwsPersonNotFoundException() {
+        assertThrows(PersonNotFoundException.class, () -> modelManager.editPerson(ALICE, ALICE));
+    }
+
+    @Test
+    public void editPerson_identicalDetails_isNoOp() {
+        ModelManager timedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
+        Person original = new PersonBuilder(ALICE).withActivity(new Activity(EARLIEST, EARLIER, null)).build();
+        timedModel.addPerson(original);
+
+        timedModel.editPerson(original, new PersonBuilder(original).build());
+
+        assertEquals(original, timedModel.getAddressBook().getPersonList().get(0));
+        assertEquals(new Activity(EARLIEST, EARLIER, null),
+                timedModel.getAddressBook().getPersonList().get(0).getActivity());
+    }
+
+    @Test
+    public void editPerson_editedHasDifferentActivity_usesTargetActivity() {
+        ModelManager timedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
+        Person original = new PersonBuilder(ALICE).withActivity(new Activity(EARLIEST, null, EARLIER)).build();
+        timedModel.addPerson(original);
+
+        // an edited copy built without activity must not wipe the created and viewed times
+        timedModel.editPerson(original, new Person(original.getName(), original.getPhone(), original.getEmail(),
+                original.getLinkedIn(), Set.of(new Tag("work"))));
+
+        assertEquals(new Activity(EARLIEST, NOW, EARLIER),
+                timedModel.getAddressBook().getPersonList().get(0).getActivity());
+    }
+
+    @Test
+    public void editPerson_viewedPerson_updatesViewedPersonWithStampedCopy() {
+        ModelManager timedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
+        timedModel.addPerson(ALICE);
+        timedModel.setViewedPerson(ALICE);
+
+        timedModel.editPerson(ALICE, new PersonBuilder(ALICE).withTags("work").build());
+
+        assertEquals(timedModel.getAddressBook().getPersonList().get(0), timedModel.getViewedPerson().get());
+        assertEquals(NOW, timedModel.getViewedPerson().get().getActivity().getLastEditedAt().get());
+    }
+
+    @Test
+    public void viewPerson_null_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> modelManager.viewPerson(null));
+    }
+
+    @Test
+    public void viewPerson_setsLastViewedAndViewedPerson() {
+        ModelManager timedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
+        Person original = new PersonBuilder(ALICE).withActivity(new Activity(EARLIEST, EARLIER, null)).build();
+        timedModel.addPerson(original);
+
+        timedModel.viewPerson(original);
+
+        Person stored = timedModel.getAddressBook().getPersonList().get(0);
+        assertEquals(new Activity(EARLIEST, EARLIER, NOW), stored.getActivity());
+        assertEquals(stored, timedModel.getViewedPerson().get());
+        assertTrue(stored.hasSameDetails(original));
+    }
+
+    @Test
+    public void viewPerson_viewedAgain_replacesLastViewed() {
+        ModelManager timedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
+        Person original = new PersonBuilder(ALICE).withActivity(new Activity(null, null, EARLIER)).build();
+        timedModel.addPerson(original);
+
+        timedModel.viewPerson(original);
+
+        assertEquals(NOW, timedModel.getViewedPerson().get().getActivity().getLastViewedAt().get());
     }
 
     @Test

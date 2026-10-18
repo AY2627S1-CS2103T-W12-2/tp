@@ -83,7 +83,7 @@ public class EditCommand extends Command {
             throw new CommandException(MESSAGE_DUPLICATE_PERSON);
         }
 
-        model.setPerson(personToEdit, editedPerson);
+        model.editPerson(personToEdit, editedPerson);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
     }
@@ -95,14 +95,14 @@ public class EditCommand extends Command {
     private static Person createEditedPerson(Person personToEdit, EditPersonDescriptor editPersonDescriptor) {
         assert personToEdit != null;
 
-        Name updatedName = editPersonDescriptor.getName().orElse(personToEdit.getName());
-        Phone updatedPhone = editPersonDescriptor.getPhone().orElse(personToEdit.getPhone());
-        Email updatedEmail = editPersonDescriptor.getEmail().orElse(personToEdit.getEmail());
-        LinkedIn updatedLinkedIn = editPersonDescriptor.getLinkedIn().orElse(personToEdit.getLinkedIn());
-        Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
-
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedLinkedIn, updatedTags,
-                personToEdit.getActivity());
+        // toBuilder keeps every field that is not edited here, including activity times
+        return personToEdit.toBuilder()
+                .withName(editPersonDescriptor.getName().orElse(personToEdit.getName()))
+                .withPhone(editPersonDescriptor.getPhone().orElse(personToEdit.getPhone()))
+                .withEmail(editPersonDescriptor.getEmail().orElse(personToEdit.getEmail()))
+                .withLinkedIn(editPersonDescriptor.getLinkedIn().orElse(personToEdit.getLinkedIn()))
+                .withTags(editPersonDescriptor.getTags().orElse(personToEdit.getTags()))
+                .build();
     }
 
     @Override
