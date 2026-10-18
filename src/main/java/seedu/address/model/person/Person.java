@@ -25,6 +25,7 @@ public class Person {
     // Data fields
     private final LinkedIn linkedIn;
     private final Set<Tag> tags = new HashSet<>();
+    private final Note note;
 
     // Activity metadata (when the person was created, last edited and last viewed)
     private final Activity activity;
@@ -44,13 +45,23 @@ public class Person {
      * To change an existing contact, copy it with {@link #withActivity(Activity)} or the model's edit operation.
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity) {
-        requireAllNonNull(name, phone, email, linkedIn, tags, activity);
+        this(name, phone, email, linkedIn, tags, activity, Note.EMPTY);
+    }
+
+    /**
+     * Creates a person with the given activity times and note. Every field must be present and not null.
+     * To change an existing contact, copy it with {@link #toBuilder()} or the model's edit operation.
+     */
+    public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity,
+            Note note) {
+        requireAllNonNull(name, phone, email, linkedIn, tags, activity, note);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.linkedIn = linkedIn;
         this.tags.addAll(tags);
         this.activity = activity;
+        this.note = note;
     }
 
     public Name getName() {
@@ -75,6 +86,10 @@ public class Person {
      */
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tags);
+    }
+
+    public Note getNote() {
+        return note;
     }
 
     public Activity getActivity() {
@@ -139,13 +154,14 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && linkedIn.equals(otherPerson.linkedIn)
                 && tags.equals(otherPerson.tags)
+                && note.equals(otherPerson.note)
                 && activity.equals(otherPerson.activity);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, linkedIn, tags, activity);
+        return Objects.hash(name, phone, email, linkedIn, tags, note, activity);
     }
 
     @Override
@@ -156,6 +172,7 @@ public class Person {
                 .add("email", email)
                 .add("linkedIn", linkedIn)
                 .add("tags", tags)
+                .add("note", note)
                 .add("activity", activity)
                 .toString();
     }
@@ -171,6 +188,7 @@ public class Person {
         private Email email;
         private LinkedIn linkedIn;
         private Set<Tag> tags;
+        private Note note;
         private Activity activity;
 
         private Builder(Person source) {
@@ -179,6 +197,7 @@ public class Person {
             email = source.email;
             linkedIn = source.linkedIn;
             tags = new HashSet<>(source.tags);
+            note = source.note;
             activity = source.activity;
         }
 
@@ -228,6 +247,15 @@ public class Person {
         }
 
         /**
+         * Replaces the note. An empty note removes the note.
+         */
+        public Builder withNote(Note note) {
+            requireNonNull(note);
+            this.note = note;
+            return this;
+        }
+
+        /**
          * Replaces the activity times.
          */
         public Builder withActivity(Activity activity) {
@@ -240,7 +268,7 @@ public class Person {
          * Returns a new {@code Person} with the fields set so far.
          */
         public Person build() {
-            return new Person(name, phone, email, linkedIn, tags, activity);
+            return new Person(name, phone, email, linkedIn, tags, activity, note);
         }
     }
 
