@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_EMPTY_PERSON_LIST;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
@@ -32,6 +33,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Activity;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
@@ -246,5 +248,62 @@ public class LogicManagerTest {
         Person reloaded = reader.readAddressBook().get().getPersonList().get(0);
 
         assertEquals(new Activity(NOW, null, NOW), reloaded.getActivity());
+    }
+
+    @Test
+    public void execute_noteCommand_isSavedAndSurvivesReload() throws Exception {
+        model.addPerson(AMY);
+
+        logic.execute("note 1 nt/Met at booth 4, wants a React teammate (Sat 10am)!");
+
+        assertEquals("Met at booth 4, wants a React teammate (Sat 10am)!",
+                logic.getFilteredPersonList().get(0).getNote().value);
+        Person reloaded = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().get().getPersonList().get(0);
+        assertEquals("Met at booth 4, wants a React teammate (Sat 10am)!", reloaded.getNote().value);
+
+        logic.execute("note 1 clear");
+
+        assertTrue(logic.getFilteredPersonList().get(0).getNote().isEmpty());
+        reloaded = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().get().getPersonList().get(0);
+        assertTrue(reloaded.getNote().isEmpty());
+    }
+
+    @Test
+    public void execute_noteOnViewedPerson_detailPanelPersonFollowsTheNote() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("view 1");
+
+        logic.execute("note 1 nt/follow up");
+
+        assertEquals("follow up", logic.getViewedPerson().get().getNote().value);
+
+        logic.execute("note 1 clear");
+
+        assertTrue(logic.getViewedPerson().get().getNote().isEmpty());
+    }
+
+    @Test
+    public void execute_editAndTagKeepTheNote() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("note 1 nt/keep me");
+
+        logic.execute("edit 1 p/91234567");
+        logic.execute("tag 1 t/friends");
+
+        assertEquals("keep me", logic.getFilteredPersonList().get(0).getNote().value);
+    }
+
+    @Test
+    public void execute_noteCommandErrors_leaveTheNoteUnchanged() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("note 1 nt/original");
+
+        assertParseException("note 1 nt/   ", Note.MESSAGE_BLANK);
+        assertParseException("note 1 nt/" + "a".repeat(Note.MAX_LENGTH + 1), Note.MESSAGE_TOO_LONG);
+        assertCommandException("note 9 nt/new", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+
+        assertEquals("original", logic.getFilteredPersonList().get(0).getNote().value);
     }
 }
