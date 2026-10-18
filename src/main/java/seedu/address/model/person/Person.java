@@ -25,16 +25,31 @@ public class Person {
     private final LinkedIn linkedIn;
     private final Set<Tag> tags = new HashSet<>();
 
+    // Activity metadata (when the person was created, last edited and last viewed)
+    private final Activity activity;
+
     /**
+     * Creates a new person with no known activity times.
+     * Use this for a contact that does not exist yet, and in tests. To change an existing contact, copy it with
+     * {@link #withActivity(Activity)} or the model's edit operation so its activity times are kept.
      * Every field must be present and not null.
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags) {
-        requireAllNonNull(name, phone, email, linkedIn, tags);
+        this(name, phone, email, linkedIn, tags, Activity.EMPTY);
+    }
+
+    /**
+     * Creates a person with the given activity times. Every field must be present and not null.
+     * To change an existing contact, copy it with {@link #withActivity(Activity)} or the model's edit operation.
+     */
+    public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity) {
+        requireAllNonNull(name, phone, email, linkedIn, tags, activity);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.linkedIn = linkedIn;
         this.tags.addAll(tags);
+        this.activity = activity;
     }
 
     public Name getName() {
@@ -59,6 +74,26 @@ public class Person {
      */
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tags);
+    }
+
+    public Activity getActivity() {
+        return activity;
+    }
+
+    /**
+     * Returns a copy of this person with every field kept except {@code activity}, which is replaced.
+     */
+    public Person withActivity(Activity activity) {
+        return new Person(name, phone, email, linkedIn, tags, activity);
+    }
+
+    /**
+     * Returns true if both persons have the same identity and data fields, ignoring {@code activity}.
+     * Used to tell a genuine edit from a no-op.
+     */
+    public boolean hasSameDetails(Person otherPerson) {
+        return otherPerson != null
+                && withActivity(Activity.EMPTY).equals(otherPerson.withActivity(Activity.EMPTY));
     }
 
     /**
@@ -94,13 +129,14 @@ public class Person {
                 && phone.equals(otherPerson.phone)
                 && email.equals(otherPerson.email)
                 && linkedIn.equals(otherPerson.linkedIn)
-                && tags.equals(otherPerson.tags);
+                && tags.equals(otherPerson.tags)
+                && activity.equals(otherPerson.activity);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, linkedIn, tags);
+        return Objects.hash(name, phone, email, linkedIn, tags, activity);
     }
 
     @Override
@@ -111,6 +147,7 @@ public class Person {
                 .add("email", email)
                 .add("linkedIn", linkedIn)
                 .add("tags", tags)
+                .add("activity", activity)
                 .toString();
     }
 

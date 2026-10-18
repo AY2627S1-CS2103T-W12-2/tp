@@ -15,6 +15,8 @@ import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.time.Instant;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -24,6 +26,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Activity;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
@@ -181,4 +184,17 @@ public class EditCommandTest {
         assertEquals(expected, editCommand.toString());
     }
 
+    @Test
+    public void execute_personWithActivity_activityKeptAfterEdit() throws Exception {
+        Activity activity = new Activity(Instant.parse("2026-10-17T04:12:33Z"),
+                Instant.parse("2026-10-18T09:00:00Z"), null);
+        Person original = model.getFilteredPersonList().get(0);
+        model.setPerson(original, original.withActivity(activity));
+        EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder().withPhone(VALID_PHONE_BOB).build();
+
+        new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(model);
+
+        assertEquals(activity, model.getFilteredPersonList().get(0).getActivity());
+        assertEquals(VALID_PHONE_BOB, model.getFilteredPersonList().get(0).getPhone().value);
+    }
 }

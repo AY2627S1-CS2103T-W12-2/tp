@@ -101,7 +101,8 @@ public class EditCommand extends Command {
         LinkedIn updatedLinkedIn = editPersonDescriptor.getLinkedIn().orElse(personToEdit.getLinkedIn());
         Set<Tag> updatedTags = editPersonDescriptor.getTags().orElse(personToEdit.getTags());
 
-        return new Person(updatedName, updatedPhone, updatedEmail, updatedLinkedIn, updatedTags);
+        return new Person(updatedName, updatedPhone, updatedEmail, updatedLinkedIn, updatedTags,
+                personToEdit.getActivity());
     }
 
     @Override
