@@ -65,6 +65,10 @@ public class MainWindowTest {
 
             logic.execute("view 1");
 
+            // the scroll pane only adds its content to the scene graph once it has been laid out
+            detailPanel.applyCss();
+            detailPanel.layout();
+
             assertFalse(detailPanel.lookup("#placeholder").isVisible());
             String viewedName = logic.getFilteredPersonList().get(0).getName().fullName;
             assertEquals(viewedName, ((Label) detailPanel.lookup("#name")).getText());
