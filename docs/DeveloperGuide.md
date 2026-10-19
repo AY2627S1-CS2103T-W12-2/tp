@@ -685,6 +685,10 @@ old/malformed JSON and round trips, filtered targeting, no-ops, event search, UI
 
 ### Contact photo implementation
 
+The sequence below shows photo validation/import, the identical-image no-op, and model rollback when saving fails.
+
+![Contact photo implementation](images/PhotoImportSequenceDiagram.png)
+
 `Person.photoPath` is an optional relative reference; complete builder copies, equality and detail
 comparison preserve it. `PhotoCommandParser` validates syntax; `PhotoCommand` validates the displayed
 index before any import, retains all fields via `toBuilder()`, and delegates real changes to
