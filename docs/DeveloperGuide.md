@@ -663,6 +663,10 @@ Given below are instructions to test the app manually.
 
 ### Meeting context implementation
 
+The sequence below shows a partial meeting update, the no-op path, and rollback when saving fails.
+
+![Meeting context implementation](images/MeetingUpdateSequenceDiagram.png)
+
 `Meeting` is an immutable optional value held by `Person` and copied by `Person.toBuilder()`.
 `MeetingCommandParser` validates the displayed index, duplicate prefixes, strict real dates, nonblank
 text bounds, and explicit clear grammar. `MeetingCommand` merges only supplied fields, then calls
