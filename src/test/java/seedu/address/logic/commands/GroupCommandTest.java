@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
@@ -49,6 +50,33 @@ public class GroupCommandTest {
 
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
         assertEquals(List.of(), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void constructor_nullTag_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new GroupCommand(null));
+    }
+
+    @Test
+    public void execute_nullModel_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> new GroupCommand(new Tag("react")).execute(null));
+    }
+
+    @Test
+    public void equals_sameTag_returnsTrue() {
+        GroupCommand command = new GroupCommand(new Tag("react"));
+
+        assertTrue(command.equals(command));
+        assertTrue(command.equals(new GroupCommand(new Tag("REACT"))));
+        assertFalse(command.equals(new GroupCommand(new Tag("figma"))));
+        assertFalse(command.equals(null));
+        assertFalse(command.equals("react"));
+        assertEquals(command.hashCode(), new GroupCommand(new Tag("react")).hashCode());
+    }
+
+    @Test
+    public void toString_containsTag() {
+        assertTrue(new GroupCommand(new Tag("react")).toString().contains("react"));
     }
 
     @Test
