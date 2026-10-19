@@ -88,6 +88,9 @@ public class NoteCommandParserTest {
         assertParseFailure(parser, "1 clear nt/text", INVALID_FORMAT);
         // extra words before the prefix
         assertParseFailure(parser, "1 2 nt/text", INVALID_FORMAT);
+        // the shape is checked before the index, so a bad index in a wrong shape still gives the format error
+        assertParseFailure(parser, "abc", INVALID_FORMAT);
+        assertParseFailure(parser, "abc some text", INVALID_FORMAT);
     }
 
     @Test

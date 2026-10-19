@@ -33,13 +33,17 @@ public class NoteCommandParser implements Parser<NoteCommand> {
                 ? new String[0] : argMultimap.getPreamble().strip().split("\\s+");
         boolean hasNotePrefix = argMultimap.getValue(PREFIX_NOTE).isPresent();
 
-        if (hasNotePrefix && words.length == 1) {
-            return new NoteCommand(parseIndex(words[0]), ParserUtil.parseNote(argMultimap.getValue(PREFIX_NOTE).get()));
+        boolean isSetForm = hasNotePrefix && words.length == 1;
+        boolean isClearForm = !hasNotePrefix && words.length == 2
+                && words[1].equalsIgnoreCase(NoteCommand.KEYWORD_CLEAR);
+        if (!isSetForm && !isClearForm) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE));
         }
-        if (!hasNotePrefix && words.length == 2 && words[1].equalsIgnoreCase(NoteCommand.KEYWORD_CLEAR)) {
-            return new NoteCommand(parseIndex(words[0]), Note.EMPTY);
-        }
-        throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE));
+
+        // the index comes first in both forms, and is checked before the note
+        Index index = parseIndex(words[0]);
+        Note note = isSetForm ? ParserUtil.parseNote(argMultimap.getValue(PREFIX_NOTE).get()) : Note.EMPTY;
+        return new NoteCommand(index, note);
     }
 
     private static Index parseIndex(String index) throws ParseException {
