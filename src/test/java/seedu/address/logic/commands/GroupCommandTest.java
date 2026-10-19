@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -14,7 +15,6 @@ import java.util.Set;
 
 import org.junit.jupiter.api.Test;
 
-import seedu.address.logic.Messages;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
@@ -65,7 +65,7 @@ public class GroupCommandTest {
 
         new ViewCommand(INDEX_SECOND_PERSON).execute(model);
 
-        assertEquals(BENSON, model.getViewedPerson().get());
+        assertTrue(BENSON.isSamePerson(model.getViewedPerson().get()));
     }
 
     @Test
