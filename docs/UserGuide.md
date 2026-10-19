@@ -220,6 +220,10 @@ Format: `exit`
 
 ### Recording meeting context: `meeting`
 
+![Meeting feature at 1280×720](images/meeting-feature.png)
+
+[View the simulated 150% layout](images/meeting-feature-150percent.png).
+
 Use `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]` to set or replace one or more fields.
 Omitted fields keep their existing values. For example:
 
@@ -249,7 +253,6 @@ its event excludes it from the current event search, its selection is cleared.
 
 `find ev/TERM [ev/TERM]...` matches partial event names without case sensitivity, using OR across
 repeated terms. No match is a valid empty list. Do not mix event terms with plain name keywords.
-The reusable event predicate is supplied for integration with the shared typed-search pipeline.
 
 Meeting context is saved in optional JSON `meeting`, for example
 `"meeting": {"eventName": "Hack Singapore", "date": "2026-10-20", "role": "Mentor"}`.
