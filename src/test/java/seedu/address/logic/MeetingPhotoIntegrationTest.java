@@ -36,6 +36,7 @@ public class MeetingPhotoIntegrationTest {
                 new JsonUserPrefsStorage(folder.resolve("prefs.json"))), new PhotoStorage(folder));
         ImageIO.write(new BufferedImage(12, 8, BufferedImage.TYPE_INT_RGB),
                 "png", folder.resolve("portrait.png").toFile());
+        logic.execute("note 1 nt/Existing team note");
         logic.execute("meeting 1 ev/Hack Singapore md/2026-10-20 r/Mentor");
         var meeting = model.getFilteredPersonList().getFirst().getMeeting();
         logic.execute("photo 1 f/portrait.png");
@@ -43,6 +44,7 @@ public class MeetingPhotoIntegrationTest {
         logic.execute("edit 1 e/updated@example.com");
         logic.execute("tag 1 t/mentor");
         var updated = model.getFilteredPersonList().getFirst();
+        assertEquals("Existing team note", updated.getNote().value);
         assertEquals(meeting, updated.getMeeting());
         assertEquals(reference, updated.getPhotoPath());
         assertEquals(updated, saved.readAddressBook().orElseThrow().getPersonList().getFirst());

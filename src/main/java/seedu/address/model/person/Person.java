@@ -25,6 +25,7 @@ public class Person {
     // Data fields
     private final LinkedIn linkedIn;
     private final Set<Tag> tags = new HashSet<>();
+    private final Note note;
 
     // Activity metadata (when the person was created, last edited and last viewed)
     private final Activity activity;
@@ -46,19 +47,29 @@ public class Person {
      * To change an existing contact, copy it with {@link #withActivity(Activity)} or the model's edit operation.
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity) {
-        this(name, phone, email, linkedIn, tags, activity, Meeting.EMPTY, "");
+        this(name, phone, email, linkedIn, tags, activity, Note.EMPTY);
     }
 
-    /** Creates a contact with activity metadata and meeting context. */
-    private Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags,
-            Activity activity, Meeting meeting, String photoPath) {
-        requireAllNonNull(name, phone, email, linkedIn, tags, activity, meeting, photoPath);
+    /**
+     * Creates a person with the given activity times and note. Every field must be present and not null.
+     * To change an existing contact, copy it with {@link #toBuilder()} or the model's edit operation.
+     */
+    public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity,
+            Note note) {
+        this(name, phone, email, linkedIn, tags, activity, note, Meeting.EMPTY, "");
+    }
+
+    /** Creates a complete contact with optional meeting context. */
+    private Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity,
+            Note note, Meeting meeting, String photoPath) {
+        requireAllNonNull(name, phone, email, linkedIn, tags, activity, note, meeting, photoPath);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.linkedIn = linkedIn;
         this.tags.addAll(tags);
         this.activity = activity;
+        this.note = note;
         this.meeting = meeting;
         this.photoPath = photoPath;
     }
@@ -87,11 +98,15 @@ public class Person {
         return Collections.unmodifiableSet(tags);
     }
 
+    public Note getNote() {
+        return note;
+    }
+
     public Meeting getMeeting() {
         return meeting;
     }
 
-    /** Returns the optional application-relative photo reference, validated by storage before use. */
+    /** Returns the application-relative photo reference, validated by storage before opening. */
     public String getPhotoPath() {
         return photoPath;
     }
@@ -158,6 +173,7 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && linkedIn.equals(otherPerson.linkedIn)
                 && tags.equals(otherPerson.tags)
+                && note.equals(otherPerson.note)
                 && activity.equals(otherPerson.activity)
                 && meeting.equals(otherPerson.meeting)
                 && photoPath.equals(otherPerson.photoPath);
@@ -166,7 +182,7 @@ public class Person {
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, linkedIn, tags, activity, meeting, photoPath);
+        return Objects.hash(name, phone, email, linkedIn, tags, note, activity, meeting, photoPath);
     }
 
     @Override
@@ -177,6 +193,8 @@ public class Person {
                 .add("email", email)
                 .add("linkedIn", linkedIn)
                 .add("tags", tags)
+                // the text of a note is personal and toString() is used for logging, so only its length is shown
+                .add("note", note.toLogString())
                 .add("activity", activity)
                 .add("meeting", meeting)
                 .add("photoPath", photoPath)
@@ -194,6 +212,7 @@ public class Person {
         private Email email;
         private LinkedIn linkedIn;
         private Set<Tag> tags;
+        private Note note;
         private Activity activity;
         private Meeting meeting;
         private String photoPath;
@@ -204,6 +223,7 @@ public class Person {
             email = source.email;
             linkedIn = source.linkedIn;
             tags = new HashSet<>(source.tags);
+            note = source.note;
             activity = source.activity;
             meeting = source.meeting;
             photoPath = source.photoPath;
@@ -255,6 +275,15 @@ public class Person {
         }
 
         /**
+         * Replaces the note. An empty note removes the note.
+         */
+        public Builder withNote(Note note) {
+            requireNonNull(note);
+            this.note = note;
+            return this;
+        }
+
+        /**
          * Replaces the activity times.
          */
         public Builder withActivity(Activity activity) {
@@ -263,13 +292,13 @@ public class Person {
             return this;
         }
 
-        /** Replaces meeting context while retaining all other fields. */
+        /** Replaces optional meeting context without losing other fields. */
         public Builder withMeeting(Meeting meeting) {
             this.meeting = requireNonNull(meeting);
             return this;
         }
 
-        /** Replaces only the photo reference, preserving retained image assets. */
+        /** Replaces only the photo reference, retaining all other fields. */
         public Builder withPhotoPath(String photoPath) {
             this.photoPath = requireNonNull(photoPath);
             return this;
@@ -279,7 +308,7 @@ public class Person {
          * Returns a new {@code Person} with the fields set so far.
          */
         public Person build() {
-            return new Person(name, phone, email, linkedIn, tags, activity, meeting, photoPath);
+            return new Person(name, phone, email, linkedIn, tags, activity, note, meeting, photoPath);
         }
     }
 

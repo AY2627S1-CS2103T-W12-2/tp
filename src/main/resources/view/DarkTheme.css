@@ -376,6 +376,11 @@
     -fx-text-fill: white;
 }
 
-.detail-panel .scroll-pane, .detail-panel .scroll-pane > .viewport {
+.detail-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.detail-scroll > .viewport {
     -fx-background-color: transparent;
 }
