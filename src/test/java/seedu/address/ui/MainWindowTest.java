@@ -83,50 +83,50 @@ public class MainWindowTest {
         });
     }
 
-    @Test
-    public void executeCommand_failedNoteCommand_logsTheCommandWithoutTheNoteText() throws Exception {
-        Path dataFile = temporaryFolder.resolve("addressBook.json");
-        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
-                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
-        Logic logic = new LogicManager(new ModelManager(getTypicalAddressBook(), new UserPrefs()), storage);
-        List<String> logged = new ArrayList<>();
-        Handler handler = new Handler() {
-            @Override
-            public void publish(LogRecord record) {
-                logged.add(record.getMessage());
-            }
-
-            @Override
-            public void flush() {}
-
-            @Override
-            public void close() {}
-        };
-
-        runOnFxThread(() -> {
-            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile);
-            mainWindow.fillInnerParts();
-            // the window gets its logger when it is created, so the handler is added afterwards
-            Logger logger = Logger.getLogger("ab3.MainWindow");
-            Level oldLevel = logger.getLevel();
-            logger.setLevel(Level.ALL);
-            logger.addHandler(handler);
-            try {
-                TextField commandBox = (TextField) mainWindow.getPrimaryStage().getScene().getRoot()
-                        .lookup("#commandTextField");
-                // a note command with a bad index only fails once it is executed
-                commandBox.setText("note 99 nt/private text");
-                commandBox.fireEvent(new ActionEvent());
-            } finally {
-                logger.removeHandler(handler);
-                logger.setLevel(oldLevel);
-            }
-        });
-
-        assertTrue(logged.stream().anyMatch(message -> message.contains("note [hidden]")), logged.toString());
-        assertTrue(logged.stream().noneMatch(message -> message.contains("private text")), logged.toString());
-    }
-
+    @Test
+    public void executeCommand_failedNoteCommand_logsTheCommandWithoutTheNoteText() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
+        Logic logic = new LogicManager(new ModelManager(getTypicalAddressBook(), new UserPrefs()), storage);
+        List<String> logged = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                logged.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+
+        runOnFxThread(() -> {
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile);
+            mainWindow.fillInnerParts();
+            // the window gets its logger when it is created, so the handler is added afterwards
+            Logger logger = Logger.getLogger("ab3.MainWindow");
+            Level oldLevel = logger.getLevel();
+            logger.setLevel(Level.ALL);
+            logger.addHandler(handler);
+            try {
+                TextField commandBox = (TextField) mainWindow.getPrimaryStage().getScene().getRoot()
+                        .lookup("#commandTextField");
+                // a note command with a bad index only fails once it is executed
+                commandBox.setText("note 99 nt/private text");
+                commandBox.fireEvent(new ActionEvent());
+            } finally {
+                logger.removeHandler(handler);
+                logger.setLevel(oldLevel);
+            }
+        });
+
+        assertTrue(logged.stream().anyMatch(message -> message.contains("note [hidden]")), logged.toString());
+        assertTrue(logged.stream().noneMatch(message -> message.contains("private text")), logged.toString());
+    }
+
     /**
      * Runs {@code action} on the JavaFX application thread, and rethrows anything it throws.
      */
