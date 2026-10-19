@@ -59,7 +59,7 @@ LarperBoard is a desktop app for keeping track of people you meet at hackathons.
 * Put a required `INDEX` first; prefixed parameters can then be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored. The `undo` command rejects arguments.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -204,6 +204,14 @@ Clears all contacts from LarperBoard.
 
 Format: `clear`
 
+### Undoing a contact change: `undo`
+
+Restores the contact list, displayed results, and viewed contact from before the most recent successful contact change. The restored contacts are saved to the data file. If there is no change to undo, LarperBoard reports `Nothing to undo.`
+
+Format: `undo`
+
+Up to 50 contact changes are available during the current app session. Adding, editing, tagging, deleting, and clearing contacts can enter this history. Failed commands, commands that leave contacts unchanged, and `view`, `find`, and `list` do not. A later explicit view time is kept for a contact that survives the undo; restoring a deleted contact does not count as a new view.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -266,4 +274,5 @@ Action | Format, Examples
 **Help** | `help`
 **List** | `list`
 **Tag** | `tag INDEX t/TAG [t/TAG]…​`<br> e.g., `tag 1 t/frontend t/react`
+**Undo** | `undo`
 **View** | `view INDEX`<br> e.g., `view 1`
