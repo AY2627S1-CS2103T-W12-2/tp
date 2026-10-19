@@ -1,0 +1,64 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":AddressBookParser" as Parser LOGIC_COLOR
+participant ":PhotoCommand" as Command LOGIC_COLOR
+participant ":ModelManager" as Model MODEL_COLOR
+participant ":PhotoStorage" as Photos STORAGE_COLOR
+participant ":StorageManager" as Storage STORAGE_COLOR
+
+[-> Logic : execute("photo 1 f/portrait.png")
+Logic -> Parser : parseCommand(commandText)
+Parser --> Logic : PhotoCommand (syntax validated)
+Logic -> Model : createSnapshot()
+Model --> Logic : before
+Logic -> Command : execute(model)
+Command -> Model : getFilteredPersonList()
+Model --> Command : displayed contacts
+alt index outside displayed list
+    Command --> Logic : CommandException; no photo import
+    [<-- Logic : error; contact and history unchanged
+else valid displayed index
+    Command -> Photos : importPhoto(source, target.getPhotoPath())
+    Photos -> Photos : resolveInsideFolder(source)
+    Photos -> Photos : bounded read and validateImage(bytes, extension)
+    note right of Photos
+      Reject absolute/traversal/symlink escapes.
+      Require PNG/JPEG content and extension.
+      Maximum 5 MiB and 4096 x 4096 pixels.
+    end note
+    alt invalid or unreadable source
+        Photos --> Command : PhotoException
+        Command --> Logic : CommandException
+        [<-- Logic : error; no model edit or save
+    else valid source
+        alt same bytes as current photo
+            Photos --> Command : existing relative reference
+            note right of Command : No model edit or timestamp change.
+        else new image
+            Photos -> Photos : copyToManagedFolder(bytes, source)
+            note right of Photos
+              Generated collision-safe name in photos/.
+              Keep older imports for history restoration.
+            end note
+            Photos --> Command : relative reference
+            Command -> Model : editPerson(target, target.toBuilder()\n.withPhotoPath(reference).build())
+        end
+        Command --> Logic : CommandResult
+        Logic -> Storage : saveAddressBook(model.getAddressBook())
+        alt save succeeds
+            Storage --> Logic : saved
+            Logic -> Model : recordSuccessfulMutation(before)
+            note right of Model : No-op updates do not enter history.
+            [<-- Logic : CommandResult
+        else save throws IOException
+            Storage --> Logic : IOException
+            Logic -> Model : restore(before)
+            note right of Photos : Imported files remain; restored references stay usable.
+            [<-- Logic : CommandException
+        end
+    end
+end
+@enduml
