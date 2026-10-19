@@ -1,6 +1,8 @@
 package seedu.address.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -34,4 +36,35 @@ public class MeetingTest {
         assertEquals(updated.hashCode(), updated.toBuilder().build().hashCode());
         assertTrue(!original.hasSameDetails(updated));
     }
+
+    @Test
+    public void constructor_dateBoundariesAndBlankRole_validatesOptionalFields() {
+        assertThrows(IllegalArgumentException.class, () -> Meeting.parseDate(null));
+        for (int year : new int[]{0, -1, 10000}) {
+            assertThrows(IllegalArgumentException.class, () ->
+                    new Meeting(null, LocalDate.of(year, 1, 1), null));
+        }
+        assertThrows(IllegalArgumentException.class, () -> new Meeting(null, null, " "));
+        for (int year : new int[]{1, 9999}) {
+            LocalDate date = LocalDate.of(year, 1, 1);
+            assertEquals(date, new Meeting(null, date, null).getDate().orElseThrow());
+        }
+        assertEquals(80, new Meeting(null, null, "x".repeat(80)).getRole().orElseThrow().length());
+    }
+
+    @Test
+    public void equals_optionalFieldsAndOtherTypes_comparesAllContext() {
+        Meeting full = new Meeting("Hack", LocalDate.of(2026, 10, 20), "Mentor");
+        assertEquals(full, new Meeting("Hack", LocalDate.of(2026, 10, 20), "Mentor"));
+        assertEquals(full.hashCode(), new Meeting("Hack", LocalDate.of(2026, 10, 20), "Mentor").hashCode());
+        for (Object other : new Object[]{null, "Hack", Meeting.EMPTY,
+            new Meeting("Other", full.getDate().orElseThrow(), "Mentor"),
+            new Meeting("Hack", null, "Mentor"), new Meeting("Hack", full.getDate().orElseThrow(), null)}) {
+            assertNotEquals(full, other);
+        }
+        assertFalse(new Meeting(null, LocalDate.of(2026, 10, 20), null).isEmpty());
+        assertFalse(new Meeting(null, null, "Mentor").isEmpty());
+        assertEquals("Meeting[event=Hack, date=2026-10-20, role=Mentor]", full.toString());
+    }
+
 }

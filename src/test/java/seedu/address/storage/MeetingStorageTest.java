@@ -41,4 +41,16 @@ public class MeetingStorageTest {
         json = json.substring(0, json.lastIndexOf('}')) + ",\"meeting\":" + meeting + "}";
         return JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
     }
+
+    @Test
+    public void toModelType_partialContextAndNonTextDate_preservesAbsenceAndRejectsWrongType() throws Exception {
+        assertTrue(read("{}").getMeeting().isEmpty());
+        var partial = read("{\"eventName\":null,\"date\":null,\"role\":\"Mentor\"}").getMeeting();
+        assertTrue(partial.getEventName().isEmpty());
+        assertTrue(partial.getDate().isEmpty());
+        assertEquals("Mentor", partial.getRole().orElseThrow());
+        var error = assertThrows(IllegalValueException.class, () -> read("{\"date\":17}"));
+        assertTrue(error.getMessage().contains("meeting.date"));
+    }
+
 }
