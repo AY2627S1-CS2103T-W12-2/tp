@@ -175,6 +175,18 @@ Design considerations:
 * **Stamp in the model, not in each command.** Each command would otherwise repeat the "was anything really changed?" check and could drift apart. The trade-off is that `Model` gains two methods.
 * **Ignore the edited person's activity.** Commands build the edited `Person` from the old one, and a new field that someone forgets to copy would silently reset the times. Always taking the activity from `target` makes that mistake harmless.
 
+### Activity-time sorting
+
+`SortCommand` passes a `SortCriterion` (`ADDED`, `EDITED`, or `VIEWED`) to `ModelManager`. The model keeps one
+`FilteredList` for the current contacts and wraps it in a `SortedList`, which is the list exposed to the UI and every
+index-based command. This ensures that the index a user sees is the contact that `view`, `edit`, `delete`, and `tag`
+operate on.
+
+The comparator orders known activity times newest first and unknown times last. It then uses the source address-book
+order as a deterministic tie-breaker. Changing a filter leaves the active sort intact; `list` and `reset` clear both
+the filter and sort. A successful `view` replaces the contact with an updated `lastViewedAt`, which automatically causes the
+`SortedList` to reorder when `sort viewed` is active.
+
 ### \[Proposed\] Undo/redo feature
 
 #### Proposed Implementation
