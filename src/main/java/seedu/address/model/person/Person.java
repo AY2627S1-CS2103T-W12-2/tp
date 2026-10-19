@@ -29,6 +29,7 @@ public class Person {
     // Activity metadata (when the person was created, last edited and last viewed)
     private final Activity activity;
     private final Meeting meeting;
+    private final String photoPath;
 
     /**
      * Creates a new person with no known activity times.
@@ -45,13 +46,13 @@ public class Person {
      * To change an existing contact, copy it with {@link #withActivity(Activity)} or the model's edit operation.
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity) {
-        this(name, phone, email, linkedIn, tags, activity, Meeting.EMPTY);
+        this(name, phone, email, linkedIn, tags, activity, Meeting.EMPTY, "");
     }
 
     /** Creates a contact with activity metadata and meeting context. */
     private Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags,
-            Activity activity, Meeting meeting) {
-        requireAllNonNull(name, phone, email, linkedIn, tags, activity, meeting);
+            Activity activity, Meeting meeting, String photoPath) {
+        requireAllNonNull(name, phone, email, linkedIn, tags, activity, meeting, photoPath);
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -59,6 +60,7 @@ public class Person {
         this.tags.addAll(tags);
         this.activity = activity;
         this.meeting = meeting;
+        this.photoPath = photoPath;
     }
 
     public Name getName() {
@@ -87,6 +89,11 @@ public class Person {
 
     public Meeting getMeeting() {
         return meeting;
+    }
+
+    /** Returns the optional application-relative photo reference, validated by storage before use. */
+    public String getPhotoPath() {
+        return photoPath;
     }
 
     public Activity getActivity() {
@@ -152,13 +159,14 @@ public class Person {
                 && linkedIn.equals(otherPerson.linkedIn)
                 && tags.equals(otherPerson.tags)
                 && activity.equals(otherPerson.activity)
-                && meeting.equals(otherPerson.meeting);
+                && meeting.equals(otherPerson.meeting)
+                && photoPath.equals(otherPerson.photoPath);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, linkedIn, tags, activity, meeting);
+        return Objects.hash(name, phone, email, linkedIn, tags, activity, meeting, photoPath);
     }
 
     @Override
@@ -171,6 +179,7 @@ public class Person {
                 .add("tags", tags)
                 .add("activity", activity)
                 .add("meeting", meeting)
+                .add("photoPath", photoPath)
                 .toString();
     }
 
@@ -187,6 +196,7 @@ public class Person {
         private Set<Tag> tags;
         private Activity activity;
         private Meeting meeting;
+        private String photoPath;
 
         private Builder(Person source) {
             name = source.name;
@@ -196,6 +206,7 @@ public class Person {
             tags = new HashSet<>(source.tags);
             activity = source.activity;
             meeting = source.meeting;
+            photoPath = source.photoPath;
         }
 
         /**
@@ -258,11 +269,17 @@ public class Person {
             return this;
         }
 
+        /** Replaces only the photo reference, preserving retained image assets. */
+        public Builder withPhotoPath(String photoPath) {
+            this.photoPath = requireNonNull(photoPath);
+            return this;
+        }
+
         /**
          * Returns a new {@code Person} with the fields set so far.
          */
         public Person build() {
-            return new Person(name, phone, email, linkedIn, tags, activity, meeting);
+            return new Person(name, phone, email, linkedIn, tags, activity, meeting, photoPath);
         }
     }
 

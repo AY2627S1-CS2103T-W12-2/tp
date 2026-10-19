@@ -30,6 +30,7 @@ public class PersonBuilder {
     private Set<Tag> tags;
     private Activity activity;
     private Meeting meeting;
+    private String photoPath;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -42,6 +43,7 @@ public class PersonBuilder {
         tags = new HashSet<>();
         activity = Activity.EMPTY;
         meeting = Meeting.EMPTY;
+        photoPath = "";
     }
 
     /**
@@ -55,6 +57,7 @@ public class PersonBuilder {
         tags = new HashSet<>(personToCopy.getTags());
         activity = personToCopy.getActivity();
         meeting = personToCopy.getMeeting();
+        photoPath = personToCopy.getPhotoPath();
     }
 
     /**
@@ -108,7 +111,7 @@ public class PersonBuilder {
     /** Builds a person with every copied field retained. */
     public Person build() {
         return new Person(name, phone, email, linkedIn, tags, activity)
-                .toBuilder().withMeeting(meeting).build();
+                .toBuilder().withMeeting(meeting).withPhotoPath(photoPath).build();
     }
 
 }

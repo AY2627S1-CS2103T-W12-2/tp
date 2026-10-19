@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
@@ -15,6 +16,8 @@
     <padding>
       <Insets top="15" right="20" bottom="15" left="20" />
     </padding>
+    <ImageView fx:id="photo" fitWidth="240" fitHeight="180" preserveRatio="true" />
+    <Label fx:id="photoPlaceholder" text="No photo" />
     <Label fx:id="name" styleClass="detail-name" wrapText="true" />
     <GridPane hgap="20" vgap="10">
       <columnConstraints>

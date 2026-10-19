@@ -258,6 +258,50 @@ Malformed present values reject loading with `Invalid contact data: 'meeting.<fi
 a non-object context names `meeting`. Back up JSON before editing it manually.
 Successful real changes update last-edited time and are saved before entering session undo history.
 
+### Contact photos: `photo`
+
+Use `photo INDEX f/RELATIVE_PATH` to attach or replace one PNG/JPEG, or `photo INDEX clear` to
+remove its reference. INDEX always refers to the displayed list. Place the source image inside the
+folder containing `larperboard.jar`, for example:
+
+```text
+LarperBoard/
+  larperboard.jar
+  portrait.png
+  photos/          (created and managed by the app)
+```
+
+```text
+photo 1 f/portrait.png
+photo 1 f/images/new-portrait.jpg
+photo 1 clear
+```
+
+Subfolders and spaces in paths are allowed. Absolute paths, URLs, `..` traversal, and symlinks that
+escape the JAR folder are rejected. Sources must be readable PNG/JPEG files, at most **5 MiB**
+(5,242,880 bytes) and **4096×4096 pixels**. Both filename extension and decoded image format
+must agree. The JAR folder must be writable. The application copies accepted images to `photos/`
+with generated collision-safe names and saves a relative reference such as
+`"photoPath": "photos/contact-123.png"` in the editable JSON. The root is the JAR folder even when
+launched from another working directory. During development with Gradle it is the working folder.
+
+Errors are `Photo file must be a PNG or JPEG inside the application folder.` for unsafe paths,
+wrong types, or undecodable content; `Photo must be at most 5 MiB and 4096×4096 pixels.` for
+size/dimension limits; and `Photo file could not be read.` for file-access failures.
+An invalid displayed index reports `The person index provided is invalid.`
+
+The list uses a 48×48 thumbnail and the scrolling detail panel fits the image within 240×180,
+preserving its aspect ratio. Absent, missing, malformed, or unreadable references show a placeholder;
+unavailable images also produce a log warning and do not prevent other contacts loading.
+Unsafe saved paths are never opened. Old JSON without `photoPath` loads with no photo.
+
+Clearing/replacing a photo or deleting/clearing contacts **does not delete imported images**.
+Unused files may remain, including after a failed save, so undo/redo references remain usable.
+An identical current image and clearing an absent photo are no-ops. Only real successful changes
+update last-edited time and enter undo history; failed saves restore the contact and history.
+Keep the `photos/` folder when transferring contacts to another installation. Do not delete images
+that may still be referenced by a contact or session history.
+
 ### Saving the data
 
 LarperBoard automatically saves data after every successful command. You do not need to save manually.
@@ -314,6 +358,8 @@ Action | Format, Examples
 **Help** | `help`
 **List** | `list`
 **Meeting** | `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]` or `meeting INDEX clear [event/date/role]`
+
+**Photo** | `photo INDEX f/RELATIVE_PATH` or `photo INDEX clear`
 **Tag** | `tag INDEX t/TAG [t/TAG]…​`<br> e.g., `tag 1 t/frontend t/react`
 **Undo** | `undo`
 **View** | `view INDEX`<br> e.g., `view 1`
