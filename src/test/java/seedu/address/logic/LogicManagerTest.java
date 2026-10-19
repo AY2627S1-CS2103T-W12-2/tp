@@ -37,7 +37,6 @@ import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
-import seedu.address.testutil.PersonBuilder;
 
 public class LogicManagerTest {
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
@@ -231,9 +230,7 @@ public class LogicManagerTest {
         // Triggers the saveAddressBook method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY;
-        Person expectedPerson = new PersonBuilder(AMY).withTags().withActivity(new Activity(NOW, null, null)).build();
         ModelManager expectedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
-        expectedModel.addPerson(expectedPerson);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
     }
 

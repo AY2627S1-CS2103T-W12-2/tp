@@ -4,6 +4,14 @@ import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
 import java.time.Clock;
+import java.time.Instant;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.Deque;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
@@ -14,6 +22,7 @@ import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
+import seedu.address.model.person.Activity;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.exceptions.PersonNotFoundException;
 
@@ -22,12 +31,41 @@ import seedu.address.model.person.exceptions.PersonNotFoundException;
  */
 public class ModelManager implements Model {
     private static final Logger logger = LogsCenter.getLogger(ModelManager.class);
+    private static final int MAX_HISTORY_SIZE = 50;
+    private static final String NOTHING_TO_UNDO = "Nothing to undo.";
+    private static final String NOTHING_TO_REDO = "Nothing to redo.";
 
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
     private final ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>();
     private final Clock clock;
+    private final Deque<State> undoHistory = new ArrayDeque<>();
+    private final Deque<State> redoHistory = new ArrayDeque<>();
+
+    private static class State {
+        private final AddressBook addressBook;
+        private final Person viewedPerson;
+        private final Predicate<? super Person> filter;
+
+        State(ReadOnlyAddressBook addressBook, Person viewedPerson, Predicate<? super Person> filter) {
+            this.addressBook = new AddressBook(addressBook);
+            this.viewedPerson = viewedPerson;
+            this.filter = filter;
+        }
+    }
+
+    private static class ModelSnapshot implements Snapshot {
+        private final State state;
+        private final Deque<State> undoHistory;
+        private final Deque<State> redoHistory;
+
+        ModelSnapshot(State state, Deque<State> undoHistory, Deque<State> redoHistory) {
+            this.state = state;
+            this.undoHistory = new ArrayDeque<>(undoHistory);
+            this.redoHistory = new ArrayDeque<>(redoHistory);
+        }
+    }
 
     /**
      * Initializes a ModelManager with the given addressBook and userPrefs.
@@ -170,6 +208,152 @@ public class ModelManager implements Model {
     @Override
     public void setViewedPerson(Person person) {
         viewedPerson.set(person);
+    }
+
+    @Override
+    public Snapshot createSnapshot() {
+        return new ModelSnapshot(captureState(), undoHistory, redoHistory);
+    }
+
+    @Override
+    public void restore(Snapshot snapshot) {
+        ModelSnapshot saved = (ModelSnapshot) requireNonNull(snapshot);
+        restoreState(saved.state, false);
+        undoHistory.clear();
+        undoHistory.addAll(saved.undoHistory);
+        redoHistory.clear();
+        redoHistory.addAll(saved.redoHistory);
+    }
+
+    @Override
+    public void recordSuccessfulMutation(Snapshot before) {
+        ModelSnapshot saved = (ModelSnapshot) requireNonNull(before);
+        if (hasContactChange(saved.state.addressBook, addressBook)) {
+            undoHistory.addLast(saved.state);
+            if (undoHistory.size() > MAX_HISTORY_SIZE) {
+                undoHistory.removeFirst();
+            }
+            redoHistory.clear();
+        }
+    }
+
+    @Override
+    public boolean canUndo() {
+        return !undoHistory.isEmpty();
+    }
+
+    @Override
+    public void undo() {
+        if (!canUndo()) {
+            throw new IllegalStateException(NOTHING_TO_UNDO);
+        }
+        State current = captureState();
+        State previous = undoHistory.removeLast();
+        redoHistory.addLast(current);
+        restoreState(previous, true);
+    }
+
+    @Override
+    public boolean canRedo() {
+        return !redoHistory.isEmpty();
+    }
+
+    @Override
+    public void redo() {
+        if (!canRedo()) {
+            throw new IllegalStateException(NOTHING_TO_REDO);
+        }
+        State current = captureState();
+        State next = redoHistory.removeLast();
+        undoHistory.addLast(current);
+        restoreState(next, true);
+    }
+
+    private State captureState() {
+        return new State(addressBook, viewedPerson.get(), filteredPersons.getPredicate());
+    }
+
+    private static boolean hasContactChange(ReadOnlyAddressBook before, ReadOnlyAddressBook after) {
+        return !withoutViewTimes(before).equals(withoutViewTimes(after));
+    }
+
+    private static Set<Person> withoutViewTimes(ReadOnlyAddressBook book) {
+        Set<Person> persons = new HashSet<>();
+        for (Person person : book.getPersonList()) {
+            Activity activity = person.getActivity();
+            persons.add(person.withActivity(new Activity(activity.getCreatedAt().orElse(null),
+                    activity.getLastEditedAt().orElse(null), null)));
+        }
+        return persons;
+    }
+
+    private void restoreState(State state, boolean keepLaterViews) {
+        List<Person> restored = new ArrayList<>();
+        List<Person> savedPersons = state.addressBook.getPersonList();
+        for (int i = 0; i < savedPersons.size(); i++) {
+            Person saved = savedPersons.get(i);
+            if (keepLaterViews) {
+                saved = preserveRecentViewTime(saved, findCurrentPerson(saved, i, savedPersons));
+            }
+            restored.add(saved);
+        }
+        addressBook.setPersons(restored);
+        filteredPersons.setPredicate(state.filter);
+        viewedPerson.set(findRestoredSelection(state.viewedPerson, restored));
+    }
+
+    private static Person preserveRecentViewTime(Person saved, Person current) {
+        if (current == null) {
+            return saved;
+        }
+        Instant savedView = saved.getActivity().getLastViewedAt().orElse(null);
+        Instant currentView = current.getActivity().getLastViewedAt().orElse(null);
+        if (currentView != null && (savedView == null || currentView.isAfter(savedView))) {
+            return saved.withActivity(saved.getActivity().withLastViewedAt(currentView));
+        }
+        return saved;
+    }
+
+    private Person findCurrentPerson(Person saved, int index, List<Person> savedPersons) {
+        for (Person current : addressBook.getPersonList()) {
+            if (saved.isSamePerson(current)) {
+                return current;
+            }
+        }
+        // A real edit can change one contact's identity while all other contacts keep their positions.
+        if (hasSingleIdentityChangeAt(index, savedPersons)) {
+            Person current = addressBook.getPersonList().get(index);
+            if (!Objects.equals(saved.getActivity().getLastEditedAt(),
+                    current.getActivity().getLastEditedAt())) {
+                return current;
+            }
+        }
+        return null;
+    }
+
+    private boolean hasSingleIdentityChangeAt(int index, List<Person> savedPersons) {
+        List<Person> currentPersons = addressBook.getPersonList();
+        if (savedPersons.size() != currentPersons.size()) {
+            return false;
+        }
+        for (int i = 0; i < savedPersons.size(); i++) {
+            if (i != index && !savedPersons.get(i).isSamePerson(currentPersons.get(i))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static Person findRestoredSelection(Person selected, List<Person> restored) {
+        if (selected == null) {
+            return null;
+        }
+        for (Person person : restored) {
+            if (selected.isSamePerson(person)) {
+                return person;
+            }
+        }
+        return null;
     }
 
     @Override
