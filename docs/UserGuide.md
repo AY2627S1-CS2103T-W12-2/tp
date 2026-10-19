@@ -220,6 +220,10 @@ Format: `exit`
 
 ### Contact photos: `photo`
 
+![Photo feature at 1280×720](images/photo-feature.png)
+
+[View the simulated 150% layout](images/photo-feature-150percent.png).
+
 Use `photo INDEX f/RELATIVE_PATH` to attach or replace one PNG/JPEG, or `photo INDEX clear` to
 remove its reference. INDEX always refers to the displayed list. Place the source image inside the
 folder containing `larperboard.jar`, for example:
