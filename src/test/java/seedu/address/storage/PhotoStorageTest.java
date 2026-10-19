@@ -111,4 +111,55 @@ public class PhotoStorageTest {
         ImageIO.write(new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB),
                 "png", folder.resolve(name).toFile());
     }
+
+    @Test
+    public void importPhoto_invalidPathAndDirectory_reportValidationErrors() throws Exception {
+        PhotoStorage storage = new PhotoStorage(folder);
+        var invalid = assertThrows(PhotoStorage.PhotoException.class, () ->
+                storage.importPhoto("invalid\u0000.png", ""));
+        assertEquals(PhotoStorage.MESSAGE_INVALID, invalid.getMessage());
+        Files.createDirectory(folder.resolve("directory.png"));
+        var directory = assertThrows(PhotoStorage.PhotoException.class, () ->
+                storage.importPhoto("directory.png", ""));
+        assertEquals(PhotoStorage.MESSAGE_UNREADABLE, directory.getMessage());
+        assertTrue(storage.readPhoto("").isEmpty());
+    }
+
+    @Test
+    public void importPhoto_truncatedImage_rejectsUndecodableContent() throws Exception {
+        writeImage("truncated.png", 10, 10);
+        byte[] original = Files.readAllBytes(folder.resolve("truncated.png"));
+        Files.write(folder.resolve("truncated.png"), java.util.Arrays.copyOf(original, 33));
+        var error = assertThrows(PhotoStorage.PhotoException.class, () ->
+                new PhotoStorage(folder).importPhoto("truncated.png", ""));
+        assertEquals(PhotoStorage.MESSAGE_INVALID, error.getMessage());
+    }
+
+    @Test
+    public void importPhoto_blockedDestination_reportsFailureAndPreservesSource() throws Exception {
+        writeImage("source.png", 1, 1);
+        Files.writeString(folder.resolve("photos"), "not a directory");
+        var error = assertThrows(PhotoStorage.PhotoException.class, () ->
+                new PhotoStorage(folder).importPhoto("source.png", ""));
+        assertEquals(PhotoStorage.MESSAGE_UNREADABLE, error.getMessage());
+        assertTrue(Files.isRegularFile(folder.resolve("source.png")));
+    }
+
+    @Test
+    public void importPhoto_replacementAndMissingPreviousPhoto_importNewAssets() throws Exception {
+        writeImage("source.png", 1, 1);
+        writeImage("replacement.png", 2, 2);
+        PhotoStorage storage = new PhotoStorage(folder);
+        String first = storage.importPhoto("source.png", "");
+        String replacement = storage.importPhoto("replacement.png", first);
+        assertFalse(first.equals(replacement));
+        assertArrayEquals(Files.readAllBytes(folder.resolve("replacement.png")),
+                storage.readPhoto(replacement).orElseThrow());
+        assertTrue(Files.exists(folder.resolve(first)));
+        assertTrue(storage.importPhoto("source.png", "missing.png").startsWith("photos/"));
+        writeImage("tall.png", 1, 4097);
+        var error = assertThrows(PhotoStorage.PhotoException.class, () -> storage.importPhoto("tall.png", ""));
+        assertEquals(PhotoStorage.MESSAGE_LIMIT, error.getMessage());
+    }
+
 }

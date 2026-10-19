@@ -124,4 +124,27 @@ public class MeetingFeatureTest {
         assertEquals(before, model.getViewedPerson().get());
         assertFalse(model.canUndo());
     }
+
+    @Test
+    public void execute_eventChangeRemovesViewedContactFromFilter_clearsSelection() throws Exception {
+        logic.execute("meeting 1 ev/Hack");
+        logic.execute("find ev/Hack");
+        logic.execute("view 1");
+        logic.execute("meeting 1 ev/Conference");
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertEquals(null, model.getViewedPerson().get());
+    }
+
+    @Test
+    public void execute_clearAllAndMalformedClearForms_handleExplicitRemoval() throws Exception {
+        logic.execute("meeting 1 ev/Hack md/2026-10-20 r/Mentor");
+        logic.execute("view 1");
+        logic.execute("meeting 1 clear");
+        assertTrue(model.getFilteredPersonList().getFirst().getMeeting().isEmpty());
+        assertTrue(model.getViewedPerson().get().getMeeting().isEmpty());
+        for (String args : new String[]{"1 unknown", "1 clear event extra"}) {
+            assertThrows(ParseException.class, () -> logic.execute("meeting " + args));
+        }
+    }
+
 }

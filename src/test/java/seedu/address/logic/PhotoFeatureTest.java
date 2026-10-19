@@ -106,4 +106,15 @@ public class PhotoFeatureTest {
         assertEquals(ALICE, model.getFilteredPersonList().getFirst());
         assertFalse(model.canUndo());
     }
+
+    @Test
+    public void execute_unreadableOrUnsafeSource_reportsFailureWithoutChangingHistory() {
+        for (String source : new String[]{"missing.png", "../outside.png", "invalid.txt"}) {
+            assertThrows(CommandException.class, () -> logic.execute("photo 1 f/" + source));
+            assertEquals(ALICE, model.getFilteredPersonList().getFirst());
+            assertFalse(model.canUndo());
+        }
+        assertThrows(ParseException.class, () -> logic.execute("photo 1 invalid"));
+    }
+
 }

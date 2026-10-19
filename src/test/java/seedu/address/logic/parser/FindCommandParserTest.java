@@ -9,6 +9,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.model.person.EventContainsTermsPredicate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 
 public class FindCommandParserTest {
@@ -29,6 +30,22 @@ public class FindCommandParserTest {
 
         // multiple whitespaces between keywords
         assertParseSuccess(parser, " \n Alice \n \t Bob  \t", expectedFindCommand);
+    }
+
+
+    @Test
+    public void parse_eventTerms_returnsEventFindCommand() {
+        var expected = new FindCommand(new EventContainsTermsPredicate(
+                List.of("Hack Singapore", "AI")));
+        assertParseSuccess(parser, " ev/Hack Singapore ev/AI ", expected);
+    }
+
+    @Test
+    public void parse_emptyEventOrMixedSearch_rejectsInvalidFormat() {
+        for (String args : new String[]{" ev/", " ev/Hack ev/", " ev/Hack r/Mentor", " Alice ev/Hack"}) {
+            assertParseFailure(parser, args,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+        }
     }
 
 }
