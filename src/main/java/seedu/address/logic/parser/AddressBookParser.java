@@ -17,21 +17,34 @@ import seedu.address.logic.commands.ExitCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.PhotoCommand;
 import seedu.address.logic.commands.TagCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.storage.PhotoStorage;
 
 /**
  * Parses user input.
  */
 public class AddressBookParser {
-
     /**
      * Used for initial separation of command word and args.
      */
     private static final Pattern BASIC_COMMAND_FORMAT = Pattern.compile("(?<commandWord>\\S+)(?<arguments>.*)");
     private static final Logger logger = LogsCenter.getLogger(AddressBookParser.class);
+
+    private final PhotoStorage photos;
+
+    /** Uses the folder containing the running JAR for photo imports. */
+    public AddressBookParser() {
+        this(PhotoStorage.forApplication());
+    }
+
+    /** Injects rooted photo storage for tests and embedding. */
+    public AddressBookParser(PhotoStorage photos) {
+        this.photos = java.util.Objects.requireNonNull(photos);
+    }
 
     /**
      * Parses user input into command for execution.
@@ -60,6 +73,7 @@ public class AddressBookParser {
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
+            case PhotoCommand.COMMAND_WORD -> new PhotoCommandParser(photos).parse(arguments);
             case ListCommand.COMMAND_WORD -> new ListCommand();
             case TagCommand.COMMAND_WORD -> new TagCommandParser().parse(arguments);
             case UndoCommand.COMMAND_WORD -> {

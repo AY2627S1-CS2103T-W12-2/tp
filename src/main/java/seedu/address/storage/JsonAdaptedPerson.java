@@ -44,6 +44,7 @@ class JsonAdaptedPerson {
     private final Object createdAt;
     private final Object lastEditedAt;
     private final Object lastViewedAt;
+    private Object photoPath;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details and no activity times.
@@ -85,6 +86,7 @@ class JsonAdaptedPerson {
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
+        photoPath = source.getPhotoPath().isEmpty() ? null : source.getPhotoPath();
         Activity activity = source.getActivity();
         createdAt = activity.getCreatedAt().map(Instant::toString).orElse(null);
         lastEditedAt = activity.getLastEditedAt().map(Instant::toString).orElse(null);
@@ -131,7 +133,21 @@ class JsonAdaptedPerson {
         // Missing activity times (for example, in older data files) stay absent instead of being invented.
         final Activity modelActivity = new Activity(parseTime("createdAt", createdAt),
                 parseTime("lastEditedAt", lastEditedAt), parseTime("lastViewedAt", lastViewedAt));
-        return new Person(modelName, modelPhone, modelEmail, modelLinkedIn, modelTags, modelActivity);
+        return new Person(modelName, modelPhone, modelEmail, modelLinkedIn, modelTags, modelActivity)
+                .toBuilder().withPhotoPath(readPhotoReference()).build();
+    }
+
+    /** Keeps malformed photo references from blocking otherwise usable contact data. */
+    private String readPhotoReference() {
+        if (photoPath == null) {
+            return "";
+        }
+        if (photoPath instanceof String reference) {
+            return reference;
+        }
+        seedu.address.commons.core.LogsCenter.getLogger(JsonAdaptedPerson.class)
+                .warning("Invalid photoPath; showing a photo placeholder.");
+        return "";
     }
 
     /**

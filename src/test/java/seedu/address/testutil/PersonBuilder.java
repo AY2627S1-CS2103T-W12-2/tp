@@ -28,6 +28,7 @@ public class PersonBuilder {
     private LinkedIn linkedIn;
     private Set<Tag> tags;
     private Activity activity;
+    private String photoPath;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -39,6 +40,7 @@ public class PersonBuilder {
         linkedIn = new LinkedIn(DEFAULT_LINKEDIN);
         tags = new HashSet<>();
         activity = Activity.EMPTY;
+        photoPath = "";
     }
 
     /**
@@ -51,6 +53,7 @@ public class PersonBuilder {
         linkedIn = personToCopy.getLinkedIn();
         tags = new HashSet<>(personToCopy.getTags());
         activity = personToCopy.getActivity();
+        photoPath = personToCopy.getPhotoPath();
     }
 
     /**
@@ -101,8 +104,10 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Builds a person with every copied field retained. */
     public Person build() {
-        return new Person(name, phone, email, linkedIn, tags, activity);
+        return new Person(name, phone, email, linkedIn, tags, activity)
+                .toBuilder().withPhotoPath(photoPath).build();
     }
 
 }

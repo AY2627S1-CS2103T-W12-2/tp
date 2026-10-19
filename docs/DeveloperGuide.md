@@ -660,3 +660,23 @@ Given below are instructions to test the app manually.
    1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
 
 1. _{ more test cases …​ }_
+
+### Contact photo implementation
+
+`Person.photoPath` is an optional relative reference; complete builder copies, equality and detail
+comparison preserve it. `PhotoCommandParser` validates syntax; `PhotoCommand` validates the displayed
+index before any import, retains all fields via `toBuilder()`, and delegates real changes to
+`Model.editPerson`. Existing LogicManager save/snapshot handling supplies rollback and history.
+#131/#132 own shared undo/redo integration; imported assets remain available for restoration.
+
+`PhotoStorage` derives its root from the running JAR's code location (working folder during Gradle
+development); tests inject a temporary root. It rejects absolute paths, parent components and real-path
+symlink escapes; reads at most 5 MiB plus one byte; checks image type and dimensions before bounded
+decoding; and copies into a confined `photos/` directory with collision-safe generated names.
+No user path or stored URI is passed directly to JavaFX. UI rendering uses validated bytes and a
+placeholder with logging on failure. Missing/malformed optional references do not block contact loading.
+Assets are deliberately retained after mutation or failed saves to avoid breaking history.
+
+Tests cover traversal and symlink escapes (including the managed directory), corrupt/type/size/dimension
+cases, copies and no-ops, filtered indexes, JSON compatibility/round trips, rollback and undo restoration.
+Verify the packaged JAR at 1280×720/150% with attach/replace/clear, reload and retained assets.

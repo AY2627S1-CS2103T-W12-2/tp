@@ -375,3 +375,7 @@
     -fx-font-size: 13px;
     -fx-text-fill: white;
 }
+
+.detail-panel .scroll-pane, .detail-panel .scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}

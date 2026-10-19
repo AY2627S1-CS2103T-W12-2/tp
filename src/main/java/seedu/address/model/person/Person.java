@@ -28,6 +28,7 @@ public class Person {
 
     // Activity metadata (when the person was created, last edited and last viewed)
     private final Activity activity;
+    private final String photoPath;
 
     /**
      * Creates a new person with no known activity times.
@@ -44,13 +45,20 @@ public class Person {
      * To change an existing contact, copy it with {@link #withActivity(Activity)} or the model's edit operation.
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity) {
-        requireAllNonNull(name, phone, email, linkedIn, tags, activity);
+        this(name, phone, email, linkedIn, tags, activity, "");
+    }
+
+    /** Creates a contact with an optional application-relative photo reference. */
+    private Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags,
+            Activity activity, String photoPath) {
+        requireAllNonNull(name, phone, email, linkedIn, tags, activity, photoPath);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.linkedIn = linkedIn;
         this.tags.addAll(tags);
         this.activity = activity;
+        this.photoPath = photoPath;
     }
 
     public Name getName() {
@@ -75,6 +83,11 @@ public class Person {
      */
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tags);
+    }
+
+    /** Returns the stored reference, or empty text for no photo. Storage validates it before opening any file. */
+    public String getPhotoPath() {
+        return photoPath;
     }
 
     public Activity getActivity() {
@@ -139,13 +152,14 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && linkedIn.equals(otherPerson.linkedIn)
                 && tags.equals(otherPerson.tags)
-                && activity.equals(otherPerson.activity);
+                && activity.equals(otherPerson.activity)
+                && photoPath.equals(otherPerson.photoPath);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, linkedIn, tags, activity);
+        return Objects.hash(name, phone, email, linkedIn, tags, activity, photoPath);
     }
 
     @Override
@@ -157,6 +171,7 @@ public class Person {
                 .add("linkedIn", linkedIn)
                 .add("tags", tags)
                 .add("activity", activity)
+                .add("photoPath", photoPath)
                 .toString();
     }
 
@@ -172,6 +187,7 @@ public class Person {
         private LinkedIn linkedIn;
         private Set<Tag> tags;
         private Activity activity;
+        private String photoPath;
 
         private Builder(Person source) {
             name = source.name;
@@ -180,6 +196,7 @@ public class Person {
             linkedIn = source.linkedIn;
             tags = new HashSet<>(source.tags);
             activity = source.activity;
+            photoPath = source.photoPath;
         }
 
         /**
@@ -236,11 +253,17 @@ public class Person {
             return this;
         }
 
+        /** Replaces only the photo reference; empty text removes it without deleting retained assets. */
+        public Builder withPhotoPath(String photoPath) {
+            this.photoPath = requireNonNull(photoPath);
+            return this;
+        }
+
         /**
          * Returns a new {@code Person} with the fields set so far.
          */
         public Person build() {
-            return new Person(name, phone, email, linkedIn, tags, activity);
+            return new Person(name, phone, email, linkedIn, tags, activity, photoPath);
         }
     }
 
