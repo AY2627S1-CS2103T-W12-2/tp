@@ -71,6 +71,15 @@ public class MeetingFeatureTest {
     }
 
     @Test
+    public void execute_meetingUpdate_preservesExistingNote() throws Exception {
+        logic.execute("note 1 nt/Met at the AI track");
+        logic.execute("meeting 1 ev/Hack Singapore");
+        assertEquals("Met at the AI track", model.getFilteredPersonList().getFirst().getNote().value);
+        assertEquals("Met at the AI track", storage.readAddressBook().orElseThrow()
+                .getPersonList().getFirst().getNote().value);
+    }
+
+    @Test
     public void execute_noOp_doesNotChangeTimeOrHistory() throws Exception {
         logic.execute("meeting 1 clear");
         assertFalse(model.canUndo());

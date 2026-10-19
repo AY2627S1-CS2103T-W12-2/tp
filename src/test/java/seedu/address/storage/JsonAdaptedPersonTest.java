@@ -19,6 +19,7 @@ import seedu.address.model.person.Activity;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.LinkedIn;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.testutil.PersonBuilder;
@@ -254,4 +255,54 @@ public class JsonAdaptedPersonTest {
         return "Invalid contact data: '" + field + "' must be an ISO-8601 UTC timestamp.";
     }
 
+    @Test
+    public void toModelType_noteRoundTrip_preservesNote() throws Exception {
+        Person person = new PersonBuilder(BENSON).withNote("Met at booth 4; wants a React teammate!").build();
+
+        assertEquals(person, new JsonAdaptedPerson(person).toModelType());
+    }
+
+    /*
+     * Equivalence partitions for the note field in the data file:
+     *   - missing (null), which means no note                          - valid
+     *   - 1 to MAX_LENGTH characters once surrounding spaces are cut  - valid
+     *   - empty, only spaces, more than MAX_LENGTH, not a string       - invalid
+     * Boundary values: MAX_LENGTH and MAX_LENGTH + 1 characters.
+     */
+    @Test
+    public void toModelType_validNoteValues_areLoaded() throws Exception {
+        String longest = "a".repeat(Note.MAX_LENGTH);
+
+        assertEquals(Note.EMPTY, personWithNote(null).toModelType().getNote());
+        assertEquals(new Note("hello"), personWithNote("  hello  ").toModelType().getNote());
+        assertEquals(new Note(longest), personWithNote(longest).toModelType().getNote());
+    }
+
+    @Test
+    public void toModelType_invalidNoteValues_throwFieldSpecificMessage() {
+        Object[] invalidValues = {"", "   ", "a".repeat(Note.MAX_LENGTH + 1), 12345};
+
+        for (Object value : invalidValues) {
+            assertThrows(IllegalValueException.class, noteError(), personWithNote(value)::toModelType);
+        }
+    }
+
+    @Test
+    public void toJson_noteAndNoNote_writesStringOrNull() throws Exception {
+        Person bensonWithNote = new PersonBuilder(BENSON).withNote("hi").build();
+        String withNote = JsonUtil.toJsonString(new JsonAdaptedPerson(bensonWithNote));
+        String withoutNote = JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON));
+
+        assertTrue(withNote.contains("\"note\" : \"hi\""));
+        assertTrue(withoutNote.contains("\"note\" : null"));
+    }
+
+    private static JsonAdaptedPerson personWithNote(Object note) {
+        return new JsonAdaptedPerson(VALID_NAME, VALID_PHONE, VALID_EMAIL, VALID_LINKEDIN, VALID_TAGS,
+                null, null, null, note);
+    }
+
+    private static String noteError() {
+        return "Invalid contact data: 'note' must be a string of at most " + Note.MAX_LENGTH + " characters.";
+    }
 }

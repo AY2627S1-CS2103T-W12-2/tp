@@ -2,6 +2,7 @@ package seedu.address.model.person;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_EMAIL_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_LINKEDIN_BOB;
@@ -164,9 +165,16 @@ public class PersonTest {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail()
                 + ", linkedIn=" + ALICE.getLinkedIn() + ", tags=" + ALICE.getTags()
-                + ", activity=" + ALICE.getActivity()
-                + ", meeting=" + ALICE.getMeeting() + "}";
+                + ", note=none, activity=" + ALICE.getActivity() + ", meeting=" + ALICE.getMeeting() + "}";
         assertEquals(expected, ALICE.toString());
+    }
+
+    @Test
+    public void toStringMethod_withNote_showsOnlyTheLengthOfTheNote() {
+        Person person = new PersonBuilder(ALICE).withNote("private text").build();
+
+        assertTrue(person.toString().contains("note=[12 characters]"));
+        assertFalse(person.toString().contains("private text"));
     }
 
     // ---- toBuilder ----
@@ -258,5 +266,54 @@ public class PersonTest {
 
         assertTrue(ALICE.isSamePerson(changed));
         assertFalse(ALICE.hasSameDetails(changed));
+    }
+
+    @Test
+    public void constructor_withoutNote_hasEmptyNote() {
+        assertEquals(Note.EMPTY, ALICE.getNote());
+        assertEquals(Note.EMPTY, new Person(ALICE.getName(), ALICE.getPhone(), ALICE.getEmail(),
+                ALICE.getLinkedIn(), ALICE.getTags(), ALICE.getActivity()).getNote());
+    }
+
+    @Test
+    public void note_isPartOfEqualsHashCodeAndHasSameDetails() {
+        Person withNote = new PersonBuilder(ALICE).withNote("Met at booth 4").build();
+        Person sameNote = new PersonBuilder(ALICE).withNote("Met at booth 4").build();
+        Person otherNote = new PersonBuilder(ALICE).withNote("Met at booth 5").build();
+
+        assertEquals(withNote, sameNote);
+        assertEquals(withNote.hashCode(), sameNote.hashCode());
+        assertNotEquals(withNote, otherNote);
+        assertNotEquals(withNote, ALICE);
+
+        // a different note is a genuine change of the details, but not of the identity
+        assertTrue(withNote.hasSameDetails(sameNote));
+        assertFalse(withNote.hasSameDetails(otherNote));
+        assertFalse(withNote.hasSameDetails(ALICE));
+        assertTrue(withNote.isSamePerson(otherNote));
+    }
+
+    @Test
+    public void toBuilder_withNote_changesOnlyTheNote() {
+        Person person = new PersonBuilder(ALICE).withLinkedIn("alice-pauline").withNote("old note")
+                .withActivity(new Activity(Instant.parse("2026-10-17T04:12:33Z"), null, null)).build();
+
+        Person updated = person.toBuilder().withNote(new Note("new note")).build();
+
+        assertEquals(new Note("new note"), updated.getNote());
+        assertEquals(person.getName(), updated.getName());
+        assertEquals(person.getPhone(), updated.getPhone());
+        assertEquals(person.getEmail(), updated.getEmail());
+        assertEquals(person.getLinkedIn(), updated.getLinkedIn());
+        assertEquals(person.getTags(), updated.getTags());
+        assertEquals(person.getActivity(), updated.getActivity());
+        // copies made for other reasons keep the note
+        assertEquals(new Note("old note"), person.toBuilder().build().getNote());
+        assertEquals(new Note("old note"), person.withActivity(Activity.EMPTY).getNote());
+    }
+
+    @Test
+    public void toBuilder_withNullNote_throwsNullPointerException() {
+        assertThrows(NullPointerException.class, () -> ALICE.toBuilder().withNote(null));
     }
 }
