@@ -103,7 +103,7 @@ public class NoteCommand extends Command {
     public String toString() {
         return new ToStringBuilder(this)
                 .add("targetIndex", targetIndex)
-                .add("note", note)
+                .add("note", note.toLogString())
                 .toString();
     }
 }

@@ -155,8 +155,8 @@ class JsonAdaptedPerson {
 
     /**
      * Parses a note from the data file. Returns an empty note if {@code value} is null (the person has no note, or
-     * the file is from before notes existed). A note that is not a string, is blank, or is longer than
-     * {@value Note#MAX_LENGTH} characters is rejected. An empty string is accepted as no note.
+     * the file is from before notes existed). A note that is not a string, is empty, is blank, or is longer than
+     * {@value Note#MAX_LENGTH} characters is rejected, because a person without a note is saved as null.
      *
      * @throws IllegalValueException if {@code value} is not a valid note.
      */
@@ -164,7 +164,7 @@ class JsonAdaptedPerson {
         if (value == null) {
             return Note.EMPTY;
         }
-        if (!(value instanceof String text) || !Note.isValidNote(text)) {
+        if (!(value instanceof String text) || text.isEmpty() || !Note.isValidNote(text)) {
             throw new IllegalValueException(String.format(INVALID_FIELD_MESSAGE_FORMAT, "note", REASON_INVALID_NOTE));
         }
         return new Note(text);

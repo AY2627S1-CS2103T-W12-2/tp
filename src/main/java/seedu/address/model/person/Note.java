@@ -49,6 +49,14 @@ public class Note {
         return value.isEmpty();
     }
 
+    /**
+     * Returns a description of this note that is safe to write to the log: only how long the note is,
+     * never its text, because a note is personal.
+     */
+    public String toLogString() {
+        return isEmpty() ? "none" : "[" + value.length() + " characters]";
+    }
+
     @Override
     public String toString() {
         return value;

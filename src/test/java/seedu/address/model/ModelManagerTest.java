@@ -16,8 +16,13 @@ import static seedu.address.testutil.TypicalTimes.NOW;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.junit.jupiter.api.Test;
 
@@ -328,5 +333,40 @@ public class ModelManagerTest {
         UserPrefs differentUserPrefs = new UserPrefs();
         differentUserPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));
         assertFalse(modelManager.equals(new ModelManager(addressBook, differentUserPrefs)));
+    }
+
+    @Test
+    public void constructor_addressBookWithNote_doesNotLogTheNoteText() {
+        AddressBook addressBook = new AddressBookBuilder()
+                .withPerson(new PersonBuilder(ALICE).withNote("private text").build()).build();
+        List<String> logged = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                logged.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+        // the constructor logs the whole address book at the most detailed level
+        Logger logger = Logger.getLogger("ab3.ModelManager");
+        Level oldLevel = logger.getLevel();
+        logger.setLevel(Level.ALL);
+        logger.addHandler(handler);
+
+        try {
+            new ModelManager(addressBook, new UserPrefs());
+        } finally {
+            logger.removeHandler(handler);
+            logger.setLevel(oldLevel);
+        }
+
+        assertFalse(logged.isEmpty());
+        assertTrue(logged.stream().anyMatch(message -> message.contains("[12 characters]")), logged.toString());
+        assertTrue(logged.stream().noneMatch(message -> message.contains("private text")), logged.toString());
     }
 }

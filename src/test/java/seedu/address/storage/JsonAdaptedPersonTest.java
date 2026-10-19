@@ -264,9 +264,9 @@ public class JsonAdaptedPersonTest {
 
     /*
      * Equivalence partitions for the note field in the data file:
-     *   - missing (null) or an empty string, which mean no note       - valid
+     *   - missing (null), which means no note                          - valid
      *   - 1 to MAX_LENGTH characters once surrounding spaces are cut  - valid
-     *   - only spaces, more than MAX_LENGTH characters, not a string  - invalid
+     *   - empty, only spaces, more than MAX_LENGTH, not a string       - invalid
      * Boundary values: MAX_LENGTH and MAX_LENGTH + 1 characters.
      */
     @Test
@@ -274,14 +274,13 @@ public class JsonAdaptedPersonTest {
         String longest = "a".repeat(Note.MAX_LENGTH);
 
         assertEquals(Note.EMPTY, personWithNote(null).toModelType().getNote());
-        assertEquals(Note.EMPTY, personWithNote("").toModelType().getNote());
         assertEquals(new Note("hello"), personWithNote("  hello  ").toModelType().getNote());
         assertEquals(new Note(longest), personWithNote(longest).toModelType().getNote());
     }
 
     @Test
     public void toModelType_invalidNoteValues_throwFieldSpecificMessage() {
-        Object[] invalidValues = {"   ", "a".repeat(Note.MAX_LENGTH + 1), 12345};
+        Object[] invalidValues = {"", "   ", "a".repeat(Note.MAX_LENGTH + 1), 12345};
 
         for (Object value : invalidValues) {
             assertThrows(IllegalValueException.class, noteError(), personWithNote(value)::toModelType);

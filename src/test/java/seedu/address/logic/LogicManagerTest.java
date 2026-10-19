@@ -1,9 +1,11 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_EMPTY_PERSON_LIST;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
@@ -17,6 +19,12 @@ import static seedu.address.testutil.TypicalTimes.NOW;
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -25,6 +33,7 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -305,5 +314,48 @@ public class LogicManagerTest {
         assertCommandException("note 9 nt/new", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
 
         assertEquals("original", logic.getFilteredPersonList().get(0).getNote().value);
+    }
+
+    @Test
+    public void execute_noteCommands_neverWriteTheNoteTextToTheLog() throws Exception {
+        model.addPerson(AMY);
+        String secret = "private text";
+        List<String> logged = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                logged.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+        // the loggers of the classes that log a command, at the most detailed level
+        Logger[] loggers = {Logger.getLogger("ab3.LogicManager"), Logger.getLogger("ab3.AddressBookParser")};
+        Level[] oldLevels = {loggers[0].getLevel(), loggers[1].getLevel()};
+        for (Logger logger : loggers) {
+            logger.setLevel(Level.ALL);
+            logger.addHandler(handler);
+        }
+
+        try {
+            logic.execute("note 1 nt/" + secret);
+            assertParseException("note 1 " + secret,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE));
+            assertParseException("note 1 nt/" + (secret + " ").repeat(100), Note.MESSAGE_TOO_LONG);
+            assertCommandException("note 9 nt/" + secret, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        } finally {
+            for (int i = 0; i < loggers.length; i++) {
+                loggers[i].removeHandler(handler);
+                loggers[i].setLevel(oldLevels[i]);
+            }
+        }
+
+        assertFalse(logged.isEmpty());
+        assertTrue(logged.stream().anyMatch(message -> message.contains("note [hidden]")));
+        assertTrue(logged.stream().noneMatch(message -> message.contains(secret)), logged.toString());
     }
 }

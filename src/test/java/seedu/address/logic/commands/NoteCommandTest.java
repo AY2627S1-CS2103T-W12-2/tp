@@ -195,9 +195,11 @@ public class NoteCommandTest {
     public void toStringMethod() {
         NoteCommand command = new NoteCommand(INDEX_FIRST_PERSON, NOTE);
         String expected = NoteCommand.class.getCanonicalName() + "{targetIndex=" + INDEX_FIRST_PERSON
-                + ", note=" + NOTE + "}";
+                + ", note=[" + NOTE.value.length() + " characters]}";
 
         assertEquals(expected, command.toString());
+        // the text of the note is personal and must not reach the log through toString
+        assertFalse(command.toString().contains(NOTE.value));
     }
 
     private static Model copyOf(Model source) {

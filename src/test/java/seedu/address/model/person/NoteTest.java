@@ -74,6 +74,13 @@ public class NoteTest {
     }
 
     @Test
+    public void toLogString_showsOnlyTheLengthOfTheNote() {
+        assertEquals("none", Note.EMPTY.toLogString());
+        assertEquals("[12 characters]", new Note("private text").toLogString());
+        assertFalse(new Note("private text").toLogString().contains("private"));
+    }
+
+    @Test
     public void toStringMethod() {
         assertEquals("met at booth 4", new Note("met at booth 4").toString());
     }

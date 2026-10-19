@@ -43,7 +43,8 @@ public class LogicManager implements Logic {
 
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
-        logger.info("----------------[USER COMMAND][" + commandText + "]");
+        // a note is personal, so the text of a note command is kept out of the log
+        logger.info("----------------[USER COMMAND][" + LogRedactor.redactCommand(commandText) + "]");
 
         CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);

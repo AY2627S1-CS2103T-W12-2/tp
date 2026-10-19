@@ -172,7 +172,8 @@ public class Person {
                 .add("email", email)
                 .add("linkedIn", linkedIn)
                 .add("tags", tags)
-                .add("note", note)
+                // the text of a note is personal and toString() is used for logging, so only its length is shown
+                .add("note", note.toLogString())
                 .add("activity", activity)
                 .toString();
     }

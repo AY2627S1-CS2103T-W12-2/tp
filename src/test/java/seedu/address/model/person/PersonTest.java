@@ -165,8 +165,16 @@ public class PersonTest {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail()
                 + ", linkedIn=" + ALICE.getLinkedIn() + ", tags=" + ALICE.getTags()
-                + ", note=" + ALICE.getNote() + ", activity=" + ALICE.getActivity() + "}";
+                + ", note=none, activity=" + ALICE.getActivity() + "}";
         assertEquals(expected, ALICE.toString());
+    }
+
+    @Test
+    public void toStringMethod_withNote_showsOnlyTheLengthOfTheNote() {
+        Person person = new PersonBuilder(ALICE).withNote("private text").build();
+
+        assertTrue(person.toString().contains("note=[12 characters]"));
+        assertFalse(person.toString().contains("private text"));
     }
 
     // ---- toBuilder ----
