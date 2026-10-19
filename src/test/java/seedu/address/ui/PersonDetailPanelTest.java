@@ -16,6 +16,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
@@ -86,8 +87,27 @@ public class PersonDetailPanelTest {
         assertFalse(lookup(panel, "#content").isVisible());
     }
 
+    @Test
+    public void constructor_meeting_showsFullContextAndBoundedCardCue() {
+        String fullEvent = "x".repeat(80);
+        var meeting = new seedu.address.model.person.Meeting(fullEvent, java.time.LocalDate.of(2026, 10, 20),
+                "Mentor");
+        Person person = new PersonBuilder().build().toBuilder().withMeeting(meeting).build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
+        assertEquals(fullEvent, text(panel, "#event"));
+        assertEquals("2026-10-20", text(panel, "#meetingDate"));
+        assertEquals("Mentor", text(panel, "#role"));
+        PersonCard card = new PersonCard(person, 1);
+        assertEquals(32, ((Label) card.getRoot().lookup("#event")).getText().length());
+        assertFalse(((ScrollPane) panel.getRoot().lookup(".scroll-pane")).isFitToHeight());
+    }
+
     private Node lookup(PersonDetailPanel panel, String selector) {
-        return panel.getRoot().lookup(selector);
+        Node node = panel.getRoot().lookup(selector);
+        if (node != null) {
+            return node;
+        }
+        return ((ScrollPane) panel.getRoot().lookup(".scroll-pane")).getContent().lookup(selector);
     }
 
     private String text(PersonDetailPanel panel, String selector) {

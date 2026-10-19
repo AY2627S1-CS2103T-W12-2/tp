@@ -6,6 +6,7 @@ import java.util.List;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.person.EventContainsTermsPredicate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
 
 /**
@@ -25,6 +26,18 @@ public class FindCommandParser implements Parser<FindCommand> {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
 
+        if (trimmedArgs.startsWith("ev/")) {
+            ArgumentMultimap fields = ArgumentTokenizer.tokenize(args, CliSyntax.PREFIX_EVENT);
+            List<String> terms = fields.getAllValues(CliSyntax.PREFIX_EVENT);
+            if (terms.stream().anyMatch(String::isBlank)
+                    || terms.stream().anyMatch(term -> term.matches(".*(?:^|\\s)[a-z]+/.*"))) {
+                throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+            }
+            return new FindCommand(new EventContainsTermsPredicate(terms));
+        }
+        if (trimmedArgs.matches(".*(?:^|\\s)ev/.*")) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+        }
         String[] nameKeywords = trimmedArgs.split("\\s+");
 
         return new FindCommand(new NameContainsKeywordsPredicate(List.of(nameKeywords)));

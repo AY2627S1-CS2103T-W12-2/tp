@@ -28,6 +28,7 @@ public class Person {
 
     // Activity metadata (when the person was created, last edited and last viewed)
     private final Activity activity;
+    private final Meeting meeting;
 
     /**
      * Creates a new person with no known activity times.
@@ -44,13 +45,20 @@ public class Person {
      * To change an existing contact, copy it with {@link #withActivity(Activity)} or the model's edit operation.
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity) {
-        requireAllNonNull(name, phone, email, linkedIn, tags, activity);
+        this(name, phone, email, linkedIn, tags, activity, Meeting.EMPTY);
+    }
+
+    /** Creates a contact with activity metadata and meeting context. */
+    private Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags,
+            Activity activity, Meeting meeting) {
+        requireAllNonNull(name, phone, email, linkedIn, tags, activity, meeting);
         this.name = name;
         this.phone = phone;
         this.email = email;
         this.linkedIn = linkedIn;
         this.tags.addAll(tags);
         this.activity = activity;
+        this.meeting = meeting;
     }
 
     public Name getName() {
@@ -75,6 +83,10 @@ public class Person {
      */
     public Set<Tag> getTags() {
         return Collections.unmodifiableSet(tags);
+    }
+
+    public Meeting getMeeting() {
+        return meeting;
     }
 
     public Activity getActivity() {
@@ -139,13 +151,14 @@ public class Person {
                 && email.equals(otherPerson.email)
                 && linkedIn.equals(otherPerson.linkedIn)
                 && tags.equals(otherPerson.tags)
-                && activity.equals(otherPerson.activity);
+                && activity.equals(otherPerson.activity)
+                && meeting.equals(otherPerson.meeting);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, linkedIn, tags, activity);
+        return Objects.hash(name, phone, email, linkedIn, tags, activity, meeting);
     }
 
     @Override
@@ -157,6 +170,7 @@ public class Person {
                 .add("linkedIn", linkedIn)
                 .add("tags", tags)
                 .add("activity", activity)
+                .add("meeting", meeting)
                 .toString();
     }
 
@@ -172,6 +186,7 @@ public class Person {
         private LinkedIn linkedIn;
         private Set<Tag> tags;
         private Activity activity;
+        private Meeting meeting;
 
         private Builder(Person source) {
             name = source.name;
@@ -180,6 +195,7 @@ public class Person {
             linkedIn = source.linkedIn;
             tags = new HashSet<>(source.tags);
             activity = source.activity;
+            meeting = source.meeting;
         }
 
         /**
@@ -236,11 +252,17 @@ public class Person {
             return this;
         }
 
+        /** Replaces meeting context while retaining all other fields. */
+        public Builder withMeeting(Meeting meeting) {
+            this.meeting = requireNonNull(meeting);
+            return this;
+        }
+
         /**
          * Returns a new {@code Person} with the fields set so far.
          */
         public Person build() {
-            return new Person(name, phone, email, linkedIn, tags, activity);
+            return new Person(name, phone, email, linkedIn, tags, activity, meeting);
         }
     }
 

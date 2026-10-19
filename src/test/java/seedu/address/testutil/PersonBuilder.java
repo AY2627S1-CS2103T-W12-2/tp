@@ -6,6 +6,7 @@ import java.util.Set;
 import seedu.address.model.person.Activity;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.LinkedIn;
+import seedu.address.model.person.Meeting;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
@@ -28,6 +29,7 @@ public class PersonBuilder {
     private LinkedIn linkedIn;
     private Set<Tag> tags;
     private Activity activity;
+    private Meeting meeting;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -39,6 +41,7 @@ public class PersonBuilder {
         linkedIn = new LinkedIn(DEFAULT_LINKEDIN);
         tags = new HashSet<>();
         activity = Activity.EMPTY;
+        meeting = Meeting.EMPTY;
     }
 
     /**
@@ -51,6 +54,7 @@ public class PersonBuilder {
         linkedIn = personToCopy.getLinkedIn();
         tags = new HashSet<>(personToCopy.getTags());
         activity = personToCopy.getActivity();
+        meeting = personToCopy.getMeeting();
     }
 
     /**
@@ -101,8 +105,10 @@ public class PersonBuilder {
         return this;
     }
 
+    /** Builds a person with every copied field retained. */
     public Person build() {
-        return new Person(name, phone, email, linkedIn, tags, activity);
+        return new Person(name, phone, email, linkedIn, tags, activity)
+                .toBuilder().withMeeting(meeting).build();
     }
 
 }

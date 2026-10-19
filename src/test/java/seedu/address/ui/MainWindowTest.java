@@ -66,6 +66,7 @@ public class MainWindowTest {
             logic.execute("view 1");
 
             assertFalse(detailPanel.lookup("#placeholder").isVisible());
+            detailPanel.applyCss();
             String viewedName = logic.getFilteredPersonList().get(0).getName().fullName;
             assertEquals(viewedName, ((Label) detailPanel.lookup("#name")).getText());
         });

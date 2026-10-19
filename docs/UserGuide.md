@@ -218,6 +218,46 @@ Exits the program.
 
 Format: `exit`
 
+### Recording meeting context: `meeting`
+
+Use `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]` to set or replace one or more fields.
+Omitted fields keep their existing values. For example:
+
+```text
+meeting 1 ev/Hack Singapore md/2026-10-20 r/Mentor
+meeting 1 r/Participant
+meeting 1 clear date
+meeting 1 clear
+find ev/singapore
+```
+
+`meeting INDEX clear` removes all context. Add `event`, `date`, or `role` to clear only that field.
+Indexes refer to the displayed list, including after a search. Event and role each accept 1–80
+characters and cannot be blank. Dates must be real calendar dates in exactly YYYY-MM-DD format
+(years 0001–9999); they are displayed as Singapore calendar dates without time-zone conversion.
+Tags are independent and are never generated from meeting fields.
+
+Invalid text reports `Event and role must each contain 1 to 80 characters.` Invalid dates report
+`Date must be a real date in YYYY-MM-DD format.` A command with no fields reports
+`Specify a meeting field or use 'meeting INDEX clear'.` Invalid displayed indexes report
+`The person index provided is invalid.` Failures leave the contact unchanged. Same-value updates
+and clearing an already absent field are informational no-ops, with no timestamp or undo entry.
+
+The list shows an event cue of at most 32 characters; `view INDEX` shows full event, date, and role
+in a vertically scrolling detail panel. Editing a viewed contact refreshes the panel. If changing
+its event excludes it from the current event search, its selection is cleared.
+
+`find ev/TERM [ev/TERM]...` matches partial event names without case sensitivity, using OR across
+repeated terms. No match is a valid empty list. Do not mix event terms with plain name keywords.
+The reusable event predicate is supplied for integration with the shared typed-search pipeline.
+
+Meeting context is saved in optional JSON `meeting`, for example
+`"meeting": {"eventName": "Hack Singapore", "date": "2026-10-20", "role": "Mentor"}`.
+Missing/null context and fields mean absent values. Clearing the final field omits the object.
+Malformed present values reject loading with `Invalid contact data: 'meeting.<field>' <reason>.`;
+a non-object context names `meeting`. Back up JSON before editing it manually.
+Successful real changes update last-edited time and are saved before entering session undo history.
+
 ### Saving the data
 
 LarperBoard automatically saves data after every successful command. You do not need to save manually.
@@ -273,6 +313,7 @@ Action | Format, Examples
 **Find** | `find KEYWORD [MORE_KEYWORDS]…​`<br> e.g., `find James Jake`
 **Help** | `help`
 **List** | `list`
+**Meeting** | `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]` or `meeting INDEX clear [event/date/role]`
 **Tag** | `tag INDEX t/TAG [t/TAG]…​`<br> e.g., `tag 1 t/frontend t/react`
 **Undo** | `undo`
 **View** | `view INDEX`<br> e.g., `view 1`
