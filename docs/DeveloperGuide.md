@@ -419,6 +419,33 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
     Use case ends.
 
+**Use case: Group contacts by tag**
+
+The user enters `group t/TAG` to display contacts with a selected tag.
+
+**MSS**
+
+1. User requests to group contacts by one tag.
+2. LarperBoard filters the displayed contact list to contacts with the specified tag, ignoring tag letter case.
+3. LarperBoard displays the selected tag and the number of matching contacts.
+4. User enters `list` to return to the full contact list.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user omits the tag or provides an invalid tag.
+  * 1a1. LarperBoard displays an error message.
+
+    Use case resumes at step 1.
+
+* 2a. No contacts have the specified tag.
+  * 2a1. LarperBoard displays the selected tag and a result count of zero.
+
+    Use case ends.
+
+**Implementation note:** Grouping updates the existing filtered person list. Tags stored on each contact remain the source of truth; no separate group data is stored. Index-based commands continue to use the displayed list.
+
 **Use case: Edit a person's details**
 
 **MSS**

@@ -98,6 +98,8 @@ Shows a list of all contacts in LarperBoard.
 
 Format: `list`
 
+* Use `list` to return to the full contact list after `find` or `group`.
+
 ### Editing a contact: `edit`
 
 Edits an existing contact in LarperBoard.
@@ -176,6 +178,21 @@ Format: `find KEYWORD [MORE_KEYWORDS]…​`
 Examples:
 * `find Aisha` returns the `Aisha Rahman` contact added in the quick start.
 * `find Aisha Ben` returns contacts named `Aisha Rahman` or `Ben Tan` when both have been added.
+
+### Grouping contacts by tag: `group`
+
+Shows contacts with the specified tag.
+
+Format: `group t/TAG`
+
+* Tag matching is case-insensitive.
+* The result message shows the selected tag and the number of matching contacts.
+* `group` replaces the current `find` or `group` result rather than combining with it.
+* Use `list` to return to the full contact list.
+
+Examples:
+* `group t/react`
+* `group t/UI-UX`
 
 ### Deleting a contact: `delete`
 
@@ -393,6 +410,7 @@ Action | Format, Examples
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Exit** | `exit`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…​`<br> e.g., `find James Jake`
+**Group** | `group t/TAG`<br> e.g., `group t/react`
 **Help** | `help`
 **List** | `list`
 **Meeting** | `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]` or `meeting INDEX clear [event/date/role]`
