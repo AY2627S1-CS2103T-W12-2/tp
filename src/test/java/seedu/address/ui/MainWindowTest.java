@@ -8,16 +8,24 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.awt.GraphicsEnvironment;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
+import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
 import seedu.address.logic.Logic;
@@ -65,10 +73,58 @@ public class MainWindowTest {
 
             logic.execute("view 1");
 
+            // the scroll pane only adds its content to the scene graph once it has been laid out
+            detailPanel.applyCss();
+            detailPanel.layout();
+
             assertFalse(detailPanel.lookup("#placeholder").isVisible());
             String viewedName = logic.getFilteredPersonList().get(0).getName().fullName;
             assertEquals(viewedName, ((Label) detailPanel.lookup("#name")).getText());
         });
+    }
+
+    @Test
+    public void executeCommand_failedNoteCommand_logsTheCommandWithoutTheNoteText() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
+        Logic logic = new LogicManager(new ModelManager(getTypicalAddressBook(), new UserPrefs()), storage);
+        List<String> logged = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                logged.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+
+        runOnFxThread(() -> {
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile);
+            mainWindow.fillInnerParts();
+            // the window gets its logger when it is created, so the handler is added afterwards
+            Logger logger = Logger.getLogger("ab3.MainWindow");
+            Level oldLevel = logger.getLevel();
+            logger.setLevel(Level.ALL);
+            logger.addHandler(handler);
+            try {
+                TextField commandBox = (TextField) mainWindow.getPrimaryStage().getScene().getRoot()
+                        .lookup("#commandTextField");
+                // a note command with a bad index only fails once it is executed
+                commandBox.setText("note 99 nt/private text");
+                commandBox.fireEvent(new ActionEvent());
+            } finally {
+                logger.removeHandler(handler);
+                logger.setLevel(oldLevel);
+            }
+        });
+
+        assertTrue(logged.stream().anyMatch(message -> message.contains("note [hidden]")), logged.toString());
+        assertTrue(logged.stream().noneMatch(message -> message.contains("private text")), logged.toString());
     }
 
     /**

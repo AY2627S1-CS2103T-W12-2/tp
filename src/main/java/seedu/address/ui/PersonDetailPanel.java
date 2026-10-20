@@ -1,13 +1,16 @@
 package seedu.address.ui;
 
 import java.util.Comparator;
+import java.util.logging.Logger;
 
 import javafx.beans.value.ObservableValue;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
+import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Person;
 
 /**
@@ -17,9 +20,12 @@ public class PersonDetailPanel extends UiPart<Region> {
 
     private static final String FXML = "PersonDetailPanel.fxml";
     private static final String EMPTY_FIELD_TEXT = "-";
+    private static final Logger logger = LogsCenter.getLogger(PersonDetailPanel.class);
 
     @FXML
     private Label placeholder;
+    @FXML
+    private ScrollPane scrollPane;
     @FXML
     private VBox content;
     @FXML
@@ -32,6 +38,8 @@ public class PersonDetailPanel extends UiPart<Region> {
     private Label linkedIn;
     @FXML
     private FlowPane tags;
+    @FXML
+    private Label note;
 
     /**
      * Creates a {@code PersonDetailPanel} that shows the person held by {@code viewedPerson},
@@ -48,7 +56,9 @@ public class PersonDetailPanel extends UiPart<Region> {
      */
     private void showPerson(Person person) {
         boolean hasPerson = person != null;
+        logger.fine("Detail panel shows " + (hasPerson ? "a contact" : "no contact"));
         placeholder.setVisible(!hasPerson);
+        scrollPane.setVisible(hasPerson);
         content.setVisible(hasPerson);
 
         tags.getChildren().clear();
@@ -60,6 +70,8 @@ public class PersonDetailPanel extends UiPart<Region> {
         phone.setText(orPlaceholder(person.getPhone().value));
         email.setText(orPlaceholder(person.getEmail().value));
         linkedIn.setText(orPlaceholder(person.getLinkedIn().value));
+        note.setText(orPlaceholder(person.getNote().value));
+        scrollPane.setVvalue(0);
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
