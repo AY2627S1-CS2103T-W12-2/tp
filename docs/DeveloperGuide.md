@@ -83,6 +83,8 @@ until loading finishes. Replaced requests and discarded contact cards cancel que
 an already-running decode can finish, but its stale result is never displayed.
 The detail panel observes
 the viewed person and scrolls vertically to keep full meeting and contact details accessible.
+Both `PersonCard` and `PersonDetailPanel` show a ★ label next to the name of a starred person; the label is
+hidden and takes no space otherwise.
 
 The `UI` component,
 
@@ -137,6 +139,7 @@ The `Model` component,
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 * gives every `Person` an immutable `Activity` holding when the person was created, last edited and last viewed. Each time is optional: an unknown time is absent, never invented. `Person#withActivity` copies a person with new activity, and `Person#hasSameDetails` compares two persons while ignoring activity.
+* gives every `Person` a `starred` flag, which is false by default. The `star` and `unstar` commands change it through `Person#toBuilder` and `Model#editPerson`, and the `filter starred` command shows the starred persons by passing `Person#isStarred` to `Model#updateFilteredPersonList`.
 * gives every `Person` an optional free-form `Note` of at most 1000 characters. An empty `Note` means that the person has no note. The `note` command changes it through `Person#toBuilder` and `Model#editPerson`, so the other fields and the activity times are kept, and the last edited time changes only when the note really changes.
 
 <div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
@@ -158,6 +161,7 @@ The `Storage` component,
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 * saves a person's activity as optional `createdAt`, `lastEditedAt` and `lastViewedAt` fields in `addressbook.json`. Each is a whole-second ISO-8601 UTC timestamp written exactly as `2026-10-17T04:12:33Z`. A missing or `null` field loads as an absent time, so data files from v1.3 still load. A value with a fraction of a second, an offset other than `Z`, surrounding spaces or any other format makes the file fail to load with `Invalid contact data: '<field>' must be an ISO-8601 UTC timestamp.`, naming the field (`createdAt`, `lastEditedAt` or `lastViewedAt`). `JsonAdaptedPerson.INVALID_FIELD_MESSAGE_FORMAT` holds this message pattern so other fields use the same wording.
+* saves whether a person is starred as an optional `starred` boolean in `addressbook.json`. A missing or `null` field loads as not starred, so older data files still load. Any other value, such as a string or a number, makes the file fail to load with `Invalid contact data: 'starred' must be true or false.` The field is kept as an `Object` in `JsonAdaptedPerson` so that such a value reaches this message instead of a generic Jackson error.
 * saves a person's note as an optional `note` string in `addressbook.json`. A missing or `null` field loads as no note, so older data files still load. A note that is blank, longer than 1000 characters or not a string makes the file fail to load with `Invalid contact data: 'note' must be a string of at most 1000 characters.`
 
 ### Common classes
@@ -186,6 +190,14 @@ Design considerations:
 
 * **Stamp in the model, not in each command.** Each command would otherwise repeat the "was anything really changed?" check and could drift apart. The trade-off is that `Model` gains two methods.
 * **Ignore the edited person's activity.** Commands build the edited `Person` from the old one, and a new field that someone forgets to copy would silently reset the times. Always taking the activity from `target` makes that mistake harmless.
+
+### Starring contacts
+
+`StarCommand` serves both `star` and `unstar`: `StarCommandParser` is created with `true` or `false` by `AddressBookParser`, so the two commands share one parser and one command class. `FilterCommand` serves `filter starred` and `filter starred off`.
+
+* **Changing a star:** `StarCommand` looks up the person at the displayed index and, if the flag really changes, calls `Model#editPerson` with `person.toBuilder().withStarred(...)`. Because it goes through `editPerson`, the change is saved, can be undone, and updates the last edited time. If the person already has the requested state, the command succeeds with a message saying nothing changed and does not touch the model, so no undo step is created.
+* **Filtering:** `FilterCommand` replaces the predicate of the filtered list, like `find` and `group`. The three do not combine; combining filters is tracked separately in #128.
+* **Logging:** `StarCommand` logs at `INFO` when a star changes and at `FINE` when nothing changes, and `FilterCommand` logs at `INFO` with the number of contacts shown. The logs contain only the displayed index and counts, never a name or any other personal detail.
 
 ### \[Proposed\] Undo/redo feature
 
