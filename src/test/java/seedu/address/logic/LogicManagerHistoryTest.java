@@ -9,6 +9,7 @@ import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
+import static seedu.address.testutil.TypicalTimes.NOW;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -25,6 +26,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -80,13 +82,95 @@ public class LogicManagerHistoryTest {
     @Test
     public void execute_clearThenUndo_restoresSavedContact() throws Exception {
         logic.execute(addAmy());
+        logic.execute("note 1 nt/Met at orientation");
+        logic.execute("view 1");
+        Person selected = model.getViewedPerson().get();
+        logic.execute("add n/Bob p/87654321 e/bob@example.com");
+        logic.execute("note 2 nt/Building a robot");
+        ReadOnlyAddressBook beforeClear = new AddressBook(model.getAddressBook());
         logic.execute("clear");
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
 
         logic.execute("undo");
 
-        assertEquals(1, model.getAddressBook().getPersonList().size());
-        assertEquals(1, addressBookStorage.readAddressBook().orElseThrow().getPersonList().size());
+        assertEquals(beforeClear, model.getAddressBook());
+        assertEquals(selected, model.getViewedPerson().get());
+        assertEquals(beforeClear, addressBookStorage.readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void execute_deleteThenUndo_restoresContactMetadataSelectionAndSavedJson() throws Exception {
+        logic.execute(addAmy());
+        logic.execute("note 1 nt/Met at orientation");
+        logic.execute("view 1");
+        Person beforeDelete = model.getAddressBook().getPersonList().get(0);
+
+        logic.execute("delete 1");
+        assertNull(model.getViewedPerson().get());
+        logic.execute("undo");
+
+        assertEquals(beforeDelete, model.getAddressBook().getPersonList().get(0));
+        assertEquals(beforeDelete, model.getViewedPerson().get());
+        assertEquals(beforeDelete, addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0));
+        assertEquals(NOW, beforeDelete.getActivity().getLastViewedAt().orElseThrow());
+    }
+
+    @Test
+    public void execute_addDeleteClearThenUndo_restoresOneMutationAtATime() throws Exception {
+        logic.execute(addAmy());
+        logic.execute("add n/Bob p/87654321 e/bob@example.com");
+        logic.execute("delete 1");
+        logic.execute("clear");
+
+        logic.execute("undo");
+        assertEquals("Bob", model.getAddressBook().getPersonList().get(0).getName().fullName);
+        logic.execute("undo");
+        assertEquals(2, model.getAddressBook().getPersonList().size());
+        logic.execute("undo");
+        assertEquals("Amy Bee", model.getAddressBook().getPersonList().get(0).getName().fullName);
+        logic.execute("undo");
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertFalse(model.canUndo());
+    }
+
+    @Test
+    public void execute_clearThenUndo_restoresFilterSelectionAndValidIndexes() throws Exception {
+        logic.execute(addAmy());
+        logic.execute("add n/Bob p/87654321 e/bob@example.com");
+        logic.execute("view 1");
+        Person selected = model.getViewedPerson().get();
+        logic.execute("find Bob");
+
+        logic.execute("clear");
+        logic.execute("undo");
+
+        assertEquals(selected, model.getViewedPerson().get());
+        assertEquals(1, model.getFilteredPersonList().size());
+        assertEquals("Bob", model.getFilteredPersonList().get(0).getName().fullName);
+        logic.execute("delete 1");
+        assertEquals("Amy Bee", model.getAddressBook().getPersonList().get(0).getName().fullName);
+    }
+
+    @Test
+    public void execute_clearEmptyBook_doesNotEnterHistory() throws Exception {
+        logic.execute("clear");
+
+        assertFalse(model.canUndo());
+        assertEquals("Nothing to undo.", assertThrows(CommandException.class, () -> logic.execute("undo"))
+                .getMessage());
+    }
+
+    @Test
+    public void execute_undoThenReload_restoresJsonWithoutSessionHistory() throws Exception {
+        logic.execute(addAmy());
+        logic.execute("clear");
+        logic.execute("undo");
+
+        ModelManager reloaded = new ModelManager(addressBookStorage.readAddressBook().orElseThrow(),
+                new UserPrefs(), FIXED_CLOCK);
+
+        assertEquals(model.getAddressBook(), reloaded.getAddressBook());
+        assertFalse(reloaded.canUndo());
     }
 
     @Test
@@ -121,6 +205,39 @@ public class LogicManagerHistoryTest {
 
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
         assertFalse(model.canUndo());
+    }
+
+    @Test
+    public void execute_failedDeleteSave_restoresContactSelectionAndHistory() throws Exception {
+        logic.execute(addAmy());
+        logic.execute("view 1");
+        Person selected = model.getViewedPerson().get();
+        failSave = true;
+
+        assertThrows(CommandException.class, () -> logic.execute("delete 1"));
+
+        assertEquals(selected, model.getAddressBook().getPersonList().get(0));
+        assertEquals(selected, model.getViewedPerson().get());
+        assertEquals(selected, addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0));
+        assertTrue(model.canUndo());
+        failSave = false;
+        logic.execute("undo");
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+    }
+
+    @Test
+    public void execute_failedClearSave_restoresContactsAndHistory() throws Exception {
+        logic.execute(addAmy());
+        failSave = true;
+
+        assertThrows(CommandException.class, () -> logic.execute("clear"));
+
+        assertEquals(1, model.getAddressBook().getPersonList().size());
+        assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
+        assertTrue(model.canUndo());
+        failSave = false;
+        logic.execute("undo");
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
     }
 
     @Test
