@@ -19,11 +19,13 @@ import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
 import seedu.address.logic.commands.ExitCommand;
+import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.GroupCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.NoteCommand;
+import seedu.address.logic.commands.StarCommand;
 import seedu.address.logic.commands.TagCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.ViewCommand;
@@ -87,6 +89,19 @@ public class AddressBookParserTest {
     public void parseCommand_group() throws Exception {
         GroupCommand command = (GroupCommand) parser.parseCommand(GroupCommand.COMMAND_WORD + " t/react");
         assertEquals(new GroupCommand(new Tag("react")), command);
+    }
+
+    @Test
+    public void parseCommand_starAndUnstar() throws Exception {
+        assertEquals(new StarCommand(INDEX_FIRST_PERSON, true), parser.parseCommand(
+                StarCommand.COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased()));
+        assertEquals(new StarCommand(INDEX_FIRST_PERSON, false), parser.parseCommand(
+                StarCommand.UNSTAR_COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased()));
+    }
+
+    @Test
+    public void parseCommand_filter() throws Exception {
+        assertEquals(new FilterCommand(true), parser.parseCommand(FilterCommand.COMMAND_WORD + " starred"));
     }
 
     @Test
