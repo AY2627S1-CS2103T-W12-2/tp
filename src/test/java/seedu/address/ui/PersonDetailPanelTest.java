@@ -144,6 +144,21 @@ public class PersonDetailPanelTest {
         assertTrue(verticalBar.isVisible());
     }
 
+    @Test
+    public void constructor_meeting_showsFullContextAndBoundedCardCue() {
+        String fullEvent = "x".repeat(80);
+        var meeting = new seedu.address.model.person.Meeting(fullEvent, java.time.LocalDate.of(2026, 10, 20),
+                "Mentor");
+        Person person = new PersonBuilder().build().toBuilder().withMeeting(meeting).build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
+        assertEquals(fullEvent, text(panel, "#event"));
+        assertEquals("2026-10-20", text(panel, "#meetingDate"));
+        assertEquals("Mentor", text(panel, "#role"));
+        PersonCard card = new PersonCard(person, 1);
+        assertEquals(32, ((Label) card.getRoot().lookup("#event")).getText().length());
+        assertFalse(((ScrollPane) panel.getRoot().lookup(".scroll-pane")).isFitToHeight());
+    }
+
     private Node lookup(PersonDetailPanel panel, String selector) {
         Parent root = (Parent) panel.getRoot();
         if (root.getScene() == null) {

@@ -13,6 +13,8 @@ Class HelpWindow
 Class ResultDisplay
 Class PersonListPanel
 Class PersonCard
+Class PersonDetailPanel
+Class ContactPhoto
 Class StatusBarFooter
 Class CommandBox
 }
@@ -25,6 +27,10 @@ package Logic <<Rectangle>> {
 Class HiddenLogic #FFFFFF
 }
 
+package Storage <<Rectangle>> {
+Class PhotoStorage
+}
+
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Ui
 
@@ -34,6 +40,7 @@ MainWindow *-down->  "1" CommandBox
 MainWindow *-down-> "1" ResultDisplay
 MainWindow *-down-> "1" PersonListPanel
 MainWindow *-down-> "1" StatusBarFooter
+MainWindow *-down-> "1" PersonDetailPanel
 MainWindow --> "0..1" HelpWindow
 
 PersonListPanel -down-> "*" PersonCard
@@ -44,10 +51,15 @@ ResultDisplay --|> UiPart
 CommandBox --|> UiPart
 PersonListPanel --|> UiPart
 PersonCard --|> UiPart
+PersonDetailPanel --|> UiPart
 StatusBarFooter --|> UiPart
 HelpWindow --|> UiPart
 
 PersonCard ..> Model
+PersonDetailPanel ..> Model
+PersonCard ..> ContactPhoto : renders photo
+PersonDetailPanel ..> ContactPhoto : renders photo
+ContactPhoto ..> PhotoStorage : reads validated bytes
 UiManager -right-> Logic
 MainWindow -left-> Logic
 
