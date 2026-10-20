@@ -202,16 +202,13 @@ public class LogicManagerHistoryTest {
         Person original = model.getFilteredPersonList().get(0);
         failSave = true;
 
-        try {
-            assertThrows(CommandException.class, () -> logic.execute("tag 1 t/work"));
+        assertThrows(CommandException.class, () -> logic.execute("tag 1 t/work"));
 
-            assertEquals(original, model.getFilteredPersonList().get(0));
-            assertEquals(original, addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0));
-            assertTrue(model.canUndo());
-            assertFalse(model.canRedo());
-        } finally {
-            failSave = false;
-        }
+        assertEquals(original, model.getFilteredPersonList().get(0));
+        assertEquals(original, addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0));
+        assertTrue(model.canUndo());
+        assertFalse(model.canRedo());
+        failSave = false;
         logic.execute("undo");
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
     }
@@ -244,17 +241,15 @@ public class LogicManagerHistoryTest {
         logic.execute(addAmy());
         failSave = true;
 
-        try {
-            assertThrows(CommandException.class, () -> logic.execute("edit 1 e/changed@example.com"));
+        assertThrows(CommandException.class, () -> logic.execute("edit 1 e/changed@example.com"));
 
-            assertEquals("amy@example.com", model.getAddressBook().getPersonList().get(0).getEmail().value);
-            assertEquals("amy@example.com", addressBookStorage.readAddressBook().orElseThrow()
-                    .getPersonList().get(0).getEmail().value);
-            assertTrue(model.canUndo());
-            assertFalse(model.canRedo());
-        } finally {
-            failSave = false;
-        }
+        assertEquals("amy@example.com", model.getAddressBook().getPersonList().get(0).getEmail().value);
+        assertEquals("amy@example.com", addressBookStorage.readAddressBook().orElseThrow()
+                .getPersonList().get(0).getEmail().value);
+        assertTrue(model.canUndo());
+        assertFalse(model.canRedo());
+
+        failSave = false;
         logic.execute("undo");
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
     }
