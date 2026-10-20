@@ -105,6 +105,14 @@ public class MeetingFeatureTest {
     }
 
     @Test
+    public void execute_slashContainingEvent_canBeFound() throws Exception {
+        logic.execute("meeting 1 ev/Conference c/o NUS");
+        logic.execute("find ev/Conference c/o NUS");
+        assertEquals(1, model.getFilteredPersonList().size());
+        assertEquals(ALICE.getName(), model.getFilteredPersonList().getFirst().getName());
+    }
+
+    @Test
     public void execute_invalidInputs_leaveContactsUnchanged() {
         for (String args : new String[]{"", "1", "0 ev/Hack", "-1 ev/Hack", "1 ev/", "1 r/ ",
             "1 md/2026-02-30", "1 clear other", "1 clear ev/Hack", "1 ev/A ev/B"}) {

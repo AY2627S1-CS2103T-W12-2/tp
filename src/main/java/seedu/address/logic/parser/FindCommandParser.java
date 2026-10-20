@@ -30,7 +30,7 @@ public class FindCommandParser implements Parser<FindCommand> {
             ArgumentMultimap fields = ArgumentTokenizer.tokenize(args, CliSyntax.PREFIX_EVENT);
             List<String> terms = fields.getAllValues(CliSyntax.PREFIX_EVENT);
             if (terms.stream().anyMatch(String::isBlank)
-                    || terms.stream().anyMatch(term -> term.matches(".*(?:^|\\s)[a-z]+/.*"))) {
+                    || terms.stream().anyMatch(term -> term.matches(".*(?:^|\\s)(?:n|p|e|t|l|nt|md|r)/.*"))) {
                 throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
             }
             return new FindCommand(new EventContainsTermsPredicate(terms));

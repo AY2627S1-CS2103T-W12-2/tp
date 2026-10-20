@@ -165,7 +165,8 @@ public class PersonTest {
         String expected = Person.class.getCanonicalName() + "{name=" + ALICE.getName() + ", phone=" + ALICE.getPhone()
                 + ", email=" + ALICE.getEmail()
                 + ", linkedIn=" + ALICE.getLinkedIn() + ", tags=" + ALICE.getTags()
-                + ", note=none, activity=" + ALICE.getActivity() + ", meeting=" + ALICE.getMeeting() + "}";
+                + ", note=none, activity=" + ALICE.getActivity()
+                + ", meeting=" + ALICE.getMeeting().toLogString() + "}";
         assertEquals(expected, ALICE.toString());
     }
 
@@ -175,6 +176,14 @@ public class PersonTest {
 
         assertTrue(person.toString().contains("note=[12 characters]"));
         assertFalse(person.toString().contains("private text"));
+    }
+
+    @Test
+    public void toStringMethod_withMeeting_hidesPersonalContext() {
+        Person person = ALICE.toBuilder().withMeeting(new Meeting("Private event", null, "Private role")).build();
+        assertTrue(person.toString().contains("meeting=[hidden]"));
+        assertFalse(person.toString().contains("Private event"));
+        assertFalse(person.toString().contains("Private role"));
     }
 
     // ---- toBuilder ----

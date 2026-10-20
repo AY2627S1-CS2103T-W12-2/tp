@@ -22,6 +22,17 @@ public class LogRedactorTest {
     }
 
     @Test
+    public void redactCommand_meetingCommand_hidesValidAndMalformedArguments() {
+        for (String command : new String[]{"meeting 1 ev/Private event r/Private role", "meeting 1 clear",
+            "meeting invalid private text", "  meeting\t1 ev/Private event  "}) {
+            assertEquals("meeting [hidden]", LogRedactor.redactCommand(command));
+        }
+        assertEquals("meeting", LogRedactor.redactCommand("meeting"));
+        assertEquals("meetings 1 ev/text", LogRedactor.redactCommand("meetings 1 ev/text"));
+        assertEquals("[hidden]", LogRedactor.redactArguments("meeting", " 1 ev/Private event r/Private role"));
+    }
+
+    @Test
     public void redactCommand_otherCommands_areUnchanged() {
         assertEquals("note", LogRedactor.redactCommand("note"));
         assertEquals("delete 1", LogRedactor.redactCommand("delete 1"));
