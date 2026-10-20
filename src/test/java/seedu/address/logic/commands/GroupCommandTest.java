@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
@@ -123,6 +124,24 @@ public class GroupCommandTest {
 
         assertEquals(Set.of(new Tag("friends"), new Tag("owesMoney"), new Tag("work")),
                 model.getAddressBook().getPersonList().get(1).getTags());
+    }
+
+    @Test
+    public void execute_groupExcludesViewedPerson_clearsSelection() throws Exception {
+        new ViewCommand(INDEX_SECOND_PERSON).execute(model);
+
+        new GroupCommand(new Tag("react")).execute(model);
+
+        assertNull(model.getViewedPerson().get());
+    }
+
+    @Test
+    public void execute_groupIncludesViewedPerson_keepsSelection() throws Exception {
+        new ViewCommand(INDEX_SECOND_PERSON).execute(model);
+
+        new GroupCommand(new Tag("friends")).execute(model);
+
+        assertTrue(BENSON.isSamePerson(model.getViewedPerson().get()));
     }
 
     private void groupByFriends(Model targetModel) throws Exception {
