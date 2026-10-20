@@ -675,6 +675,8 @@ Given below are instructions to test the app manually.
 ### Meeting context implementation
 
 The sequence below shows a partial meeting update, the no-op path, and rollback when saving fails.
+The `createSnapshot`, `restore`, and `recordSuccessfulMutation` calls show shared existing
+snapshot/history behavior from #108 and #131/#132, rather than functionality implemented by #130.
 
 ![Meeting context implementation](images/MeetingUpdateSequenceDiagram.png)
 
