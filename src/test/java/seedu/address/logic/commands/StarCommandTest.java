@@ -3,6 +3,7 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
@@ -88,6 +89,48 @@ public class StarCommandTest {
 
         assertCommandFailure(new StarCommand(INDEX_FIRST_PERSON, true), emptyModel,
                 Messages.MESSAGE_EMPTY_PERSON_LIST);
+    }
+
+    /*
+     * Selection partitions when unstarring: the viewed contact leaves a starred filter (selection cleared),
+     * another contact is viewed (selection kept), the viewed contact stays in the list (selection kept).
+     */
+    @Test
+    public void execute_unstarViewedPersonInStarredFilter_clearsSelection() throws Exception {
+        Model starredModel = starredFirstPersonModel();
+        new FilterCommand(true).execute(starredModel);
+        starredModel.viewPerson(starredModel.getFilteredPersonList().get(0));
+
+        new StarCommand(INDEX_FIRST_PERSON, false).execute(starredModel);
+
+        assertTrue(starredModel.getFilteredPersonList().isEmpty());
+        assertNull(starredModel.getViewedPerson().get());
+    }
+
+    @Test
+    public void execute_unstarOtherPersonInStarredFilter_keepsSelection() throws Exception {
+        Model twoStarred = starredFirstPersonModel();
+        Person benson = twoStarred.getFilteredPersonList().get(1);
+        twoStarred.editPerson(benson, benson.toBuilder().withStarred(true).build());
+        new FilterCommand(true).execute(twoStarred);
+        twoStarred.viewPerson(twoStarred.getFilteredPersonList().get(1));
+        Person viewed = twoStarred.getViewedPerson().get();
+
+        new StarCommand(INDEX_FIRST_PERSON, false).execute(twoStarred);
+
+        assertEquals(1, twoStarred.getFilteredPersonList().size());
+        assertEquals(viewed, twoStarred.getViewedPerson().get());
+    }
+
+    @Test
+    public void execute_unstarViewedPersonWithoutFilter_keepsSelection() throws Exception {
+        Model starredModel = starredFirstPersonModel();
+        starredModel.viewPerson(starredModel.getFilteredPersonList().get(0));
+
+        new StarCommand(INDEX_FIRST_PERSON, false).execute(starredModel);
+
+        assertFalse(starredModel.getViewedPerson().get().isStarred());
+        assertTrue(starredModel.getViewedPerson().get().isSamePerson(ALICE));
     }
 
     @Test

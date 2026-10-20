@@ -43,6 +43,14 @@ public class FilterCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(starredOnly ? Person::isStarred : Model.PREDICATE_SHOW_ALL_PERSONS);
+
+        // the detail panel must not keep showing a contact that the list no longer contains
+        Person viewed = model.getViewedPerson().get();
+        if (viewed != null && !model.getFilteredPersonList().contains(viewed)) {
+            model.setViewedPerson(null);
+            logger.fine("Cleared the viewed contact because the filter hides it");
+        }
+
         int count = model.getFilteredPersonList().size();
         logger.info("Starred filter " + (starredOnly ? "on" : "off") + ": " + count + " contact(s) shown");
         return new CommandResult(String.format(starredOnly ? MESSAGE_STARRED_ON : MESSAGE_STARRED_OFF, count));

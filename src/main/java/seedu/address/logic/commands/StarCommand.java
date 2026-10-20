@@ -69,7 +69,17 @@ public class StarCommand extends Command {
             return new CommandResult(String.format(starred ? MESSAGE_ALREADY_STARRED : MESSAGE_NOT_STARRED, name));
         }
 
+        Person viewedBefore = model.getViewedPerson().get();
+        boolean editedViewedPerson = viewedBefore != null && viewedBefore.isSamePerson(person);
+
         model.editPerson(person, person.toBuilder().withStarred(starred).build());
+
+        // only the edited contact can have dropped out of a starred filter; other selections are left alone
+        Person viewedAfter = model.getViewedPerson().get();
+        if (editedViewedPerson && viewedAfter != null && !model.getFilteredPersonList().contains(viewedAfter)) {
+            model.setViewedPerson(null);
+            logger.fine("Cleared the viewed contact because it left the filtered list");
+        }
         logger.info((starred ? "Starred" : "Unstarred") + " the person at index " + targetIndex.getOneBased());
         return new CommandResult(String.format(starred ? MESSAGE_STAR_SUCCESS : MESSAGE_UNSTAR_SUCCESS, name));
     }

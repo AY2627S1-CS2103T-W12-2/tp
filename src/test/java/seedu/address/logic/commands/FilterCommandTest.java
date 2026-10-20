@@ -2,6 +2,8 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
@@ -56,6 +58,40 @@ public class FilterCommandTest {
         List<Person> all = model.getAddressBook().getPersonList();
         assertEquals(String.format(FilterCommand.MESSAGE_STARRED_OFF, all.size()), result.getFeedbackToUser());
         assertEquals(all, model.getFilteredPersonList());
+    }
+
+    /*
+     * Selection partitions when filtering: the viewed contact is hidden by the filter (selection cleared),
+     * the viewed contact still matches (selection kept), and no contact is viewed.
+     */
+    @Test
+    public void execute_viewedPersonHiddenByFilter_clearsSelection() {
+        Model model = modelWithAliceStarred();
+        model.viewPerson(model.getFilteredPersonList().get(1));
+        assertNotNull(model.getViewedPerson().get());
+
+        new FilterCommand(true).execute(model);
+
+        assertNull(model.getViewedPerson().get());
+    }
+
+    @Test
+    public void execute_viewedPersonStillMatchesFilter_keepsSelection() {
+        Model model = modelWithAliceStarred();
+        model.viewPerson(model.getFilteredPersonList().get(0));
+
+        new FilterCommand(true).execute(model);
+
+        assertTrue(model.getViewedPerson().get().isSamePerson(ALICE));
+    }
+
+    @Test
+    public void execute_noViewedPerson_leavesSelectionEmpty() {
+        Model model = modelWithAliceStarred();
+
+        new FilterCommand(true).execute(model);
+
+        assertNull(model.getViewedPerson().get());
     }
 
     @Test
