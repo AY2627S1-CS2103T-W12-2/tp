@@ -134,6 +134,26 @@ public class MeetingFeatureTest {
     }
 
     @Test
+    public void execute_editDifferentContactOutsideViewedFilter_preservesViewedContact() throws Exception {
+        logic.execute("view 1");
+        var viewedAlice = model.getViewedPerson().get();
+        logic.execute("find Benson");
+        logic.execute("meeting 1 ev/Hack");
+        assertEquals(viewedAlice, model.getViewedPerson().get());
+        assertEquals("Hack", model.getFilteredPersonList().getFirst().getMeeting().getEventName().orElseThrow());
+    }
+
+    @Test
+    public void execute_editViewedContactStillMatchingFilter_keepsUpdatedSelection() throws Exception {
+        logic.execute("meeting 1 ev/Hack");
+        logic.execute("find ev/Hack");
+        logic.execute("view 1");
+        logic.execute("meeting 1 r/Mentor");
+        assertEquals(model.getFilteredPersonList().getFirst(), model.getViewedPerson().get());
+        assertEquals("Mentor", model.getViewedPerson().get().getMeeting().getRole().orElseThrow());
+    }
+
+    @Test
     public void execute_eventChangeRemovesViewedContactFromFilter_clearsSelection() throws Exception {
         logic.execute("meeting 1 ev/Hack");
         logic.execute("find ev/Hack");

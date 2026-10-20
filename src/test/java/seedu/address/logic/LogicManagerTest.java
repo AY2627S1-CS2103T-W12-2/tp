@@ -32,6 +32,7 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.MeetingCommand;
 import seedu.address.logic.commands.NoteCommand;
@@ -391,6 +392,10 @@ public class LogicManagerTest {
                     Messages.getErrorMessageForDuplicatePrefixes(
                             CliSyntax.PREFIX_EVENT));
             assertCommandException("meeting 9 ev/" + secret, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+            logic.execute("find ev/" + secret);
+            assertParseException("find Alice ev/" + secret,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                            FindCommand.MESSAGE_USAGE));
         } finally {
             for (int i = 0; i < loggers.length; i++) {
                 loggers[i].removeHandler(handler);
@@ -400,6 +405,7 @@ public class LogicManagerTest {
 
         assertFalse(logged.isEmpty());
         assertTrue(logged.stream().anyMatch(message -> message.contains("meeting [hidden]")));
+        assertTrue(logged.stream().anyMatch(message -> message.contains("find [hidden]")));
         assertTrue(logged.stream().noneMatch(message -> message.contains(secret)), logged.toString());
     }
 }
