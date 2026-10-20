@@ -21,6 +21,7 @@ class Phone
 class Email
 class LinkedIn
 class Activity
+class Note
 class Meeting {
     - eventName : String [0..1]
     - date : LocalDate [0..1]
@@ -45,6 +46,7 @@ Person *--> "1" Name
 Person *--> "1" Phone
 Person *--> "1" Email
 Person *--> "1" LinkedIn
+Person *--> "1" Note
 Person *--> "1" Activity
 Person *--> "1" Meeting
 Person *--> "*" Tag

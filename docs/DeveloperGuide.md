@@ -79,7 +79,8 @@ The `UI` component uses the JavaFX UI framework. The layouts of these UI parts a
 `PersonCard` and `PersonDetailPanel` use `ContactPhoto` to display bounded images from validated
 `PhotoStorage` bytes. A single background worker performs file validation and image decoding,
 so building a contact list does not block the JavaFX thread on photo reads. A placeholder is shown
-until loading finishes, and outdated results are discarded when a view requests a different photo.
+until loading finishes. Replaced requests and discarded contact cards cancel queued photo work;
+an already-running decode can finish, but its stale result is never displayed.
 The detail panel observes
 the viewed person and scrolls vertically to keep full meeting and contact details accessible.
 

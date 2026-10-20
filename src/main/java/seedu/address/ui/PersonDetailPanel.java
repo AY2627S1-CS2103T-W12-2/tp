@@ -75,6 +75,7 @@ public class PersonDetailPanel extends UiPart<Region> {
 
         tags.getChildren().clear();
         if (!hasPerson) {
+            ContactPhoto.cancel(photo);
             return;
         }
 

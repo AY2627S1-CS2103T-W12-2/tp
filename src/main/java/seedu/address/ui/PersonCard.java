@@ -71,4 +71,9 @@ public class PersonCard extends UiPart<Region> {
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
     }
+    /** Releases pending image work when a list cell discards this card. */
+    void dispose() {
+        ContactPhoto.cancel(photo);
+    }
+
 }

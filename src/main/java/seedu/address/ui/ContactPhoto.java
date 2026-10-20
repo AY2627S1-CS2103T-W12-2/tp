@@ -2,8 +2,10 @@ package seedu.address.ui;
 
 import java.io.ByteArrayInputStream;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
 
 import javafx.application.Platform;
@@ -18,44 +20,63 @@ final class ContactPhoto {
     private static final Logger logger = LogsCenter.getLogger(ContactPhoto.class);
     private static final Object REQUEST_KEY = new Object();
     // One decoder bounds peak memory even when a list contains many large photos.
-    private static final ExecutorService loader = Executors.newSingleThreadExecutor(task -> {
-        Thread thread = new Thread(task, "contact-photo-loader");
-        thread.setDaemon(true);
-        return thread;
-    });
+    private static final ThreadPoolExecutor loader = new ThreadPoolExecutor(1, 1, 0, TimeUnit.SECONDS,
+            new LinkedBlockingQueue<>(), task -> {
+                Thread thread = new Thread(task, "contact-photo-loader");
+                thread.setDaemon(true);
+                return thread;
+            });
 
     private ContactPhoto() {
     }
 
     /**
      * Shows a placeholder immediately, then validates and decodes off the JavaFX thread.
-     * Only the latest request for a view may publish its result. The returned future completes
-     * after the result is applied (or discarded), and allows callers to observe loading completion.
+     * Replaced requests are removed from the queue. The future completes when the result is
+     * applied or the request is cancelled; an already-running decode may finish without displaying.
      */
     static CompletableFuture<Void> show(String reference, ImageView imageView, Label placeholder,
             PhotoStorage storage) {
-        Object request = new Object();
-        imageView.getProperties().put(REQUEST_KEY, request);
+        cancel(imageView);
         update(null, imageView, placeholder);
         if (reference.isEmpty()) {
             return CompletableFuture.completedFuture(null);
         }
         double width = imageView.getFitWidth();
         double height = imageView.getFitHeight();
-        CompletableFuture<Void> displayed = new CompletableFuture<>();
-        CompletableFuture.supplyAsync(() -> storage.readPhoto(reference)
-                .map(bytes -> new Image(new ByteArrayInputStream(bytes), width, height, true, true))
-                .filter(image -> !image.isError()).orElse(null), loader)
-                .whenComplete((image, error) -> Platform.runLater(() -> {
-                    if (error != null) {
-                        logger.warning("Contact photo could not be loaded.");
-                    }
-                    if (imageView.getProperties().get(REQUEST_KEY) == request) {
-                        update(image, imageView, placeholder);
-                    }
-                    displayed.complete(null);
-                }));
-        return displayed;
+        PhotoRequest request = new PhotoRequest();
+        imageView.getProperties().put(REQUEST_KEY, request);
+        request.loading = new FutureTask<>(() -> {
+            Image image = null;
+            try {
+                image = storage.readPhoto(reference)
+                        .map(bytes -> new Image(new ByteArrayInputStream(bytes), width, height, true, true))
+                        .filter(loaded -> !loaded.isError()).orElse(null);
+            } catch (RuntimeException e) {
+                logger.warning("Contact photo could not be loaded.");
+            }
+            Image result = image;
+            Platform.runLater(() -> {
+                if (imageView.getProperties().get(REQUEST_KEY) == request) {
+                    imageView.getProperties().remove(REQUEST_KEY);
+                    update(result, imageView, placeholder);
+                }
+                request.displayed.complete(null);
+            });
+            return null;
+        });
+        loader.execute(request.loading);
+        return request.displayed;
+    }
+
+    /** Discards queued work for a replaced image or card, without interrupting an active image decoder. */
+    static void cancel(ImageView imageView) {
+        Object pending = imageView.getProperties().remove(REQUEST_KEY);
+        if (pending instanceof PhotoRequest request) {
+            request.loading.cancel(false);
+            loader.remove(request.loading);
+            request.displayed.complete(null);
+        }
     }
 
     /** Applies only the already-decoded image on the JavaFX thread. */
@@ -65,5 +86,10 @@ final class ContactPhoto {
         imageView.setManaged(image != null);
         placeholder.setVisible(image == null);
         placeholder.setManaged(image == null);
+    }
+
+    private static class PhotoRequest {
+        private final CompletableFuture<Void> displayed = new CompletableFuture<>();
+        private FutureTask<Void> loading;
     }
 }

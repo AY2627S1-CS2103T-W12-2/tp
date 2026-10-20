@@ -10,6 +10,8 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import java.awt.GraphicsEnvironment;
 import java.awt.image.BufferedImage;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CompletableFuture;
@@ -123,6 +125,55 @@ public class ContactPhotoTest {
             assertFalse(image.isVisible());
             return null;
         });
+    }
+
+    @Test
+    public void show_rapidRefreshes_discardsObsoleteQueuedReads() throws Exception {
+        ImageIO.write(new BufferedImage(20, 10, BufferedImage.TYPE_INT_RGB),
+                "png", folder.resolve("face.png").toFile());
+        CountDownLatch started = new CountDownLatch(1);
+        CountDownLatch release = new CountDownLatch(1);
+        List<String> reads = new ArrayList<>();
+        PhotoStorage storage = new PhotoStorage(folder) {
+            @Override
+            public Optional<byte[]> readPhoto(String reference) {
+                reads.add(reference);
+                if (reference.equals("blocking.png")) {
+                    started.countDown();
+                    try {
+                        if (!release.await(10, TimeUnit.SECONDS)) {
+                            throw new AssertionError("Photo read was not released");
+                        }
+                    } catch (InterruptedException e) {
+                        Thread.currentThread().interrupt();
+                        throw new AssertionError(e);
+                    }
+                }
+                return super.readPhoto("face.png");
+            }
+        };
+        onFx(() -> ContactPhoto.show("blocking.png", new ImageView(), new Label(), storage));
+        CompletableFuture<Void> latest;
+        try {
+            assertTrue(started.await(10, TimeUnit.SECONDS));
+            latest = onFx(() -> {
+                ImageView image = new ImageView();
+                Label placeholder = new Label();
+                for (int i = 0; i < 20; i++) {
+                    ContactPhoto.show("obsolete-" + i + ".png", image, placeholder, storage);
+                }
+                ImageView discardedCard = new ImageView();
+                CompletableFuture<Void> discarded = ContactPhoto.show("discarded-card.png", discardedCard,
+                        new Label(), storage);
+                ContactPhoto.cancel(discardedCard);
+                assertTrue(discarded.isDone());
+                return ContactPhoto.show("latest.png", image, placeholder, storage);
+            });
+        } finally {
+            release.countDown();
+        }
+        latest.get(10, TimeUnit.SECONDS);
+        assertEquals(List.of("blocking.png", "latest.png"), reads);
     }
 
     @Test
