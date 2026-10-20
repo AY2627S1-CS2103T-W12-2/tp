@@ -3,11 +3,15 @@
 skinparam arrowThickness 1.1
 skinparam arrowColor STORAGE_COLOR
 skinparam classBackgroundColor STORAGE_COLOR
+skinparam classAttributeFontColor #FFFFFF
 
 package Storage as StoragePackage {
 
 Class "<<interface>>\nStorage" as Storage
 Class StorageManager
+Class PhotoStorage {
+    - applicationFolder : Path
+}
 
 package "UserPrefs Storage" #F4F6F6{
 Class JsonUserPrefsStorage
@@ -21,6 +25,21 @@ Class JsonAdaptedTag
 }
 
 }
+
+package Logic {
+Class AddressBookParser
+Class PhotoCommand
+}
+package UI {
+Class ContactPhoto
+}
+note "Application folder: photos/\nGenerated PNG/JPEG copies are retained." as PhotoFiles
+
+show PhotoStorage fields
+AddressBookParser --> PhotoStorage : passes\nto parser
+PhotoCommand --> PhotoStorage : imports /\nreplaces
+ContactPhoto ..> PhotoStorage : reads validated\nimages
+PhotoStorage ..> PhotoFiles : validates / copies / reads
 
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Storage

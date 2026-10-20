@@ -53,6 +53,7 @@ class JsonAdaptedPerson {
     private final Object note;
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     private Object meeting;
+    private Object photoPath;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details, no activity times and no note.
@@ -113,6 +114,7 @@ class JsonAdaptedPerson {
             source.getMeeting().getRole().ifPresent(value -> values.put("role", value));
             meeting = values;
         }
+        photoPath = source.getPhotoPath().isEmpty() ? null : source.getPhotoPath();
         Activity activity = source.getActivity();
         createdAt = activity.getCreatedAt().map(Instant::toString).orElse(null);
         lastEditedAt = activity.getLastEditedAt().map(Instant::toString).orElse(null);
@@ -162,7 +164,7 @@ class JsonAdaptedPerson {
                 parseTime("lastEditedAt", lastEditedAt), parseTime("lastViewedAt", lastViewedAt));
         final Note modelNote = parseNote(note);
         return new Person(modelName, modelPhone, modelEmail, modelLinkedIn, modelTags, modelActivity, modelNote)
-                .toBuilder().withMeeting(parseMeeting()).build();
+                .toBuilder().withMeeting(parseMeeting()).withPhotoPath(readPhotoReference()).build();
     }
 
     /**
@@ -214,6 +216,19 @@ class JsonAdaptedPerson {
                     "must contain 1 to 80 nonblank characters"));
         }
         return text;
+    }
+
+    /** Keeps malformed photo references from blocking otherwise usable contact data. */
+    private String readPhotoReference() {
+        if (photoPath == null) {
+            return "";
+        }
+        if (photoPath instanceof String reference) {
+            return reference;
+        }
+        seedu.address.commons.core.LogsCenter.getLogger(JsonAdaptedPerson.class)
+                .warning("Invalid photoPath; showing a photo placeholder.");
+        return "";
     }
 
     /**

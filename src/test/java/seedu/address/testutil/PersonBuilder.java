@@ -32,6 +32,7 @@ public class PersonBuilder {
     private Note note;
     private Activity activity;
     private Meeting meeting;
+    private String photoPath;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -45,6 +46,7 @@ public class PersonBuilder {
         note = Note.EMPTY;
         activity = Activity.EMPTY;
         meeting = Meeting.EMPTY;
+        photoPath = "";
     }
 
     /**
@@ -59,6 +61,7 @@ public class PersonBuilder {
         note = personToCopy.getNote();
         activity = personToCopy.getActivity();
         meeting = personToCopy.getMeeting();
+        photoPath = personToCopy.getPhotoPath();
     }
 
     /**
@@ -120,7 +123,7 @@ public class PersonBuilder {
     /** Builds a contact while retaining all copied fields. */
     public Person build() {
         return new Person(name, phone, email, linkedIn, tags, activity, note)
-                .toBuilder().withMeeting(meeting).build();
+                .toBuilder().withMeeting(meeting).withPhotoPath(photoPath).build();
     }
 
 }

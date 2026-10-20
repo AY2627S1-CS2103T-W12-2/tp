@@ -16,6 +16,7 @@ import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
+import seedu.address.storage.PhotoStorage;
 import seedu.address.storage.Storage;
 
 /**
@@ -37,9 +38,14 @@ public class LogicManager implements Logic {
      * Constructs a {@code LogicManager} with the given {@code Model} and {@code Storage}.
      */
     public LogicManager(Model model, Storage storage) {
+        this(model, storage, PhotoStorage.forApplication());
+    }
+
+    /** Constructs logic with photo storage rooted at an explicit application folder. */
+    public LogicManager(Model model, Storage storage, PhotoStorage photos) {
         this.model = model;
         this.storage = storage;
-        addressBookParser = new AddressBookParser();
+        addressBookParser = new AddressBookParser(photos);
     }
 
     @Override
