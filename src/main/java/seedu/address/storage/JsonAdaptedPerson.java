@@ -5,6 +5,7 @@ import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -16,6 +17,7 @@ import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.model.person.Activity;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.LinkedIn;
+import seedu.address.model.person.Meeting;
 import seedu.address.model.person.Name;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
@@ -49,6 +51,8 @@ class JsonAdaptedPerson {
     private final Object lastViewedAt;
     // Object, not String, so that a non-string value reaches parseNote and gets the field-specific message
     private final Object note;
+    @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
+    private Object meeting;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details, no activity times and no note.
@@ -102,6 +106,13 @@ class JsonAdaptedPerson {
         tags.addAll(source.getTags().stream()
                 .map(JsonAdaptedTag::new)
                 .collect(Collectors.toList()));
+        if (!source.getMeeting().isEmpty()) {
+            Map<String, String> values = new java.util.LinkedHashMap<>();
+            source.getMeeting().getEventName().ifPresent(value -> values.put("eventName", value));
+            source.getMeeting().getDate().ifPresent(value -> values.put("date", value.toString()));
+            source.getMeeting().getRole().ifPresent(value -> values.put("role", value));
+            meeting = values;
+        }
         Activity activity = source.getActivity();
         createdAt = activity.getCreatedAt().map(Instant::toString).orElse(null);
         lastEditedAt = activity.getLastEditedAt().map(Instant::toString).orElse(null);
@@ -150,7 +161,8 @@ class JsonAdaptedPerson {
         final Activity modelActivity = new Activity(parseTime("createdAt", createdAt),
                 parseTime("lastEditedAt", lastEditedAt), parseTime("lastViewedAt", lastViewedAt));
         final Note modelNote = parseNote(note);
-        return new Person(modelName, modelPhone, modelEmail, modelLinkedIn, modelTags, modelActivity, modelNote);
+        return new Person(modelName, modelPhone, modelEmail, modelLinkedIn, modelTags, modelActivity, modelNote)
+                .toBuilder().withMeeting(parseMeeting()).build();
     }
 
     /**
@@ -168,6 +180,40 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(String.format(INVALID_FIELD_MESSAGE_FORMAT, "note", REASON_INVALID_NOTE));
         }
         return new Note(text);
+    }
+
+    /** Reads optional context without coercing malformed JSON into valid strings. */
+    private Meeting parseMeeting() throws IllegalValueException {
+        if (meeting == null) {
+            return Meeting.EMPTY;
+        }
+        if (!(meeting instanceof Map<?, ?> values)) {
+            throw new IllegalValueException(
+                    String.format(INVALID_FIELD_MESSAGE_FORMAT, "meeting", "must be an object"));
+        }
+        String event = meetingText(values, "eventName");
+        String role = meetingText(values, "role");
+        Object date = values.get("date");
+        try {
+            return new Meeting(event, date == null ? null : Meeting.parseDate(date instanceof String text ? text : ""),
+                    role);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(String.format(INVALID_FIELD_MESSAGE_FORMAT, "meeting.date",
+                    "must be a real date in YYYY-MM-DD format"));
+        }
+    }
+
+    /** Validates each present event/role value and names the offending JSON field. */
+    private String meetingText(Map<?, ?> values, String field) throws IllegalValueException {
+        Object value = values.get(field);
+        if (value == null) {
+            return null;
+        }
+        if (!(value instanceof String text) || text.isBlank() || text.length() > 80) {
+            throw new IllegalValueException(String.format(INVALID_FIELD_MESSAGE_FORMAT, "meeting." + field,
+                    "must contain 1 to 80 nonblank characters"));
+        }
+        return text;
     }
 
     /**

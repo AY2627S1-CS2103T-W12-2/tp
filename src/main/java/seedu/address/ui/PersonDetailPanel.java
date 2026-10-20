@@ -40,6 +40,12 @@ public class PersonDetailPanel extends UiPart<Region> {
     private FlowPane tags;
     @FXML
     private Label note;
+    @FXML
+    private Label event;
+    @FXML
+    private Label meetingDate;
+    @FXML
+    private Label role;
 
     /**
      * Creates a {@code PersonDetailPanel} that shows the person held by {@code viewedPerson},
@@ -72,6 +78,9 @@ public class PersonDetailPanel extends UiPart<Region> {
         linkedIn.setText(orPlaceholder(person.getLinkedIn().value));
         note.setText(orPlaceholder(person.getNote().value));
         scrollPane.setVvalue(0);
+        event.setText(person.getMeeting().getEventName().orElse(EMPTY_FIELD_TEXT));
+        meetingDate.setText(person.getMeeting().getDate().map(Object::toString).orElse(EMPTY_FIELD_TEXT));
+        role.setText(person.getMeeting().getRole().orElse(EMPTY_FIELD_TEXT));
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));

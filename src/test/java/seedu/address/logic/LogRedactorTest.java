@@ -22,6 +22,30 @@ public class LogRedactorTest {
     }
 
     @Test
+    public void redactCommand_meetingCommand_hidesValidAndMalformedArguments() {
+        for (String command : new String[]{"meeting 1 ev/Private event r/Private role", "meeting 1 clear",
+            "meeting invalid private text", "  meeting\t1 ev/Private event  "}) {
+            assertEquals("meeting [hidden]", LogRedactor.redactCommand(command));
+        }
+        assertEquals("meeting", LogRedactor.redactCommand("meeting"));
+        assertEquals("meetings 1 ev/text", LogRedactor.redactCommand("meetings 1 ev/text"));
+        assertEquals("[hidden]", LogRedactor.redactArguments("meeting", " 1 ev/Private event r/Private role"));
+    }
+
+    @Test
+    public void redactCommand_personalTypedSearch_hidesAllArgumentsRegardlessOfFieldOrder() {
+        for (String arguments : new String[]{"ev/Private event", "n/Alice ev/Private event", "ev/Private event t/Hack",
+            "ev/First ev/Second", "Alice ev/Private event", "ev/", "n/Alice\nev/Private event", "nt/Private note"}) {
+            assertEquals("find [hidden]", LogRedactor.redactCommand("find " + arguments));
+            assertEquals("[hidden]", LogRedactor.redactArguments("find", " " + arguments));
+        }
+        assertEquals("find Alice", LogRedactor.redactCommand("find Alice"));
+        assertEquals("find n/Alice t/Hack", LogRedactor.redactCommand("find n/Alice t/Hack"));
+        assertEquals("find Steve/event", LogRedactor.redactCommand("find Steve/event"));
+        assertEquals(" n/Alice t/Hack", LogRedactor.redactArguments("find", " n/Alice t/Hack"));
+    }
+
+    @Test
     public void redactCommand_otherCommands_areUnchanged() {
         assertEquals("note", LogRedactor.redactCommand("note"));
         assertEquals("delete 1", LogRedactor.redactCommand("delete 1"));

@@ -662,3 +662,27 @@ Given below are instructions to test the app manually.
    1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
 
 1. _{ more test cases …​ }_
+
+### Meeting context implementation
+
+The sequence below shows a partial meeting update, the no-op path, and rollback when saving fails.
+The `createSnapshot`, `restore`, and `recordSuccessfulMutation` calls show shared existing
+snapshot/history behavior from #108 and #131/#132, rather than functionality implemented by #130.
+
+![Meeting context implementation](images/MeetingUpdateSequenceDiagram.png)
+
+`Meeting` is an immutable optional value held by `Person` and copied by `Person.toBuilder()`.
+`MeetingCommandParser` validates the displayed index, duplicate prefixes, strict real dates, nonblank
+text bounds, and explicit clear grammar. `MeetingCommand` merges only supplied fields, then calls
+`Model.editPerson` using a complete copy. Same-value updates return without mutation. Logic saves
+before recording history, restoring its snapshot on failed saves. Existing snapshots therefore retain
+meeting fields without a separate history mechanism. History integration remains owned by #131/#132.
+
+`JsonAdaptedPerson` accepts absent/null meeting fields for older data, validates present JSON types
+without coercion, and reports the exact offending meeting field. Empty context is omitted on save.
+`EventContainsTermsPredicate` supplies case-insensitive partial OR matching to #127/#128; the base
+parser exposes event-only `find ev/TERM` without implementing other owners' search features.
+The card bounds its event cue to 32 displayed characters, and the detail panel scrolls vertically.
+
+Tests cover strict/leap dates, 80/81-character bounds, partial updates and individual/all clears,
+old/malformed JSON and round trips, filtered targeting, no-ops, event search, UI, and rollback/undo.

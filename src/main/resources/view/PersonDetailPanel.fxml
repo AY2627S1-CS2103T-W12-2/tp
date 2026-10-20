@@ -29,6 +29,10 @@
         <Label styleClass="detail-heading" text="LINKEDIN" GridPane.columnIndex="0" GridPane.rowIndex="2" />
         <Label fx:id="linkedIn" styleClass="detail-value" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
       </GridPane>
+      <Label styleClass="detail-heading" text="MEETING" />
+      <Label fx:id="event" styleClass="detail-value" wrapText="true" />
+      <Label fx:id="meetingDate" styleClass="detail-value" />
+      <Label fx:id="role" styleClass="detail-value" wrapText="true" />
       <Label styleClass="detail-heading" text="TAGS" />
       <FlowPane fx:id="tags" />
       <Label styleClass="detail-heading" text="NOTE" />

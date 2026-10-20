@@ -29,6 +29,7 @@ public class Person {
 
     // Activity metadata (when the person was created, last edited and last viewed)
     private final Activity activity;
+    private final Meeting meeting;
 
     /**
      * Creates a new person with no known activity times.
@@ -54,7 +55,13 @@ public class Person {
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity,
             Note note) {
-        requireAllNonNull(name, phone, email, linkedIn, tags, activity, note);
+        this(name, phone, email, linkedIn, tags, activity, note, Meeting.EMPTY);
+    }
+
+    /** Creates a complete contact with optional meeting context. */
+    private Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity,
+            Note note, Meeting meeting) {
+        requireAllNonNull(name, phone, email, linkedIn, tags, activity, note, meeting);
         this.name = name;
         this.phone = phone;
         this.email = email;
@@ -62,6 +69,7 @@ public class Person {
         this.tags.addAll(tags);
         this.activity = activity;
         this.note = note;
+        this.meeting = meeting;
     }
 
     public Name getName() {
@@ -90,6 +98,10 @@ public class Person {
 
     public Note getNote() {
         return note;
+    }
+
+    public Meeting getMeeting() {
+        return meeting;
     }
 
     public Activity getActivity() {
@@ -155,13 +167,14 @@ public class Person {
                 && linkedIn.equals(otherPerson.linkedIn)
                 && tags.equals(otherPerson.tags)
                 && note.equals(otherPerson.note)
-                && activity.equals(otherPerson.activity);
+                && activity.equals(otherPerson.activity)
+                && meeting.equals(otherPerson.meeting);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, linkedIn, tags, note, activity);
+        return Objects.hash(name, phone, email, linkedIn, tags, note, activity, meeting);
     }
 
     @Override
@@ -175,6 +188,7 @@ public class Person {
                 // the text of a note is personal and toString() is used for logging, so only its length is shown
                 .add("note", note.toLogString())
                 .add("activity", activity)
+                .add("meeting", meeting.toLogString())
                 .toString();
     }
 
@@ -191,6 +205,7 @@ public class Person {
         private Set<Tag> tags;
         private Note note;
         private Activity activity;
+        private Meeting meeting;
 
         private Builder(Person source) {
             name = source.name;
@@ -200,6 +215,7 @@ public class Person {
             tags = new HashSet<>(source.tags);
             note = source.note;
             activity = source.activity;
+            meeting = source.meeting;
         }
 
         /**
@@ -265,11 +281,17 @@ public class Person {
             return this;
         }
 
+        /** Replaces optional meeting context without losing other fields. */
+        public Builder withMeeting(Meeting meeting) {
+            this.meeting = requireNonNull(meeting);
+            return this;
+        }
+
         /**
          * Returns a new {@code Person} with the fields set so far.
          */
         public Person build() {
-            return new Person(name, phone, email, linkedIn, tags, activity, note);
+            return new Person(name, phone, email, linkedIn, tags, activity, note, meeting);
         }
     }
 

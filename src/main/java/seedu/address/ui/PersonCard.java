@@ -40,6 +40,8 @@ public class PersonCard extends UiPart<Region> {
     private Label linkedIn;
     @FXML
     private FlowPane tags;
+    @FXML
+    private Label event;
 
     /**
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
@@ -54,6 +56,10 @@ public class PersonCard extends UiPart<Region> {
         linkedIn.setText(person.getLinkedIn().value);
         linkedIn.setVisible(!person.getLinkedIn().isEmpty());
         linkedIn.setManaged(!person.getLinkedIn().isEmpty());
+        String eventName = person.getMeeting().getEventName().orElse("");
+        event.setText(eventName.length() > 32 ? eventName.substring(0, 31) + "…" : eventName);
+        event.setVisible(!eventName.isEmpty());
+        event.setManaged(!eventName.isEmpty());
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
