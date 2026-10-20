@@ -32,6 +32,9 @@ import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 
 public class LogicManagerHistoryTest {
+    private static final String ADD_BOB = "add n/Bob p/87654321 e/bob@example.com";
+    private static final String NOTE_AMY = "note 1 nt/Met at orientation";
+
     @TempDir
     private Path temporaryFolder;
 
@@ -82,10 +85,10 @@ public class LogicManagerHistoryTest {
     @Test
     public void execute_clearThenUndo_restoresSavedContact() throws Exception {
         logic.execute(addAmy());
-        logic.execute("note 1 nt/Met at orientation");
+        logic.execute(NOTE_AMY);
         logic.execute("view 1");
         Person selected = model.getViewedPerson().get();
-        logic.execute("add n/Bob p/87654321 e/bob@example.com");
+        logic.execute(ADD_BOB);
         logic.execute("note 2 nt/Building a robot");
         ReadOnlyAddressBook beforeClear = new AddressBook(model.getAddressBook());
         logic.execute("clear");
@@ -101,7 +104,7 @@ public class LogicManagerHistoryTest {
     @Test
     public void execute_deleteThenUndo_restoresContactMetadataSelectionAndSavedJson() throws Exception {
         logic.execute(addAmy());
-        logic.execute("note 1 nt/Met at orientation");
+        logic.execute(NOTE_AMY);
         logic.execute("view 1");
         Person beforeDelete = model.getAddressBook().getPersonList().get(0);
 
@@ -118,7 +121,7 @@ public class LogicManagerHistoryTest {
     @Test
     public void execute_addDeleteClearThenUndo_restoresOneMutationAtATime() throws Exception {
         logic.execute(addAmy());
-        logic.execute("add n/Bob p/87654321 e/bob@example.com");
+        logic.execute(ADD_BOB);
         logic.execute("delete 1");
         logic.execute("clear");
 
@@ -136,7 +139,7 @@ public class LogicManagerHistoryTest {
     @Test
     public void execute_clearThenUndo_restoresFilterSelectionAndValidIndexes() throws Exception {
         logic.execute(addAmy());
-        logic.execute("add n/Bob p/87654321 e/bob@example.com");
+        logic.execute(ADD_BOB);
         logic.execute("view 1");
         Person selected = model.getViewedPerson().get();
         logic.execute("find Bob");
@@ -213,14 +216,16 @@ public class LogicManagerHistoryTest {
         logic.execute("view 1");
         Person selected = model.getViewedPerson().get();
         failSave = true;
+        try {
+            assertThrows(CommandException.class, () -> logic.execute("delete 1"));
 
-        assertThrows(CommandException.class, () -> logic.execute("delete 1"));
-
-        assertEquals(selected, model.getAddressBook().getPersonList().get(0));
-        assertEquals(selected, model.getViewedPerson().get());
-        assertEquals(selected, addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0));
-        assertTrue(model.canUndo());
-        failSave = false;
+            assertEquals(selected, model.getAddressBook().getPersonList().get(0));
+            assertEquals(selected, model.getViewedPerson().get());
+            assertEquals(selected, addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0));
+            assertTrue(model.canUndo());
+        } finally {
+            failSave = false;
+        }
         logic.execute("undo");
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
     }
@@ -229,13 +234,15 @@ public class LogicManagerHistoryTest {
     public void execute_failedClearSave_restoresContactsAndHistory() throws Exception {
         logic.execute(addAmy());
         failSave = true;
+        try {
+            assertThrows(CommandException.class, () -> logic.execute("clear"));
 
-        assertThrows(CommandException.class, () -> logic.execute("clear"));
-
-        assertEquals(1, model.getAddressBook().getPersonList().size());
-        assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
-        assertTrue(model.canUndo());
-        failSave = false;
+            assertEquals(1, model.getAddressBook().getPersonList().size());
+            assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
+            assertTrue(model.canUndo());
+        } finally {
+            failSave = false;
+        }
         logic.execute("undo");
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
     }
@@ -244,16 +251,17 @@ public class LogicManagerHistoryTest {
     public void execute_failedEditSave_preservesEarlierUndoHistory() throws Exception {
         logic.execute(addAmy());
         failSave = true;
+        try {
+            assertThrows(CommandException.class, () -> logic.execute("edit 1 e/changed@example.com"));
 
-        assertThrows(CommandException.class, () -> logic.execute("edit 1 e/changed@example.com"));
-
-        assertEquals("amy@example.com", model.getAddressBook().getPersonList().get(0).getEmail().value);
-        assertEquals("amy@example.com", addressBookStorage.readAddressBook().orElseThrow()
-                .getPersonList().get(0).getEmail().value);
-        assertTrue(model.canUndo());
-        assertFalse(model.canRedo());
-
-        failSave = false;
+            assertEquals("amy@example.com", model.getAddressBook().getPersonList().get(0).getEmail().value);
+            assertEquals("amy@example.com", addressBookStorage.readAddressBook().orElseThrow()
+                    .getPersonList().get(0).getEmail().value);
+            assertTrue(model.canUndo());
+            assertFalse(model.canRedo());
+        } finally {
+            failSave = false;
+        }
         logic.execute("undo");
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
     }
