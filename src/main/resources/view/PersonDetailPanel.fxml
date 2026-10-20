@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -19,7 +20,10 @@
       </padding>
       <ImageView fx:id="photo" fitWidth="240" fitHeight="180" preserveRatio="true" />
       <Label fx:id="photoPlaceholder" text="No photo" />
-      <Label fx:id="name" styleClass="detail-name" wrapText="true" />
+      <HBox spacing="10" alignment="CENTER_LEFT">
+        <Label fx:id="name" styleClass="detail-name" wrapText="true" />
+        <Label fx:id="star" text="★" styleClass="star" />
+      </HBox>
       <GridPane hgap="20" vgap="10">
         <columnConstraints>
           <ColumnConstraints minWidth="80" prefWidth="80" />

@@ -29,6 +29,7 @@
           </minWidth>
         </Label>
         <Label fx:id="name" text="\$first" styleClass="cell_big_label" />
+        <Label fx:id="star" text="★" styleClass="star" />
       </HBox>
       <FlowPane fx:id="tags" />
       <Label fx:id="event" styleClass="cell_small_label" />
