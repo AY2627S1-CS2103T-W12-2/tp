@@ -77,7 +77,10 @@ The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDi
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
 `PersonCard` and `PersonDetailPanel` use `ContactPhoto` to display bounded images from validated
-`PhotoStorage` bytes, with a placeholder for absent or unavailable images. The detail panel observes
+`PhotoStorage` bytes. A single background worker performs file validation and image decoding,
+so building a contact list does not block the JavaFX thread on photo reads. A placeholder is shown
+until loading finishes, and outdated results are discarded when a view requests a different photo.
+The detail panel observes
 the viewed person and scrolls vertically to keep full meeting and contact details accessible.
 
 The `UI` component,
