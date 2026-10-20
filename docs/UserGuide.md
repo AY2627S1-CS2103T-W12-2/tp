@@ -187,6 +187,7 @@ Format: `group t/TAG`
 
 * Tag matching is case-insensitive.
 * The result message shows the selected tag and the number of matching contacts.
+* `group` replaces the current `find` or `group` result rather than combining with it.
 * Use `list` to return to the full contact list.
 
 Examples:
