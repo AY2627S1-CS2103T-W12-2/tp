@@ -375,3 +375,12 @@
     -fx-font-size: 13px;
     -fx-text-fill: white;
 }
+
+.detail-scroll {
+    -fx-background-color: transparent;
+    -fx-background: transparent;
+}
+
+.detail-scroll > .viewport {
+    -fx-background-color: transparent;
+}

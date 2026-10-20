@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
@@ -44,18 +45,34 @@ public class LogicManager implements Logic {
 
     @Override
     public CommandResult execute(String commandText) throws CommandException, ParseException {
-        logger.info("----------------[USER COMMAND][" + commandText + "]");
+        // a note is personal, so the text of a note command is kept out of the log
+        logger.info("----------------[USER COMMAND][" + LogRedactor.redactCommand(commandText) + "]");
 
-        CommandResult commandResult;
         Command command = addressBookParser.parseCommand(commandText);
-        commandResult = command.execute(model);
+        Model.Snapshot before = model.createSnapshot();
+        CommandResult commandResult;
+        try {
+            commandResult = command.execute(model);
+        } catch (RuntimeException e) {
+            logger.log(Level.WARNING, "Restoring model after unexpected command failure", e);
+            model.restore(before);
+            throw e;
+        }
 
         try {
             storage.saveAddressBook(model.getAddressBook());
         } catch (AccessDeniedException e) {
+            logger.log(Level.WARNING, "Restoring model after failed save", e);
+            model.restore(before);
             throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
         } catch (IOException ioe) {
+            logger.log(Level.WARNING, "Restoring model after failed save", ioe);
+            model.restore(before);
             throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
+        }
+
+        if (command.recordsHistory()) {
+            model.recordSuccessfulMutation(before);
         }
 
         return commandResult;

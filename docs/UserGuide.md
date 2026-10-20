@@ -59,7 +59,7 @@ LarperBoard is a desktop app for keeping track of people you meet at hackathons.
 * Put a required `INDEX` first; prefixed parameters can then be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored. The `undo` command rejects arguments.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -158,6 +158,35 @@ Examples:
 * `find Aisha` followed by `tag 1 t/mentor` adds `mentor` to the 1st contact in the search results.
 * `tag 1 t/Java t/java` adds only one `java` tag.
 
+### Adding a note to a contact: `note`
+
+Sets, replaces or removes a free-form note on a contact, for example where you met them or what to follow up on.
+
+Format: `note INDEX nt/NOTE` or `note INDEX clear`
+
+* `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
+* `NOTE` can contain spaces and punctuation and can be up to 1000 characters long. Spaces at the start and end are removed. A note that is empty or only spaces is not accepted: use `note INDEX clear` to remove a note.
+* Setting a note on a contact that already has one replaces the old note.
+* The text after `nt/` is taken as typed, so it can contain `/`. Use `nt/` only once in a command.
+* The note is shown in full in the detail panel when you [`view`](#viewing-a-contact-view) the contact, and it is not shown in the contact list. If the note is long, scroll the detail panel to read all of it.
+* If the new note is the same as the old one, or you clear a contact that has no note, nothing is changed and the contact's last edited time stays as it was.
+
+Examples:
+* `note 1 nt/Met at the AI track, wants a React teammate` sets the note of the 1st contact.
+* `find Aisha` followed by `note 1 nt/Follow up after the demo` sets the note of the 1st contact in the search results.
+* `note 2 clear` removes the note of the 2nd contact.
+
+If the note cannot be saved, LarperBoard shows these errors:
+
+Input or situation | Message
+-------------------|--------
+`note`, `note 1`, or text without `nt/` such as `note 1 some text` | `Invalid command format!` followed by the command usage
+`note 1 nt/` (empty or only spaces) | `Note cannot be blank. Use 'note INDEX clear' to remove it.`
+A note of more than 1000 characters | `Note must be at most 1000 characters.`
+`note 1 nt/a nt/b` (`nt/` used twice) | `Multiple values specified for the following single-valued field(s): nt/`
+`note 0 nt/text`, `note abc clear`, or an index larger than the number of contacts shown | `The person index provided is invalid.`
+A valid `note` command when the displayed list is empty | `The person list is empty.`
+
 ### Locating contacts by name: `find`
 
 Finds contacts whose names contain any of the given keywords.
@@ -230,6 +259,14 @@ Clears all contacts from LarperBoard.
 
 Format: `clear`
 
+### Undoing a contact change: `undo`
+
+Restores the contact list, displayed results, and viewed contact from before the most recent successful contact change. The restored contacts are saved to the data file. If there is no change to undo, LarperBoard reports `Nothing to undo.`
+
+Format: `undo`
+
+Up to 50 contact changes are available during the current app session. Adding, editing, tagging, deleting, and clearing contacts can enter this history. Failed commands, commands that leave contacts unchanged, and `view`, `find`, and `list` do not. A later explicit view time is kept for a contact that survives the undo; restoring a deleted contact does not count as a new view.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -257,7 +294,9 @@ Field | Meaning | Format
 `lastEditedAt` | When the contact's details last really changed | Same as `createdAt`
 `lastViewedAt` | When the `view` command last showed the contact | Same as `createdAt`
 
-LarperBoard fills these in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid, and LarperBoard reports `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem). Times are shown in Singapore time (Asia/Singapore).
+Each contact can also have an optional `note` field: a string of at most 1000 characters. A missing or `null` field means the contact has no note. A note that is empty or only spaces, longer than 1000 characters, or not a string makes the data file invalid, and LarperBoard reports `Invalid contact data: 'note' must be a string of at most 1000 characters.`
+
+LarperBoard fills the time fields in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid, and LarperBoard reports `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem). Times are shown in Singapore time (Asia/Singapore).
 
 ### Archiving data files `[coming in v2.0]`
 
@@ -291,7 +330,9 @@ Action | Format, Examples
 **Find** | `find KEYWORD [MORE_KEYWORDS]…​`<br> e.g., `find James Jake`
 **Help** | `help`
 **List** | `list`
+**Note** | `note INDEX nt/NOTE` or `note INDEX clear`<br> e.g., `note 1 nt/Met at the AI track`
 **Reset** | `reset`
 **Sort** | `sort added|edited|viewed`<br> e.g., `sort viewed`
 **Tag** | `tag INDEX t/TAG [t/TAG]…​`<br> e.g., `tag 1 t/frontend t/react`
+**Undo** | `undo`
 **View** | `view INDEX`<br> e.g., `view 1`
