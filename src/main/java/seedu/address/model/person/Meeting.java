@@ -77,6 +77,11 @@ public final class Meeting {
         return Objects.hash(eventName, date, role);
     }
 
+    /** Returns a presence-only summary that does not expose personal meeting context in logs. */
+    public String toLogString() {
+        return isEmpty() ? "none" : "[hidden]";
+    }
+
     @Override
     public String toString() {
         return "Meeting[event=" + eventName + ", date=" + date + ", role=" + role + "]";

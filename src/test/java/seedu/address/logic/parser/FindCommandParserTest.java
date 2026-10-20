@@ -41,6 +41,14 @@ public class FindCommandParserTest {
     }
 
     @Test
+    public void parse_slashContainingEvent_preservesEventText() {
+        for (String event : new String[]{"Conference c/o NUS", "ai/ml workshop", "Conference https://nus.edu.sg"}) {
+            assertParseSuccess(parser, " ev/" + event,
+                    new FindCommand(new EventContainsTermsPredicate(List.of(event))));
+        }
+    }
+
+    @Test
     public void parse_emptyEventOrMixedSearch_rejectsInvalidFormat() {
         for (String args : new String[]{" ev/", " ev/Hack ev/", " ev/Hack r/Mentor", " Alice ev/Hack"}) {
             assertParseFailure(parser, args,

@@ -196,7 +196,7 @@ public class Person {
                 // the text of a note is personal and toString() is used for logging, so only its length is shown
                 .add("note", note.toLogString())
                 .add("activity", activity)
-                .add("meeting", meeting)
+                .add("meeting", meeting.toLogString())
                 .add("photoPath", photoPath)
                 .toString();
     }

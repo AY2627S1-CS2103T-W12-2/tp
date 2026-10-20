@@ -33,8 +33,10 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.MeetingCommand;
 import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.CliSyntax;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -353,6 +355,51 @@ public class LogicManagerTest {
 
         assertFalse(logged.isEmpty());
         assertTrue(logged.stream().anyMatch(message -> message.contains("note [hidden]")));
+        assertTrue(logged.stream().noneMatch(message -> message.contains(secret)), logged.toString());
+    }
+    @Test
+    public void execute_meetingCommands_neverWriteMeetingTextToTheLog() throws Exception {
+        model.addPerson(AMY);
+        String secret = "private meeting text";
+        List<String> logged = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                logged.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+        // the loggers of the classes that log a command, at the most detailed level
+        Logger[] loggers = {Logger.getLogger("ab3.LogicManager"), Logger.getLogger("ab3.AddressBookParser")};
+        Level[] oldLevels = {loggers[0].getLevel(), loggers[1].getLevel()};
+        for (Logger logger : loggers) {
+            logger.setLevel(Level.ALL);
+            logger.addHandler(handler);
+        }
+
+        try {
+            logic.execute("meeting 1 ev/" + secret + " r/" + secret);
+            assertParseException("meeting 1 " + secret,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                            MeetingCommand.MESSAGE_USAGE));
+            assertParseException("meeting 1 ev/" + secret + " ev/duplicate",
+                    Messages.getErrorMessageForDuplicatePrefixes(
+                            CliSyntax.PREFIX_EVENT));
+            assertCommandException("meeting 9 ev/" + secret, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        } finally {
+            for (int i = 0; i < loggers.length; i++) {
+                loggers[i].removeHandler(handler);
+                loggers[i].setLevel(oldLevels[i]);
+            }
+        }
+
+        assertFalse(logged.isEmpty());
+        assertTrue(logged.stream().anyMatch(message -> message.contains("meeting [hidden]")));
         assertTrue(logged.stream().noneMatch(message -> message.contains(secret)), logged.toString());
     }
 }
