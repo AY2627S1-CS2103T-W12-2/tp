@@ -22,10 +22,6 @@ public class FollowUpDuePredicate implements Predicate<Person> {
         return person.isFollowUpDueOn(today);
     }
 
-    public LocalDate getToday() {
-        return today;
-    }
-
     @Override
     public boolean equals(Object other) {
         return other == this

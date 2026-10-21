@@ -47,5 +47,11 @@ public class FollowUpDuePredicateTest {
         assertNotEquals(predicate, new FollowUpDuePredicate(TODAY.plusDays(1)));
         assertNotEquals(predicate, null);
         assertNotEquals(predicate, "x");
+        assertEquals(predicate, predicate);
+    }
+
+    @Test
+    public void toString_containsDate() {
+        assertTrue(new FollowUpDuePredicate(TODAY).toString().contains("2026-10-21"));
     }
 }

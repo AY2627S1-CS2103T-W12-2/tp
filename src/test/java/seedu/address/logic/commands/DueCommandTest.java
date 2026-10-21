@@ -149,7 +149,21 @@ public class DueCommandTest {
     }
 
     @Test
+    public void execute_viewedContactThatIsDue_keepsSelection() throws Exception {
+        Person due = person("Due", "10000001", TODAY);
+        Person other = person("Other", "10000002", null);
+        Model model = modelWith(TypicalTimes.FIXED_CLOCK, due, other);
+        model.setViewedPerson(due);
+
+        new DueCommand().execute(model);
+
+        assertEquals(due, model.getViewedPerson().get());
+    }
+
+    @Test
     public void equals() {
+        DueCommand command = new DueCommand();
+        assertEquals(command, command);
         assertEquals(new DueCommand(), new DueCommand());
         assertEquals(new DueCommand().hashCode(), new DueCommand().hashCode());
         org.junit.jupiter.api.Assertions.assertNotEquals(new DueCommand(), new ListCommand());
