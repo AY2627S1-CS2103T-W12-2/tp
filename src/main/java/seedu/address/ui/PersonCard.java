@@ -1,6 +1,8 @@
 package seedu.address.ui;
 
+import java.time.LocalDate;
 import java.util.Comparator;
+import java.util.Optional;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -8,6 +10,7 @@ import javafx.scene.image.ImageView;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
+import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 import seedu.address.storage.PhotoStorage;
 
@@ -45,6 +48,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label event;
     @FXML
+    private Label followUp;
+    @FXML
     private ImageView photo;
     @FXML
     private Label photoPlaceholder;
@@ -53,6 +58,13 @@ public class PersonCard extends UiPart<Region> {
      * Creates a {@code PersonCard} with the given {@code Person} and index to display.
      */
     public PersonCard(Person person, int displayedIndex) {
+        this(person, displayedIndex, LocalDate.now(Model.DISPLAY_ZONE));
+    }
+
+    /**
+     * Creates a {@code PersonCard} that decides whether the follow-up is overdue as of {@code today}.
+     */
+    PersonCard(Person person, int displayedIndex, LocalDate today) {
         super(FXML);
         this.person = person;
         ContactPhoto.show(person.getPhotoPath(), photo, photoPlaceholder, PhotoStorage.forApplication());
@@ -67,10 +79,23 @@ public class PersonCard extends UiPart<Region> {
         event.setText(eventName.length() > 32 ? eventName.substring(0, 31) + "…" : eventName);
         event.setVisible(!eventName.isEmpty());
         event.setManaged(!eventName.isEmpty());
+        showFollowUp(person, today);
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
     }
+    /** Shows the follow-up date, with an Overdue cue if it is before {@code today}; hides the label if none. */
+    private void showFollowUp(Person person, LocalDate today) {
+        Optional<LocalDate> date = person.getFollowUpDate();
+        boolean overdue = person.isFollowUpOverdueOn(today);
+        followUp.setText(date.map(d -> "Follow up: " + d + (overdue ? " (Overdue)" : "")).orElse(""));
+        followUp.setVisible(date.isPresent());
+        followUp.setManaged(date.isPresent());
+        if (overdue) {
+            followUp.getStyleClass().add("overdue");
+        }
+    }
+
     /** Releases pending image work when a list cell discards this card. */
     void dispose() {
         ContactPhoto.cancel(photo);

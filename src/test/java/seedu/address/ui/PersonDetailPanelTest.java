@@ -207,6 +207,15 @@ public class PersonDetailPanelTest {
         assertFalse(((ScrollPane) panel.getRoot().lookup(".scroll-pane")).isFitToHeight());
     }
 
+    @Test
+    public void constructor_followUpDate_showsFullDateOrPlaceholder() {
+        Person with = new PersonBuilder().withFollowUpDate(java.time.LocalDate.of(2026, 10, 25)).build();
+
+        assertEquals("2026-10-25", text(new PersonDetailPanel(new SimpleObjectProperty<>(with)), "#followUp"));
+        assertEquals("-", text(new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build())),
+                "#followUp"));
+    }
+
     private Node lookup(PersonDetailPanel panel, String selector) {
         Parent root = (Parent) panel.getRoot();
         if (root.getScene() == null) {

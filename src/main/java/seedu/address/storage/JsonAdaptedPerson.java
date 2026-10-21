@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -54,6 +55,7 @@ class JsonAdaptedPerson {
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     private Object meeting;
     private Object photoPath;
+    private Object followUpDate;
 
     /**
      * Constructs a {@code JsonAdaptedPerson} with the given person details, no activity times and no note.
@@ -115,6 +117,7 @@ class JsonAdaptedPerson {
             meeting = values;
         }
         photoPath = source.getPhotoPath().isEmpty() ? null : source.getPhotoPath();
+        followUpDate = source.getFollowUpDate().map(LocalDate::toString).orElse(null);
         Activity activity = source.getActivity();
         createdAt = activity.getCreatedAt().map(Instant::toString).orElse(null);
         lastEditedAt = activity.getLastEditedAt().map(Instant::toString).orElse(null);
@@ -164,7 +167,8 @@ class JsonAdaptedPerson {
                 parseTime("lastEditedAt", lastEditedAt), parseTime("lastViewedAt", lastViewedAt));
         final Note modelNote = parseNote(note);
         return new Person(modelName, modelPhone, modelEmail, modelLinkedIn, modelTags, modelActivity, modelNote)
-                .toBuilder().withMeeting(parseMeeting()).withPhotoPath(readPhotoReference()).build();
+                .toBuilder().withMeeting(parseMeeting()).withPhotoPath(readPhotoReference())
+                .withFollowUpDate(parseFollowUpDate()).build();
     }
 
     /**
@@ -182,6 +186,19 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(String.format(INVALID_FIELD_MESSAGE_FORMAT, "note", REASON_INVALID_NOTE));
         }
         return new Note(text);
+    }
+
+    /** Reads the optional follow-up date; a missing or null value means no follow-up. */
+    private LocalDate parseFollowUpDate() throws IllegalValueException {
+        if (followUpDate == null) {
+            return null;
+        }
+        try {
+            return Meeting.parseDate(followUpDate instanceof String text ? text : "");
+        } catch (IllegalArgumentException e) {
+            throw new IllegalValueException(String.format(INVALID_FIELD_MESSAGE_FORMAT, "followUpDate",
+                    "must be a real date in YYYY-MM-DD format"));
+        }
     }
 
     /** Reads optional context without coercing malformed JSON into valid strings. */

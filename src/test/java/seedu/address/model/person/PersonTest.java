@@ -35,6 +35,32 @@ public class PersonTest {
     }
 
     @Test
+    public void followUpDate_dueAndOverdueBoundaries() {
+        java.time.LocalDate today = java.time.LocalDate.of(2026, 10, 21);
+        Person none = new PersonBuilder().build();
+        Person yesterday = new PersonBuilder().withFollowUpDate(today.minusDays(1)).build();
+        Person dueToday = new PersonBuilder().withFollowUpDate(today).build();
+        Person tomorrow = new PersonBuilder().withFollowUpDate(today.plusDays(1)).build();
+
+        assertFalse(none.isFollowUpDueOn(today));
+        assertFalse(none.isFollowUpOverdueOn(today));
+        assertTrue(yesterday.isFollowUpDueOn(today));
+        assertTrue(yesterday.isFollowUpOverdueOn(today));
+        assertTrue(dueToday.isFollowUpDueOn(today));
+        assertFalse(dueToday.isFollowUpOverdueOn(today));
+        assertFalse(tomorrow.isFollowUpDueOn(today));
+    }
+
+    @Test
+    public void toBuilder_keepsFollowUpDateAndEqualityUsesIt() {
+        Person withDate = new PersonBuilder().withFollowUpDate(java.time.LocalDate.of(2026, 10, 25)).build();
+
+        assertEquals(withDate, withDate.toBuilder().build());
+        assertNotEquals(withDate, withDate.toBuilder().withFollowUpDate(null).build());
+        assertEquals(java.util.Optional.of(java.time.LocalDate.of(2026, 10, 25)), withDate.getFollowUpDate());
+    }
+
+    @Test
     public void isSamePerson() {
         // same object -> returns true
         assertTrue(ALICE.isSamePerson(ALICE));
@@ -166,7 +192,7 @@ public class PersonTest {
                 + ", email=" + ALICE.getEmail()
                 + ", linkedIn=" + ALICE.getLinkedIn() + ", tags=" + ALICE.getTags()
                 + ", note=none, activity=" + ALICE.getActivity() + ", meeting=" + ALICE.getMeeting().toLogString()
-                + ", photoPath=" + ALICE.getPhotoPath() + "}";
+                + ", photoPath=" + ALICE.getPhotoPath() + ", followUpDate=null}";
         assertEquals(expected, ALICE.toString());
     }
 

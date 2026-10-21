@@ -3,9 +3,11 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -31,6 +33,7 @@ public class Person {
     private final Activity activity;
     private final Meeting meeting;
     private final String photoPath;
+    private final LocalDate followUpDate;
 
     /**
      * Creates a new person with no known activity times.
@@ -56,12 +59,12 @@ public class Person {
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity,
             Note note) {
-        this(name, phone, email, linkedIn, tags, activity, note, Meeting.EMPTY, "");
+        this(name, phone, email, linkedIn, tags, activity, note, Meeting.EMPTY, "", null);
     }
 
     /** Creates a complete contact with optional meeting context. */
     private Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity,
-            Note note, Meeting meeting, String photoPath) {
+            Note note, Meeting meeting, String photoPath, LocalDate followUpDate) {
         requireAllNonNull(name, phone, email, linkedIn, tags, activity, note, meeting, photoPath);
         this.name = name;
         this.phone = phone;
@@ -72,6 +75,7 @@ public class Person {
         this.note = note;
         this.meeting = meeting;
         this.photoPath = photoPath;
+        this.followUpDate = followUpDate;
     }
 
     public Name getName() {
@@ -109,6 +113,21 @@ public class Person {
     /** Returns the application-relative photo reference, validated by storage before opening. */
     public String getPhotoPath() {
         return photoPath;
+    }
+
+    /** Returns the date to follow up with this contact, or empty if there is none. */
+    public Optional<LocalDate> getFollowUpDate() {
+        return Optional.ofNullable(followUpDate);
+    }
+
+    /** Returns true if there is a follow-up date on or before {@code today}. */
+    public boolean isFollowUpDueOn(LocalDate today) {
+        return followUpDate != null && !followUpDate.isAfter(today);
+    }
+
+    /** Returns true if there is a follow-up date strictly before {@code today}. */
+    public boolean isFollowUpOverdueOn(LocalDate today) {
+        return followUpDate != null && followUpDate.isBefore(today);
     }
 
     public Activity getActivity() {
@@ -176,13 +195,14 @@ public class Person {
                 && note.equals(otherPerson.note)
                 && activity.equals(otherPerson.activity)
                 && meeting.equals(otherPerson.meeting)
-                && photoPath.equals(otherPerson.photoPath);
+                && photoPath.equals(otherPerson.photoPath)
+                && Objects.equals(followUpDate, otherPerson.followUpDate);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, linkedIn, tags, note, activity, meeting, photoPath);
+        return Objects.hash(name, phone, email, linkedIn, tags, note, activity, meeting, photoPath, followUpDate);
     }
 
     @Override
@@ -198,6 +218,7 @@ public class Person {
                 .add("activity", activity)
                 .add("meeting", meeting.toLogString())
                 .add("photoPath", photoPath)
+                .add("followUpDate", followUpDate)
                 .toString();
     }
 
@@ -216,6 +237,7 @@ public class Person {
         private Activity activity;
         private Meeting meeting;
         private String photoPath;
+        private LocalDate followUpDate;
 
         private Builder(Person source) {
             name = source.name;
@@ -227,6 +249,7 @@ public class Person {
             activity = source.activity;
             meeting = source.meeting;
             photoPath = source.photoPath;
+            followUpDate = source.followUpDate;
         }
 
         /**
@@ -304,11 +327,18 @@ public class Person {
             return this;
         }
 
+        /** Replaces the follow-up date. A null date removes it. */
+        public Builder withFollowUpDate(LocalDate followUpDate) {
+            this.followUpDate = followUpDate;
+            return this;
+        }
+
         /**
          * Returns a new {@code Person} with the fields set so far.
          */
         public Person build() {
-            return new Person(name, phone, email, linkedIn, tags, activity, note, meeting, photoPath);
+            return new Person(name, phone, email, linkedIn, tags, activity, note, meeting, photoPath,
+                    followUpDate);
         }
     }
 

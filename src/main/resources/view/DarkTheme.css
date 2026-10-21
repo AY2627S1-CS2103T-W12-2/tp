@@ -384,3 +384,8 @@
 .detail-scroll > .viewport {
     -fx-background-color: transparent;
 }
+
+.cell_small_label.overdue {
+    -fx-text-fill: #b00020;
+    -fx-font-weight: bold;
+}
