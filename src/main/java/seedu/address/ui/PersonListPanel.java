@@ -33,15 +33,22 @@ public class PersonListPanel extends UiPart<Region> {
      * Custom {@code ListCell} that displays the graphics of a {@code Person} using a {@code PersonCard}.
      */
     class PersonListViewCell extends ListCell<Person> {
+        private PersonCard card;
+
         @Override
         protected void updateItem(Person person, boolean empty) {
             super.updateItem(person, empty);
+            if (card != null) {
+                card.dispose();
+                card = null;
+            }
 
             if (empty || person == null) {
                 setGraphic(null);
                 setText(null);
             } else {
-                setGraphic(new PersonCard(person, getIndex() + 1).getRoot());
+                card = new PersonCard(person, getIndex() + 1);
+                setGraphic(card.getRoot());
             }
         }
     }

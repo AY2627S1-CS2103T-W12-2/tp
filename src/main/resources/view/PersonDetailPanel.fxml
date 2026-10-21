@@ -3,6 +3,7 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
@@ -16,6 +17,8 @@
       <padding>
         <Insets top="15" right="20" bottom="15" left="20" />
       </padding>
+      <ImageView fx:id="photo" fitWidth="240" fitHeight="180" preserveRatio="true" />
+      <Label fx:id="photoPlaceholder" text="No photo" />
       <Label fx:id="name" styleClass="detail-name" wrapText="true" />
       <GridPane hgap="20" vgap="10">
         <columnConstraints>
@@ -29,10 +32,26 @@
         <Label styleClass="detail-heading" text="LINKEDIN" GridPane.columnIndex="0" GridPane.rowIndex="2" />
         <Label fx:id="linkedIn" styleClass="detail-value" wrapText="true" GridPane.columnIndex="1" GridPane.rowIndex="2" />
       </GridPane>
+      <Label styleClass="detail-heading" text="MEETING" />
+      <Label fx:id="event" styleClass="detail-value" wrapText="true" />
+      <Label fx:id="meetingDate" styleClass="detail-value" />
+      <Label fx:id="role" styleClass="detail-value" wrapText="true" />
       <Label styleClass="detail-heading" text="TAGS" />
       <FlowPane fx:id="tags" />
       <Label styleClass="detail-heading" text="NOTE" />
       <Label fx:id="note" styleClass="detail-value" wrapText="true" />
+      <GridPane hgap="20" vgap="6">
+        <columnConstraints>
+          <ColumnConstraints minWidth="80" prefWidth="80" />
+          <ColumnConstraints hgrow="ALWAYS" />
+        </columnConstraints>
+        <Label styleClass="detail-heading" text="CREATED" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+        <Label fx:id="createdAt" styleClass="detail-value" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+        <Label styleClass="detail-heading" text="LAST EDITED" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+        <Label fx:id="lastEditedAt" styleClass="detail-value" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+        <Label styleClass="detail-heading" text="LAST VIEWED" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+        <Label fx:id="lastViewedAt" styleClass="detail-value" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+      </GridPane>
     </VBox>
   </ScrollPane>
 </StackPane>

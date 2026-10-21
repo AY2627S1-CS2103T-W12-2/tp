@@ -98,6 +98,8 @@ Shows a list of all contacts in LarperBoard.
 
 Format: `list`
 
+* Use `list` to return to the full contact list after `find` or `group`.
+
 ### Editing a contact: `edit`
 
 Edits an existing contact in LarperBoard.
@@ -177,6 +179,21 @@ Examples:
 * `find Aisha` returns the `Aisha Rahman` contact added in the quick start.
 * `find Aisha Ben` returns contacts named `Aisha Rahman` or `Ben Tan` when both have been added.
 
+### Grouping contacts by tag: `group`
+
+Shows contacts with the specified tag.
+
+Format: `group t/TAG`
+
+* Tag matching is case-insensitive.
+* The result message shows the selected tag and the number of matching contacts.
+* `group` replaces the current `find` or `group` result rather than combining with it.
+* Use `list` to return to the full contact list.
+
+Examples:
+* `group t/react`
+* `group t/UI-UX`
+
 ### Deleting a contact: `delete`
 
 Deletes the specified contact from the displayed list.
@@ -203,7 +220,7 @@ A valid `delete INDEX` when the displayed list is empty | `The person list is em
 
 ### Viewing a contact: `view`
 
-Shows the selected contact's full details in the detail panel, next to the contact list. It does not change the contact's details, but it does record the time you last viewed the contact. This time is saved in the data file.
+Shows the selected contact's full details in the detail panel, next to the contact list. It does not change the contact's details, but it does record the time you last viewed the contact. This time is saved in the data file. The detail panel lists when the contact was created, last edited and last viewed in Singapore time, with `—` for a time that is not known.
 
 Format: `view INDEX`
 
@@ -246,6 +263,97 @@ Up to 50 contact changes are available during the current app session. Adding, e
 Exits the program.
 
 Format: `exit`
+
+### Recording meeting context: `meeting`
+
+![Meeting feature at 1280×720](images/meeting-feature.png)
+
+[View the simulated 150% layout](images/meeting-feature-150percent.png).
+
+Use `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]` to set or replace one or more fields.
+Omitted fields keep their existing values. For example:
+
+```text
+meeting 1 ev/Hack Singapore md/2026-10-20 r/Mentor
+meeting 1 r/Participant
+meeting 1 clear date
+meeting 1 clear
+find ev/singapore
+```
+
+`meeting INDEX clear` removes all context. Add `event`, `date`, or `role` to clear only that field.
+Indexes refer to the displayed list, including after a search. Event and role each accept 1–80
+characters and cannot be blank. Dates must be real calendar dates in exactly YYYY-MM-DD format
+(years 0001–9999); they are displayed as Singapore calendar dates without time-zone conversion.
+Tags are independent and are never generated from meeting fields.
+
+Invalid text reports `Event and role must each contain 1 to 80 characters.` Invalid dates report
+`Date must be a real date in YYYY-MM-DD format.` A command with no fields reports
+`Specify a meeting field or use 'meeting INDEX clear'.` Invalid displayed indexes report
+`The person index provided is invalid.` Failures leave the contact unchanged. Same-value updates
+and clearing an already absent field are informational no-ops, with no timestamp or undo entry.
+
+The list shows an event cue of at most 32 characters; `view INDEX` shows full event, date, and role
+in a vertically scrolling detail panel. Editing a viewed contact refreshes the panel. If changing
+its event excludes it from the current event search, its selection is cleared.
+
+`find ev/TERM [ev/TERM]...` matches partial event names without case sensitivity, using OR across
+repeated terms. No match is a valid empty list. Do not mix event terms with plain name keywords.
+
+Meeting context is saved in optional JSON `meeting`, for example
+`"meeting": {"eventName": "Hack Singapore", "date": "2026-10-20", "role": "Mentor"}`.
+Missing/null context and fields mean absent values. Clearing the final field omits the object.
+Malformed present values reject loading with `Invalid contact data: 'meeting.<field>' <reason>.`;
+a non-object context names `meeting`. Back up JSON before editing it manually.
+Successful real changes update last-edited time and are saved before entering session undo history.
+
+### Contact photos: `photo`
+
+![Photo feature at 1280×720](images/photo-feature.png)
+
+[View the simulated 150% layout](images/photo-feature-150percent.png).
+
+Use `photo INDEX f/RELATIVE_PATH` to attach or replace one PNG/JPEG, or `photo INDEX clear` to
+remove its reference. INDEX always refers to the displayed list. Place the source image inside the
+folder containing `larperboard.jar`, for example:
+
+```text
+LarperBoard/
+  larperboard.jar
+  portrait.png
+  photos/          (created and managed by the app)
+```
+
+```text
+photo 1 f/portrait.png
+photo 1 f/images/new-portrait.jpg
+photo 1 clear
+```
+
+Subfolders and spaces in paths are allowed. Absolute paths, URLs, `..` traversal, and symlinks that
+escape the JAR folder are rejected. Sources must be readable PNG/JPEG files, at most **5 MiB**
+(5,242,880 bytes) and **4096×4096 pixels**. Both filename extension and decoded image format
+must agree. The JAR folder must be writable. The application copies accepted images to `photos/`
+with generated collision-safe names and saves a relative reference such as
+`"photoPath": "photos/contact-123.png"` in the editable JSON. The root is the JAR folder even when
+launched from another working directory. During development with Gradle it is the working folder.
+
+Errors are `Photo file must be a PNG or JPEG inside the application folder.` for unsafe paths,
+wrong types, or undecodable content; `Photo must be at most 5 MiB and 4096×4096 pixels.` for
+size/dimension limits; and `Photo file could not be read.` for file-access failures.
+An invalid displayed index reports `The person index provided is invalid.`
+
+The list uses a 48×48 thumbnail and the scrolling detail panel fits the image within 240×180,
+preserving its aspect ratio. Absent, missing, malformed, or unreadable references show a placeholder;
+unavailable images also produce a log warning and do not prevent other contacts loading.
+Unsafe saved paths are never opened. Old JSON without `photoPath` loads with no photo.
+
+Clearing/replacing a photo or deleting/clearing contacts **does not delete imported images**.
+Unused files may remain, including after a failed save, so undo/redo references remain usable.
+An identical current image and clearing an absent photo are no-ops. Only real successful changes
+update last-edited time and enter undo history; failed saves restore the contact and history.
+Keep the `photos/` folder when transferring contacts to another installation. Do not delete images
+that may still be referenced by a contact or session history.
 
 ### Saving the data
 
@@ -302,8 +410,12 @@ Action | Format, Examples
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Exit** | `exit`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…​`<br> e.g., `find James Jake`
+**Group** | `group t/TAG`<br> e.g., `group t/react`
 **Help** | `help`
 **List** | `list`
+**Meeting** | `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]` or `meeting INDEX clear [event/date/role]`
+
+**Photo** | `photo INDEX f/RELATIVE_PATH` or `photo INDEX clear`
 **Note** | `note INDEX nt/NOTE` or `note INDEX clear`<br> e.g., `note 1 nt/Met at the AI track`
 **Tag** | `tag INDEX t/TAG [t/TAG]…​`<br> e.g., `tag 1 t/frontend t/react`
 **Undo** | `undo`

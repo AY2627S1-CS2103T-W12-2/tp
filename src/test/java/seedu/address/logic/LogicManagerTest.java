@@ -13,6 +13,7 @@ import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalPersons.getTypicalPersons;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 import static seedu.address.testutil.TypicalTimes.NOW;
 
@@ -32,9 +33,12 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.MeetingCommand;
 import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.CliSyntax;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -241,6 +245,7 @@ public class LogicManagerTest {
         // Triggers the saveAddressBook method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY;
+        // a failed save must not leave the new contact in memory
         ModelManager expectedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
     }
@@ -254,6 +259,123 @@ public class LogicManagerTest {
         Person reloaded = reader.readAddressBook().get().getPersonList().get(0);
 
         assertEquals(new Activity(NOW, null, NOW), reloaded.getActivity());
+    }
+
+    // ---- a failed save leaves the in-memory data as it was ----
+
+    /** Replaces {@code logic} with one whose storage always fails to save, over the typical contacts. */
+    private void useFailingStorageWithTypicalContacts() {
+        for (Person person : getTypicalPersons()) {
+            model.addPerson(person);
+        }
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failing.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("failingPrefs.json"));
+        logic = new LogicManager(model, new StorageManager(failingStorage, userPrefsStorage));
+    }
+
+    private void assertFailedSaveLeavesModelUnchanged(String command) {
+        useFailingStorageWithTypicalContacts();
+        AddressBook addressBookBefore = new AddressBook(model.getAddressBook());
+        List<Person> visibleBefore = new ArrayList<>(model.getFilteredPersonList());
+        Person viewedBefore = model.getViewedPerson().get();
+
+        assertThrows(CommandException.class, String.format(LogicManager.FILE_OPS_ERROR_FORMAT,
+                DUMMY_IO_EXCEPTION.getMessage()), () -> logic.execute(command));
+
+        assertEquals(addressBookBefore, model.getAddressBook());
+        assertEquals(visibleBefore, model.getFilteredPersonList());
+        assertEquals(viewedBefore, model.getViewedPerson().get());
+    }
+
+    @Test
+    public void execute_addWithFailedSave_leavesModelUnchanged() {
+        assertFailedSaveLeavesModelUnchanged(AddCommand.COMMAND_WORD + " n/Zed Zoo p/99998888");
+    }
+
+    @Test
+    public void execute_editWithFailedSave_leavesModelAndActivityUnchanged() {
+        assertFailedSaveLeavesModelUnchanged("edit 1 p/91234567");
+    }
+
+    @Test
+    public void execute_tagWithFailedSave_leavesModelUnchanged() {
+        assertFailedSaveLeavesModelUnchanged("tag 1 t/newtag");
+    }
+
+    @Test
+    public void execute_deleteWithFailedSave_leavesModelUnchanged() {
+        assertFailedSaveLeavesModelUnchanged("delete 1");
+    }
+
+    @Test
+    public void execute_clearWithFailedSave_leavesModelUnchanged() {
+        assertFailedSaveLeavesModelUnchanged("clear");
+    }
+
+    @Test
+    public void execute_viewWithFailedSave_doesNotRecordTheView() {
+        assertFailedSaveLeavesModelUnchanged("view 1");
+        assertEquals(Activity.EMPTY, model.getFilteredPersonList().get(0).getActivity());
+    }
+
+    @Test
+    public void execute_viewWithFailedSaveAfterEarlierView_keepsEarlierViewedPerson() {
+        useFailingStorageWithTypicalContacts();
+        model.viewPerson(model.getFilteredPersonList().get(1));
+        Person viewedBefore = model.getViewedPerson().get();
+        AddressBook addressBookBefore = new AddressBook(model.getAddressBook());
+
+        assertThrows(CommandException.class, () -> logic.execute("view 3"));
+
+        assertEquals(viewedBefore, model.getViewedPerson().get());
+        assertEquals(addressBookBefore, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_findWithFailedSave_restoresPreviousVisibleList() {
+        useFailingStorageWithTypicalContacts();
+        List<Person> visibleBefore = new ArrayList<>(model.getFilteredPersonList());
+
+        assertThrows(CommandException.class, () -> logic.execute("find Alice"));
+
+        assertEquals(visibleBefore, model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_accessDeniedWithFailedSave_leavesModelUnchanged() {
+        for (Person person : getTypicalPersons()) {
+            model.addPerson(person);
+        }
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("denied.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw DUMMY_AD_EXCEPTION;
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(failingStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("deniedPrefs.json"))));
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        assertThrows(CommandException.class, () -> logic.execute("delete 1"));
+
+        assertEquals(before, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_successfulSave_keepsTheChange() throws Exception {
+        for (Person person : getTypicalPersons()) {
+            model.addPerson(person);
+        }
+        int sizeBefore = model.getAddressBook().getPersonList().size();
+
+        logic.execute("delete 1");
+
+        assertEquals(sizeBefore - 1, model.getAddressBook().getPersonList().size());
     }
 
     @Test
@@ -353,6 +475,56 @@ public class LogicManagerTest {
 
         assertFalse(logged.isEmpty());
         assertTrue(logged.stream().anyMatch(message -> message.contains("note [hidden]")));
+        assertTrue(logged.stream().noneMatch(message -> message.contains(secret)), logged.toString());
+    }
+    @Test
+    public void execute_meetingCommands_neverWriteMeetingTextToTheLog() throws Exception {
+        model.addPerson(AMY);
+        String secret = "private meeting text";
+        List<String> logged = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                logged.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+        // the loggers of the classes that log a command, at the most detailed level
+        Logger[] loggers = {Logger.getLogger("ab3.LogicManager"), Logger.getLogger("ab3.AddressBookParser")};
+        Level[] oldLevels = {loggers[0].getLevel(), loggers[1].getLevel()};
+        for (Logger logger : loggers) {
+            logger.setLevel(Level.ALL);
+            logger.addHandler(handler);
+        }
+
+        try {
+            logic.execute("meeting 1 ev/" + secret + " r/" + secret);
+            assertParseException("meeting 1 " + secret,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                            MeetingCommand.MESSAGE_USAGE));
+            assertParseException("meeting 1 ev/" + secret + " ev/duplicate",
+                    Messages.getErrorMessageForDuplicatePrefixes(
+                            CliSyntax.PREFIX_EVENT));
+            assertCommandException("meeting 9 ev/" + secret, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+            logic.execute("find ev/" + secret);
+            assertParseException("find Alice ev/" + secret,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                            FindCommand.MESSAGE_USAGE));
+        } finally {
+            for (int i = 0; i < loggers.length; i++) {
+                loggers[i].removeHandler(handler);
+                loggers[i].setLevel(oldLevels[i]);
+            }
+        }
+
+        assertFalse(logged.isEmpty());
+        assertTrue(logged.stream().anyMatch(message -> message.contains("meeting [hidden]")));
+        assertTrue(logged.stream().anyMatch(message -> message.contains("find [hidden]")));
         assertTrue(logged.stream().noneMatch(message -> message.contains(secret)), logged.toString());
     }
 }
