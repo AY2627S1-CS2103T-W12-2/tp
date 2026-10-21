@@ -728,7 +728,9 @@ non-string value reaches `parseFollowUpDate` and gets the field-specific error r
 `PersonCard` takes `today` as a parameter in a package-private constructor, so tests do not depend on the real
 date; the public constructor uses `LocalDate.now(Model.DISPLAY_ZONE)`.
 
-A sequence diagram, `docs/diagrams/FollowUpSequenceDiagram.puml`, follows the same shape as the meeting one.
+The sequence diagram below shows `followup 1 d/2026-10-25`, including the no-op and failed-save paths.
+
+![Interactions for the `followup 1 d/2026-10-25` Command](images/FollowUpSequenceDiagram.png)
 
 `DueCommand` uses the existing visible-list pipeline and adds no second list. When it runs it reads today from
 `Model.getClock()` (Asia/Singapore), calls `updateFilteredPersonList(new FollowUpDuePredicate(today))`, then
