@@ -274,7 +274,7 @@ Brings back commands that you submitted earlier in the same session, so that you
 * LarperBoard remembers the latest 50 commands. The history is cleared when you close the app and is not saved in the data file.
 * You can edit a recalled command before you submit it. Editing does not change the remembered command.
 * The arrow keys only work in the command box, and only when no other key such as `Shift` or `Ctrl` is held down.
-* Commands such as `list` and `clear` do not affect the history.
+* Commands such as `list`, `clear` and `reset` do not clear the history. They are remembered like any other command.
 
 Examples:
 * Submit `find Aisha` and then `view 1`. Press **Up** once to bring back `view 1`, and press **Up** again to bring back `find Aisha`.
