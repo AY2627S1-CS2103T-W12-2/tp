@@ -202,6 +202,36 @@ public class LogicManagerHistoryTest {
     }
 
     @Test
+    public void execute_starThenUndo_restoresFlagAndActivityInModelAndStorage() throws Exception {
+        logic.execute(addAmy());
+        Person beforeStar = model.getAddressBook().getPersonList().get(0);
+
+        logic.execute("star 1");
+        Person starred = model.getAddressBook().getPersonList().get(0);
+        assertTrue(starred.isStarred());
+        assertTrue(starred.getActivity().getLastEditedAt().isPresent());
+
+        logic.execute("undo");
+
+        Person restored = model.getAddressBook().getPersonList().get(0);
+        assertFalse(restored.isStarred());
+        assertEquals(beforeStar.getActivity(), restored.getActivity());
+        assertEquals(beforeStar, restored);
+        assertFalse(addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0).isStarred());
+    }
+
+    @Test
+    public void execute_star_isSavedAndLoadsBackFromTheDataFile() throws Exception {
+        logic.execute(addAmy());
+
+        logic.execute("star 1");
+
+        Person saved = addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0);
+        assertTrue(saved.isStarred());
+        assertEquals(model.getAddressBook().getPersonList().get(0), saved);
+    }
+
+    @Test
     public void execute_failedSave_rollsBackContactsAndHistory() throws Exception {
         failSave = true;
         assertThrows(CommandException.class, () -> logic.execute(addAmy()));

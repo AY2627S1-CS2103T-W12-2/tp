@@ -194,6 +194,36 @@ Examples:
 * `group t/react`
 * `group t/UI-UX`
 
+### Starring important contacts: `star` and `unstar`
+
+Marks a contact as important with a star, or removes the star again.
+
+Format: `star INDEX` or `unstar INDEX`
+
+* `INDEX` refers to the index number shown in the displayed contact list and must be a positive integer.
+* A starred contact shows a ★ in the top right corner of its card in the contact list, and in the top right corner of the contact details.
+* Starring a contact that is already starred (or removing the star from one that is not) changes nothing, and LarperBoard tells you so.
+* Stars are saved with your data, and you can reverse a change with `undo`.
+
+Examples:
+* `star 1` stars the first contact in the displayed list.
+* `unstar 1` removes the star from it.
+
+### Showing only starred contacts: `filter`
+
+Shows only your starred contacts, or shows all contacts again.
+
+Format: `filter starred` or `filter starred off`
+
+* The keywords are case-insensitive.
+* The result message shows how many contacts are listed. If you have not starred anyone, the list is empty.
+* `filter` replaces the current `find`, `group` or `filter` result rather than combining with it.
+* `list` also shows all contacts again.
+
+Examples:
+* `filter starred` shows only the starred contacts.
+* `filter starred off` shows every contact again.
+
 ### Deleting a contact: `delete`
 
 Deletes the specified contact from the displayed list.
@@ -378,6 +408,8 @@ Field | Meaning | Format
 
 Each contact can also have an optional `note` field: a string of at most 1000 characters. A missing or `null` field means the contact has no note. A note that is empty or only spaces, longer than 1000 characters, or not a string makes the data file invalid, and LarperBoard reports `Invalid contact data: 'note' must be a string of at most 1000 characters.`
 
+Each contact can also have an optional `starred` field, which is `true` or `false`. A missing or `null` field means the contact is not starred. Any other value makes the data file invalid, and LarperBoard reports `Invalid contact data: 'starred' must be true or false.`
+
 LarperBoard fills the time fields in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid, and LarperBoard reports `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem). Times are shown in Singapore time (Asia/Singapore).
 
 ### Archiving data files `[coming in v2.0]`
@@ -409,6 +441,7 @@ Action | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Exit** | `exit`
+**Filter** | `filter starred` or `filter starred off`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…​`<br> e.g., `find James Jake`
 **Group** | `group t/TAG`<br> e.g., `group t/react`
 **Help** | `help`
@@ -417,6 +450,8 @@ Action | Format, Examples
 
 **Photo** | `photo INDEX f/RELATIVE_PATH` or `photo INDEX clear`
 **Note** | `note INDEX nt/NOTE` or `note INDEX clear`<br> e.g., `note 1 nt/Met at the AI track`
+**Star** | `star INDEX`<br> e.g., `star 1`
 **Tag** | `tag INDEX t/TAG [t/TAG]…​`<br> e.g., `tag 1 t/frontend t/react`
 **Undo** | `undo`
+**Unstar** | `unstar INDEX`<br> e.g., `unstar 1`
 **View** | `view INDEX`<br> e.g., `view 1`
