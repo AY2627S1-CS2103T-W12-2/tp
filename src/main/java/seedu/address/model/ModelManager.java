@@ -7,18 +7,26 @@ import java.time.Clock;
 import java.time.Instant;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.beans.property.ReadOnlyStringWrapper;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.collections.transformation.FilteredList;
+import javafx.collections.transformation.SortedList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.person.Activity;
@@ -37,8 +45,11 @@ public class ModelManager implements Model {
     private final AddressBook addressBook;
     private final UserPrefs userPrefs;
     private final FilteredList<Person> filteredPersons;
+    private final SortedList<Person> sortedPersons;
     private final ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>();
+    private final ReadOnlyStringWrapper personListStatus = new ReadOnlyStringWrapper();
     private final Clock clock;
+    private SortCriterion sortCriterion;
     private final Deque<State> undoHistory = new ArrayDeque<>();
     private final Deque<State> redoHistory = new ArrayDeque<>();
 
@@ -46,11 +57,14 @@ public class ModelManager implements Model {
         private final AddressBook addressBook;
         private final Person viewedPerson;
         private final Predicate<? super Person> filter;
+        private final SortCriterion sortCriterion;
 
-        State(ReadOnlyAddressBook addressBook, Person viewedPerson, Predicate<? super Person> filter) {
+        State(ReadOnlyAddressBook addressBook, Person viewedPerson, Predicate<? super Person> filter,
+                SortCriterion sortCriterion) {
             this.addressBook = new AddressBook(addressBook);
             this.viewedPerson = viewedPerson;
             this.filter = filter;
+            this.sortCriterion = sortCriterion;
         }
     }
 
@@ -84,7 +98,10 @@ public class ModelManager implements Model {
         this.addressBook = new AddressBook(addressBook);
         this.userPrefs = new UserPrefs(userPrefs);
         filteredPersons = new FilteredList<>(this.addressBook.getPersonList());
+        sortedPersons = new SortedList<>(filteredPersons);
+        sortedPersons.addListener((ListChangeListener<Person>) change -> updatePersonListStatus());
         this.clock = clock;
+        updatePersonListStatus();
     }
 
     public ModelManager() {
@@ -188,13 +205,36 @@ public class ModelManager implements Model {
      */
     @Override
     public ObservableList<Person> getFilteredPersonList() {
-        return filteredPersons;
+        return sortedPersons;
     }
 
     @Override
     public void updateFilteredPersonList(Predicate<Person> predicate) {
         requireNonNull(predicate);
         filteredPersons.setPredicate(predicate);
+        updatePersonListStatus();
+    }
+
+    @Override
+    public void sortFilteredPersonList(SortCriterion sortCriterion) {
+        setSortCriterion(requireNonNull(sortCriterion));
+    }
+
+    @Override
+    public void clearPersonListSort() {
+        setSortCriterion(null);
+    }
+
+    @Override
+    public ReadOnlyStringProperty getPersonListStatus() {
+        return personListStatus.getReadOnlyProperty();
+    }
+
+    private void updatePersonListStatus() {
+        String orderDescription = sortCriterion == null
+                ? "Original order"
+                : "Sorted by " + sortCriterion.getCommandArgument();
+        personListStatus.set(String.format("%s - %d contact(s)", orderDescription, sortedPersons.size()));
     }
 
     //=========== Viewed Person Accessors ====================================================================
@@ -269,7 +309,7 @@ public class ModelManager implements Model {
     }
 
     private State captureState() {
-        return new State(addressBook, viewedPerson.get(), filteredPersons.getPredicate());
+        return new State(addressBook, viewedPerson.get(), filteredPersons.getPredicate(), sortCriterion);
     }
 
     private static boolean hasContactChange(ReadOnlyAddressBook before, ReadOnlyAddressBook after) {
@@ -298,7 +338,28 @@ public class ModelManager implements Model {
         }
         addressBook.setPersons(restored);
         filteredPersons.setPredicate(state.filter);
+        setSortCriterion(state.sortCriterion);
         viewedPerson.set(findRestoredSelection(state.viewedPerson, restored));
+    }
+
+    private void setSortCriterion(SortCriterion sortCriterion) {
+        this.sortCriterion = sortCriterion;
+        Comparator<Person> comparator = null;
+        if (sortCriterion != null) {
+            Map<Person, Integer> sourcePositions = getSourcePositions();
+            comparator = sortCriterion.getComparator().thenComparingInt(sourcePositions::get);
+        }
+        sortedPersons.setComparator(comparator);
+        updatePersonListStatus();
+    }
+
+    private Map<Person, Integer> getSourcePositions() {
+        Map<Person, Integer> sourcePositions = new HashMap<>();
+        List<Person> persons = addressBook.getPersonList();
+        for (int index = 0; index < persons.size(); index++) {
+            sourcePositions.put(persons.get(index), index);
+        }
+        return sourcePositions;
     }
 
     private static Person preserveRecentViewTime(Person saved, Person current) {
@@ -370,7 +431,8 @@ public class ModelManager implements Model {
 
         return addressBook.equals(otherModelManager.addressBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
-                && filteredPersons.equals(otherModelManager.filteredPersons);
+                && filteredPersons.equals(otherModelManager.filteredPersons)
+                && sortCriterion == otherModelManager.sortCriterion;
     }
 
 }

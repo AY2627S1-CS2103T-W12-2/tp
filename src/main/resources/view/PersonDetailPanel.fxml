@@ -54,4 +54,9 @@
       </GridPane>
     </VBox>
   </ScrollPane>
+  <Label fx:id="star" text="★" styleClass="star" StackPane.alignment="TOP_RIGHT">
+    <StackPane.margin>
+      <Insets top="15" right="30" />
+    </StackPane.margin>
+  </Label>
 </StackPane>

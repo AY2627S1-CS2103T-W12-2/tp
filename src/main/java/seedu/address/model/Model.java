@@ -7,6 +7,7 @@ import java.time.temporal.ChronoUnit;
 import java.util.function.Predicate;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.model.person.Person;
@@ -111,6 +112,21 @@ public interface Model {
      * @throws NullPointerException if {@code predicate} is null.
      */
     void updateFilteredPersonList(Predicate<Person> predicate);
+
+    /**
+     * Sorts the currently filtered list according to {@code sortCriterion}.
+     */
+    void sortFilteredPersonList(SortCriterion sortCriterion);
+
+    /**
+     * Clears the active sort and restores the current filtered list's original order.
+     */
+    void clearPersonListSort();
+
+    /**
+     * Returns text that describes the currently visible list's order and size.
+     */
+    ReadOnlyStringProperty getPersonListStatus();
 
     /**
      * Returns the person currently being viewed in the detail panel.

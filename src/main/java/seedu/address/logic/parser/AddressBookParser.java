@@ -15,6 +15,7 @@ import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.ExitCommand;
+import seedu.address.logic.commands.FilterCommand;
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.GroupCommand;
 import seedu.address.logic.commands.HelpCommand;
@@ -22,6 +23,9 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.MeetingCommand;
 import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.commands.PhotoCommand;
+import seedu.address.logic.commands.ResetCommand;
+import seedu.address.logic.commands.SortCommand;
+import seedu.address.logic.commands.StarCommand;
 import seedu.address.logic.commands.TagCommand;
 import seedu.address.logic.commands.UndoCommand;
 import seedu.address.logic.commands.ViewCommand;
@@ -77,12 +81,17 @@ public class AddressBookParser {
             case EditCommand.COMMAND_WORD -> new EditCommandParser().parse(arguments);
             case DeleteCommand.COMMAND_WORD -> new DeleteCommandParser().parse(arguments);
             case ClearCommand.COMMAND_WORD -> new ClearCommand();
+            case FilterCommand.COMMAND_WORD -> new FilterCommandParser().parse(arguments);
             case FindCommand.COMMAND_WORD -> new FindCommandParser().parse(arguments);
             case GroupCommand.COMMAND_WORD -> new GroupCommandParser().parse(arguments);
             case MeetingCommand.COMMAND_WORD -> new MeetingCommandParser().parse(arguments);
             case PhotoCommand.COMMAND_WORD -> new PhotoCommandParser(photos).parse(arguments);
             case ListCommand.COMMAND_WORD -> new ListCommand();
+            case StarCommand.COMMAND_WORD -> new StarCommandParser(true).parse(arguments);
+            case StarCommand.UNSTAR_COMMAND_WORD -> new StarCommandParser(false).parse(arguments);
             case NoteCommand.COMMAND_WORD -> new NoteCommandParser().parse(arguments);
+            case ResetCommand.COMMAND_WORD -> new ResetCommand();
+            case SortCommand.COMMAND_WORD -> new SortCommandParser().parse(arguments);
             case TagCommand.COMMAND_WORD -> new TagCommandParser().parse(arguments);
             case UndoCommand.COMMAND_WORD -> {
                 if (!arguments.isBlank()) {

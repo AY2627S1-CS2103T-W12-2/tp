@@ -9,6 +9,7 @@ import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalTimes.EARLIEST;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 import static seedu.address.testutil.TypicalTimes.NOW;
 
@@ -38,6 +39,7 @@ import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.PersonBuilder;
 
 public class LogicManagerHistoryTest {
     private static final String ADD_BOB = "add n/Bob p/87654321 e/bob@example.com";
@@ -351,6 +353,36 @@ public class LogicManagerHistoryTest {
     }
 
     @Test
+    public void execute_starThenUndo_restoresFlagAndActivityInModelAndStorage() throws Exception {
+        logic.execute(addAmy());
+        Person beforeStar = model.getAddressBook().getPersonList().get(0);
+
+        logic.execute("star 1");
+        Person starred = model.getAddressBook().getPersonList().get(0);
+        assertTrue(starred.isStarred());
+        assertTrue(starred.getActivity().getLastEditedAt().isPresent());
+
+        logic.execute("undo");
+
+        Person restored = model.getAddressBook().getPersonList().get(0);
+        assertFalse(restored.isStarred());
+        assertEquals(beforeStar.getActivity(), restored.getActivity());
+        assertEquals(beforeStar, restored);
+        assertFalse(addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0).isStarred());
+    }
+
+    @Test
+    public void execute_star_isSavedAndLoadsBackFromTheDataFile() throws Exception {
+        logic.execute(addAmy());
+
+        logic.execute("star 1");
+
+        Person saved = addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0);
+        assertTrue(saved.isStarred());
+        assertEquals(model.getAddressBook().getPersonList().get(0), saved);
+    }
+
+    @Test
     public void execute_failedSave_rollsBackContactsAndHistory() throws Exception {
         failSave = true;
         assertThrows(CommandException.class, () -> logic.execute(addAmy()));
@@ -465,6 +497,39 @@ public class LogicManagerHistoryTest {
         assertThrows(CommandException.class, () -> logic.execute("find UnmatchedName"));
 
         assertEquals(1, model.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void execute_listWithFailedSave_restoresActiveSort() throws Exception {
+        Person oldest = new PersonBuilder().withName("Oldest").withPhone("81111111")
+                .withActivity(new Activity(EARLIEST, null, null)).build();
+        Person newest = new PersonBuilder().withName("Newest").withPhone("82222222")
+                .withActivity(new Activity(NOW, null, null)).build();
+        model.addPerson(oldest);
+        model.addPerson(newest);
+        logic.execute("sort added");
+        failSave = true;
+
+        assertThrows(CommandException.class, () -> logic.execute("list"));
+
+        assertEquals(newest, model.getFilteredPersonList().get(0));
+        assertEquals(oldest, model.getFilteredPersonList().get(1));
+    }
+
+    @Test
+    public void execute_sortWithFailedSave_restoresOriginalOrder() {
+        Person oldest = new PersonBuilder().withName("Oldest").withPhone("81111111")
+                .withActivity(new Activity(EARLIEST, null, null)).build();
+        Person newest = new PersonBuilder().withName("Newest").withPhone("82222222")
+                .withActivity(new Activity(NOW, null, null)).build();
+        model.addPerson(oldest);
+        model.addPerson(newest);
+        failSave = true;
+
+        assertThrows(CommandException.class, () -> logic.execute("sort added"));
+
+        assertEquals(oldest, model.getFilteredPersonList().get(0));
+        assertEquals(newest, model.getFilteredPersonList().get(1));
     }
 
     private static String addAmy() {
