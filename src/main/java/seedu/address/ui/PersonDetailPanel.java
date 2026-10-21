@@ -11,6 +11,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -74,8 +75,33 @@ public class PersonDetailPanel extends UiPart<Region> {
      */
     public PersonDetailPanel(ObservableValue<Person> viewedPerson) {
         super(FXML);
+        scrollPane.addEventFilter(ScrollEvent.SCROLL, this::handleScroll);
         showPerson(viewedPerson.getValue());
         viewedPerson.addListener((observable, oldPerson, newPerson) -> showPerson(newPerson));
+    }
+
+    /**
+     * Scrolls the panel by the number of pixels in {@code event}. JavaFX's own handling moves the content by that
+     * amount as a fraction of the whole content height, not of the part that can scroll, so it feels far too slow.
+     */
+    private void handleScroll(ScrollEvent event) {
+        double scrollableHeight = content.getHeight() - scrollPane.getViewportBounds().getHeight();
+        if (scrollableHeight <= 0 || event.getDeltaY() == 0) {
+            return;
+        }
+
+        scrollPane.setVvalue(scrolledVvalue(scrollPane.getVvalue(), event.getDeltaY(), scrollableHeight));
+        event.consume();
+    }
+
+    /**
+     * Returns the vertical scroll position after scrolling up by {@code deltaY} pixels (down if it is negative),
+     * where {@code scrollableHeight} is the number of pixels that the content can scroll. The result stays
+     * between 0 (top) and 1 (bottom).
+     */
+    static double scrolledVvalue(double vvalue, double deltaY, double scrollableHeight) {
+        assert scrollableHeight > 0;
+        return Math.min(1, Math.max(0, vvalue - deltaY / scrollableHeight));
     }
 
     /**
