@@ -15,17 +15,14 @@ import seedu.address.model.person.Person;
  * The API of the Model component.
  */
 public interface Model {
+    /** Opaque copy of model state, including session history. */
+    interface Snapshot {}
+
     /** The time zone used to display activity times and to decide what today is. */
     ZoneId DISPLAY_ZONE = ZoneId.of("Asia/Singapore");
 
     /** {@code Predicate} that always evaluates to true */
     Predicate<Person> PREDICATE_SHOW_ALL_PERSONS = unused -> true;
-
-    /**
-     * An opaque copy of the parts of the model that a command can change: the contacts, the viewed contact and
-     * the visible-list filter. Created with {@link #createSnapshot()} and given back to {@link #restore(Snapshot)}.
-     */
-    interface Snapshot {}
 
     /**
      * Returns the user prefs.
@@ -73,19 +70,6 @@ public interface Model {
      * The person identity of {@code editedPerson} must not be the same as another existing person in the address book.
      */
     void setPerson(Person target, Person editedPerson);
-
-    /**
-     * Returns a snapshot of the contacts, the viewed contact and the visible-list filter as they are now.
-     * Later changes to the model do not change the snapshot.
-     */
-    Snapshot createSnapshot();
-
-    /**
-     * Puts the contacts, the viewed contact and the visible-list filter back to what they were when
-     * {@code snapshot} was created. Used when a command's change could not be saved.
-     * {@code snapshot} must come from {@link #createSnapshot()} of this model.
-     */
-    void restore(Snapshot snapshot);
 
     /**
      * Returns the clock used to record when things happen.
@@ -140,4 +124,25 @@ public interface Model {
      * To handle a user's {@code view} command use {@link #viewPerson(Person)}, which also sets the last viewed time.
      */
     void setViewedPerson(Person person);
+
+    /** Captures contacts, selection, visible list, and session history for rollback. */
+    Snapshot createSnapshot();
+
+    /** Restores a snapshot exactly, including the history stacks. */
+    void restore(Snapshot snapshot);
+
+    /** Records the state before a successfully saved contact change, if the change was real. */
+    void recordSuccessfulMutation(Snapshot before);
+
+    /** Returns whether a previous saved contact state is available. */
+    boolean canUndo();
+
+    /** Restores the previous saved contact state. The caller must save the result. */
+    void undo();
+
+    /** Returns whether an undone contact state is available. */
+    boolean canRedo();
+
+    /** Restores the most recently undone contact state. The caller must save the result. */
+    void redo();
 }

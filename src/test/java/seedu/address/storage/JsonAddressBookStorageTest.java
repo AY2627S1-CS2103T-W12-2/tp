@@ -2,6 +2,7 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.HOON;
@@ -67,6 +68,36 @@ public class JsonAddressBookStorageTest {
     @Test
     public void readAddressBook_invalidActivityTime_throwDataLoadingException() {
         assertThrows(DataLoadingException.class, () -> readAddressBook("invalidActivityAddressBook.json"));
+    }
+
+    @Test
+    public void readAddressBook_invalidNote_throwDataLoadingException() {
+        assertThrows(DataLoadingException.class, () -> readAddressBook("invalidNoteAddressBook.json"));
+    }
+
+    @Test
+    public void readAddressBook_v13FileWithoutNote_loadsWithEmptyNote() throws Exception {
+        ReadOnlyAddressBook addressBook = readAddressBook("v13NoActivityAddressBook.json").get();
+
+        assertTrue(addressBook.getPersonList().get(0).getNote().isEmpty());
+    }
+
+    @Test
+    public void readAndSaveAddressBook_withNote_noteSurvivesReload() throws Exception {
+        Path filePath = testFolder.resolve("TempNoteAddressBook.json");
+        Person withNote = new PersonBuilder(ALICE).withNote("Met at booth 4, wants a React teammate").build();
+        Person withoutNote = new PersonBuilder(HOON).build();
+        AddressBook original = new AddressBook();
+        original.addPerson(withNote);
+        original.addPerson(withoutNote);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        storage.saveAddressBook(original, filePath);
+        AddressBook readBack = new AddressBook(storage.readAddressBook(filePath).get());
+
+        assertEquals(original, readBack);
+        assertEquals(withNote.getNote(), readBack.getPersonList().get(0).getNote());
+        assertTrue(readBack.getPersonList().get(1).getNote().isEmpty());
     }
 
     @Test

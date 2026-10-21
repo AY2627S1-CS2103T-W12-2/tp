@@ -1,9 +1,12 @@
 package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_EMPTY_PERSON_LIST;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
@@ -19,6 +22,10 @@ import java.nio.file.AccessDeniedException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Handler;
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -26,8 +33,12 @@ import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.commands.ListCommand;
+import seedu.address.logic.commands.MeetingCommand;
+import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.CliSyntax;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -35,6 +46,7 @@ import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Activity;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
@@ -364,5 +376,155 @@ public class LogicManagerTest {
         logic.execute("delete 1");
 
         assertEquals(sizeBefore - 1, model.getAddressBook().getPersonList().size());
+    }
+
+    @Test
+    public void execute_noteCommand_isSavedAndSurvivesReload() throws Exception {
+        model.addPerson(AMY);
+
+        logic.execute("note 1 nt/Met at booth 4, wants a React teammate (Sat 10am)!");
+
+        assertEquals("Met at booth 4, wants a React teammate (Sat 10am)!",
+                logic.getFilteredPersonList().get(0).getNote().value);
+        Person reloaded = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().get().getPersonList().get(0);
+        assertEquals("Met at booth 4, wants a React teammate (Sat 10am)!", reloaded.getNote().value);
+
+        logic.execute("note 1 clear");
+
+        assertTrue(logic.getFilteredPersonList().get(0).getNote().isEmpty());
+        reloaded = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json"))
+                .readAddressBook().get().getPersonList().get(0);
+        assertTrue(reloaded.getNote().isEmpty());
+    }
+
+    @Test
+    public void execute_noteOnViewedPerson_detailPanelPersonFollowsTheNote() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("view 1");
+
+        logic.execute("note 1 nt/follow up");
+
+        assertEquals("follow up", logic.getViewedPerson().get().getNote().value);
+
+        logic.execute("note 1 clear");
+
+        assertTrue(logic.getViewedPerson().get().getNote().isEmpty());
+    }
+
+    @Test
+    public void execute_editAndTagKeepTheNote() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("note 1 nt/keep me");
+
+        logic.execute("edit 1 p/91234567");
+        logic.execute("tag 1 t/friends");
+
+        assertEquals("keep me", logic.getFilteredPersonList().get(0).getNote().value);
+    }
+
+    @Test
+    public void execute_noteCommandErrors_leaveTheNoteUnchanged() throws Exception {
+        model.addPerson(AMY);
+        logic.execute("note 1 nt/original");
+
+        assertParseException("note 1 nt/   ", Note.MESSAGE_BLANK);
+        assertParseException("note 1 nt/" + "a".repeat(Note.MAX_LENGTH + 1), Note.MESSAGE_TOO_LONG);
+        assertCommandException("note 9 nt/new", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+
+        assertEquals("original", logic.getFilteredPersonList().get(0).getNote().value);
+    }
+
+    @Test
+    public void execute_noteCommands_neverWriteTheNoteTextToTheLog() throws Exception {
+        model.addPerson(AMY);
+        String secret = "private text";
+        List<String> logged = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                logged.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+        // the loggers of the classes that log a command, at the most detailed level
+        Logger[] loggers = {Logger.getLogger("ab3.LogicManager"), Logger.getLogger("ab3.AddressBookParser")};
+        Level[] oldLevels = {loggers[0].getLevel(), loggers[1].getLevel()};
+        for (Logger logger : loggers) {
+            logger.setLevel(Level.ALL);
+            logger.addHandler(handler);
+        }
+
+        try {
+            logic.execute("note 1 nt/" + secret);
+            assertParseException("note 1 " + secret,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE));
+            assertParseException("note 1 nt/" + (secret + " ").repeat(100), Note.MESSAGE_TOO_LONG);
+            assertCommandException("note 9 nt/" + secret, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        } finally {
+            for (int i = 0; i < loggers.length; i++) {
+                loggers[i].removeHandler(handler);
+                loggers[i].setLevel(oldLevels[i]);
+            }
+        }
+
+        assertFalse(logged.isEmpty());
+        assertTrue(logged.stream().anyMatch(message -> message.contains("note [hidden]")));
+        assertTrue(logged.stream().noneMatch(message -> message.contains(secret)), logged.toString());
+    }
+    @Test
+    public void execute_meetingCommands_neverWriteMeetingTextToTheLog() throws Exception {
+        model.addPerson(AMY);
+        String secret = "private meeting text";
+        List<String> logged = new ArrayList<>();
+        Handler handler = new Handler() {
+            @Override
+            public void publish(LogRecord record) {
+                logged.add(record.getMessage());
+            }
+
+            @Override
+            public void flush() {}
+
+            @Override
+            public void close() {}
+        };
+        // the loggers of the classes that log a command, at the most detailed level
+        Logger[] loggers = {Logger.getLogger("ab3.LogicManager"), Logger.getLogger("ab3.AddressBookParser")};
+        Level[] oldLevels = {loggers[0].getLevel(), loggers[1].getLevel()};
+        for (Logger logger : loggers) {
+            logger.setLevel(Level.ALL);
+            logger.addHandler(handler);
+        }
+
+        try {
+            logic.execute("meeting 1 ev/" + secret + " r/" + secret);
+            assertParseException("meeting 1 " + secret,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                            MeetingCommand.MESSAGE_USAGE));
+            assertParseException("meeting 1 ev/" + secret + " ev/duplicate",
+                    Messages.getErrorMessageForDuplicatePrefixes(
+                            CliSyntax.PREFIX_EVENT));
+            assertCommandException("meeting 9 ev/" + secret, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+            logic.execute("find ev/" + secret);
+            assertParseException("find Alice ev/" + secret,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                            FindCommand.MESSAGE_USAGE));
+        } finally {
+            for (int i = 0; i < loggers.length; i++) {
+                loggers[i].removeHandler(handler);
+                loggers[i].setLevel(oldLevels[i]);
+            }
+        }
+
+        assertFalse(logged.isEmpty());
+        assertTrue(logged.stream().anyMatch(message -> message.contains("meeting [hidden]")));
+        assertTrue(logged.stream().anyMatch(message -> message.contains("find [hidden]")));
+        assertTrue(logged.stream().noneMatch(message -> message.contains(secret)), logged.toString());
     }
 }

@@ -165,6 +165,16 @@ public class AddCommandTest {
         }
 
         @Override
+        public void editPerson(Person target, Person editedPerson) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void viewPerson(Person person) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
         public Snapshot createSnapshot() {
             throw new AssertionError("This method should not be called.");
         }
@@ -175,12 +185,27 @@ public class AddCommandTest {
         }
 
         @Override
-        public void editPerson(Person target, Person editedPerson) {
+        public void recordSuccessfulMutation(Snapshot before) {
             throw new AssertionError("This method should not be called.");
         }
 
         @Override
-        public void viewPerson(Person person) {
+        public boolean canUndo() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void undo() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean canRedo() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void redo() {
             throw new AssertionError("This method should not be called.");
         }
     }

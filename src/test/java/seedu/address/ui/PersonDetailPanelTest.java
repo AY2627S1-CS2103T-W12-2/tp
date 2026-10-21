@@ -16,10 +16,14 @@ import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.scene.Node;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.FlowPane;
 import seedu.address.model.person.Activity;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -45,16 +49,6 @@ public class PersonDetailPanelTest {
 
         assertTrue(lookup(panel, "#placeholder").isVisible());
         assertFalse(lookup(panel, "#content").isVisible());
-    }
-
-    @Test
-    public void constructor_viewedPerson_contentScrollsVertically() {
-        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build()));
-
-        ScrollPane scroll = (ScrollPane) lookup(panel, "#content");
-        assertTrue(scroll.isFitToWidth());
-        assertEquals(ScrollPane.ScrollBarPolicy.NEVER, scroll.getHbarPolicy());
-        assertEquals(ScrollPane.ScrollBarPolicy.AS_NEEDED, scroll.getVbarPolicy());
     }
 
     @Test
@@ -145,13 +139,83 @@ public class PersonDetailPanelTest {
         assertFalse(lookup(panel, "#content").isVisible());
     }
 
+    @Test
+    public void constructor_personWithNote_showsFullNote() {
+        String text = "Met at the AI track; wants a React teammate (Sat 10am) - \"great\" ideas, a@b.com! #hack";
+        Person person = new PersonBuilder().withNote(text).build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
+
+        assertEquals(text, text(panel, "#note"));
+    }
+
+    @Test
+    public void constructor_personWithoutNote_showsDash() {
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build()));
+
+        assertEquals("-", text(panel, "#note"));
+    }
+
+    @Test
+    public void viewedPersonNoteChanges_panelShowsNewNote() {
+        Person person = new PersonBuilder().withNote("first note").build();
+        ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>(person);
+        PersonDetailPanel panel = new PersonDetailPanel(viewedPerson);
+        assertEquals("first note", text(panel, "#note"));
+
+        viewedPerson.set(person.toBuilder().withNote(new Note("second note")).build());
+        assertEquals("second note", text(panel, "#note"));
+
+        viewedPerson.set(person.toBuilder().withNote(Note.EMPTY).build());
+        assertEquals("-", text(panel, "#note"));
+    }
+
+    @Test
+    public void constructor_veryLongNote_wrapsAndScrollsVerticallyOnly() {
+        String longNote = ("word ".repeat(180)).strip();
+        String unbrokenNote = "x".repeat(Note.MAX_LENGTH - longNote.length() - 1);
+        Person person = new PersonBuilder().withNote(longNote + " " + unbrokenNote).build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
+        Parent root = (Parent) panel.getRoot();
+        new Scene(root, 480, 320);
+        root.applyCss();
+        root.layout();
+
+        ScrollPane scrollPane = (ScrollPane) root.lookup("#scrollPane");
+        Label note = (Label) root.lookup("#note");
+        ScrollBar verticalBar = (ScrollBar) scrollPane.lookup(".scroll-bar:vertical");
+
+        assertTrue(note.isWrapText());
+        assertEquals(ScrollPane.ScrollBarPolicy.NEVER, scrollPane.getHbarPolicy());
+        // the note is wrapped to the width of the panel, so nothing overflows sideways
+        assertTrue(note.getBoundsInParent().getMaxX() <= scrollPane.getViewportBounds().getWidth() + 1);
+        // and the panel itself scrolls up and down to reach the end of the note
+        assertTrue(verticalBar.isVisible());
+    }
+
+    @Test
+    public void constructor_meeting_showsFullContextAndBoundedCardCue() {
+        String fullEvent = "x".repeat(80);
+        var meeting = new seedu.address.model.person.Meeting(fullEvent, java.time.LocalDate.of(2026, 10, 20),
+                "Mentor");
+        Person person = new PersonBuilder().build().toBuilder().withMeeting(meeting).build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
+        assertEquals(fullEvent, text(panel, "#event"));
+        assertEquals("2026-10-20", text(panel, "#meetingDate"));
+        assertEquals("Mentor", text(panel, "#role"));
+        PersonCard card = new PersonCard(person, 1);
+        assertEquals(32, ((Label) card.getRoot().lookup("#event")).getText().length());
+        assertFalse(((ScrollPane) panel.getRoot().lookup(".scroll-pane")).isFitToHeight());
+    }
+
     private Node lookup(PersonDetailPanel panel, String selector) {
-        Node found = panel.getRoot().lookup(selector);
-        if (found != null) {
-            return found;
+        Parent root = (Parent) panel.getRoot();
+        if (root.getScene() == null) {
+            new Scene(root);
         }
-        // a ScrollPane without a skin does not expose its content to lookup
-        return ((ScrollPane) panel.getRoot().lookup("#content")).getContent().lookup(selector);
+        // the scroll pane only adds its content to the scene graph once its skin exists
+        root.applyCss();
+        root.layout();
+        return root.lookup(selector);
     }
 
     private String text(PersonDetailPanel panel, String selector) {
