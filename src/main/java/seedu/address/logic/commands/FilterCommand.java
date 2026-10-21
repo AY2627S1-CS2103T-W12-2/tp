@@ -42,6 +42,7 @@ public class FilterCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
+        // TODO #128: combine with the active find/group filter; for now this replaces it, and "off" shows everyone
         model.updateFilteredPersonList(starredOnly ? Person::isStarred : Model.PREDICATE_SHOW_ALL_PERSONS);
 
         // the detail panel must not keep showing a contact that the list no longer contains

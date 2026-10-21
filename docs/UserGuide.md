@@ -201,7 +201,7 @@ Marks a contact as important with a star, or removes the star again.
 Format: `star INDEX` or `unstar INDEX`
 
 * `INDEX` refers to the index number shown in the displayed contact list and must be a positive integer.
-* A starred contact shows a ★ next to its name in the contact list and in the contact details.
+* A starred contact shows a ★ in the top right corner of its card in the contact list, and in the top right corner of the contact details.
 * Starring a contact that is already starred (or removing the star from one that is not) changes nothing, and LarperBoard tells you so.
 * Stars are saved with your data, and you can reverse a change with `undo`.
 
