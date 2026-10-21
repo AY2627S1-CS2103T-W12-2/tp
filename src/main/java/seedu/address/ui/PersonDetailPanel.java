@@ -86,11 +86,15 @@ public class PersonDetailPanel extends UiPart<Region> {
      * amount as a fraction of the whole content height, not of the part that can scroll, so it feels far too slow.
      */
     private void handleScroll(ScrollEvent event) {
-        scrolledVvalue(scrollPane.getVvalue(), event.getDeltaY(), content.getHeight(),
-                scrollPane.getViewportBounds().getHeight()).ifPresent(vvalue -> {
-                    scrollPane.setVvalue(vvalue);
-                    event.consume();
-                });
+        assert scrollPane.getVmin() == 0 && scrollPane.getVmax() == 1 : "scrolledVvalue assumes a 0..1 range";
+        // the layout bounds are what ScrollPane itself uses to size its scroll range, so an effect or transform
+        // on the content does not change the result
+        OptionalDouble newVvalue = scrolledVvalue(scrollPane.getVvalue(), event.getDeltaY(),
+                content.getLayoutBounds().getHeight(), scrollPane.getViewportBounds().getHeight());
+        if (newVvalue.isPresent()) {
+            scrollPane.setVvalue(newVvalue.getAsDouble());
+            event.consume();
+        }
     }
 
     /**

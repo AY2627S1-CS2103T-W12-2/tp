@@ -208,7 +208,7 @@ public class PersonDetailPanelTest {
     public void scroll_longContent_movesByThePixelsOfTheEvent() {
         Parent root = (Parent) longNotePanelInScene().getRoot();
         ScrollPane scrollPane = (ScrollPane) root.lookup("#scrollPane");
-        double scrollableHeight = root.lookup("#content").getBoundsInLocal().getHeight()
+        double scrollableHeight = root.lookup("#content").getLayoutBounds().getHeight()
                 - scrollPane.getViewportBounds().getHeight();
         assertTrue(scrollableHeight > 0);
 
@@ -234,9 +234,14 @@ public class PersonDetailPanelTest {
         root.layout();
         ScrollPane scrollPane = (ScrollPane) root.lookup("#scrollPane");
 
+        // the panel leaves the event alone, so it keeps bubbling up to the parent
+        boolean[] reachedParent = {false};
+        root.addEventHandler(ScrollEvent.SCROLL, event -> reachedParent[0] = true);
+
         Event.fireEvent(scrollPane, scrollEvent(-40));
 
         assertEquals(0, scrollPane.getVvalue(), 1e-6);
+        assertTrue(reachedParent[0]);
     }
 
     @Test
