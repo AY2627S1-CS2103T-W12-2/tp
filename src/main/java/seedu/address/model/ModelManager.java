@@ -322,9 +322,10 @@ public class ModelManager implements Model {
         // A real edit can change one contact's identity while all other contacts keep their positions.
         if (hasSingleIdentityChangeAt(index, savedPersons)) {
             Person current = addressBook.getPersonList().get(index);
-            // An identity edit can occur in the same second as the previous edit. In that case
-            // lastEditedAt is unchanged, but the contact at this position still carries its view.
-            if (current.getActivity().getLastEditedAt().isPresent()) {
+            // Undo can restore an identity edit made in the same second as the previous edit.
+            // Redo can restore it when the earlier version has no last-edited time.
+            if (current.getActivity().getLastEditedAt().isPresent()
+                    || !saved.getActivity().getLastEditedAt().equals(current.getActivity().getLastEditedAt())) {
                 return current;
             }
         }

@@ -121,6 +121,22 @@ public class ModelManagerHistoryTest {
     }
 
     @Test
+    public void redo_identityEditPreservesViewMadeAfterUndo() {
+        model.addPerson(ALICE);
+        Model.Snapshot before = model.createSnapshot();
+        model.editPerson(ALICE, ALICE.toBuilder().withPhone(new Phone("81234567")).build());
+        model.recordSuccessfulMutation(before);
+        model.undo();
+        model.viewPerson(model.getAddressBook().getPersonList().get(0));
+
+        model.redo();
+
+        Person restored = model.getAddressBook().getPersonList().get(0);
+        assertEquals(new Phone("81234567"), restored.getPhone());
+        assertEquals(NOW, restored.getActivity().getLastViewedAt().orElseThrow());
+    }
+
+    @Test
     public void undo_deleteRestoresDeletedContactOriginalViewTime() {
         Instant earlierView = NOW.minusSeconds(60);
         Person viewed = ALICE.withActivity(new Activity(null, null, earlierView));
