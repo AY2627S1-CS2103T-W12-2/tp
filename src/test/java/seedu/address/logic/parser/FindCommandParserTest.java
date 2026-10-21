@@ -9,8 +9,8 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FindCommand;
-import seedu.address.model.person.EventContainsTermsPredicate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.TypedSearchPredicate;
 
 public class FindCommandParserTest {
 
@@ -34,26 +34,27 @@ public class FindCommandParserTest {
 
 
     @Test
-    public void parse_eventTerms_returnsEventFindCommand() {
-        var expected = new FindCommand(new EventContainsTermsPredicate(
-                List.of("Hack Singapore", "AI")));
-        assertParseSuccess(parser, " ev/Hack Singapore ev/AI ", expected);
+    public void parse_typedTerms_returnsTypedFindCommand() {
+        var expected = new FindCommand(new TypedSearchPredicate(List.of("Alex", "Sam"), List.of("hackathon"),
+                List.of("teammate"), List.of("Hack Singapore", "AI")));
+        assertParseSuccess(parser, " n/Alex n/Sam t/hackathon nt/teammate ev/Hack Singapore ev/AI ", expected);
     }
 
     @Test
     public void parse_slashContainingEvent_preservesEventText() {
         for (String event : new String[]{"Conference c/o NUS", "ai/ml workshop", "Conference https://nus.edu.sg"}) {
             assertParseSuccess(parser, " ev/" + event,
-                    new FindCommand(new EventContainsTermsPredicate(List.of(event))));
+                    new FindCommand(new TypedSearchPredicate(List.of(), List.of(), List.of(), List.of(event))));
         }
     }
 
     @Test
-    public void parse_emptyEventOrMixedSearch_rejectsInvalidFormat() {
-        for (String args : new String[]{" ev/", " ev/Hack ev/", " ev/Hack r/Mentor", " Alice ev/Hack"}) {
+    public void parse_emptyMalformedOrMixedSearch_rejectsCorrectMessage() {
+        for (String args : new String[]{" n/", " ev/Hack ev/", " p/91234567"}) {
             assertParseFailure(parser, args,
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
+        assertParseFailure(parser, " Alice n/Hack", FindCommand.MESSAGE_MIXED_SEARCH);
     }
 
 }

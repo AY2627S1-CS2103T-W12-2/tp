@@ -3,16 +3,18 @@ package seedu.address.logic.parser;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import java.util.List;
+import java.util.regex.Pattern;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
-import seedu.address.model.person.EventContainsTermsPredicate;
 import seedu.address.model.person.NameContainsKeywordsPredicate;
+import seedu.address.model.person.TypedSearchPredicate;
 
 /**
  * Parses input arguments and creates a new FindCommand object
  */
 public class FindCommandParser implements Parser<FindCommand> {
+    private static final Pattern PREFIX_LIKE_TOKEN = Pattern.compile("(?:^|\\s)[A-Za-z]+/");
 
     /**
      * Parses the given {@code String} of arguments in the context of the FindCommand
@@ -26,21 +28,37 @@ public class FindCommandParser implements Parser<FindCommand> {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
 
-        if (trimmedArgs.startsWith("ev/")) {
-            ArgumentMultimap fields = ArgumentTokenizer.tokenize(args, CliSyntax.PREFIX_EVENT);
-            List<String> terms = fields.getAllValues(CliSyntax.PREFIX_EVENT);
-            if (terms.stream().anyMatch(String::isBlank)
-                    || terms.stream().anyMatch(term -> term.matches(".*(?:^|\\s)(?:n|p|e|t|l|nt|md|r)/.*"))) {
-                throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+        ArgumentMultimap fields = ArgumentTokenizer.tokenize(args, CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_TAG,
+                CliSyntax.PREFIX_NOTE, CliSyntax.PREFIX_EVENT);
+        List<String> nameTerms = fields.getAllValues(CliSyntax.PREFIX_NAME);
+        List<String> tagTerms = fields.getAllValues(CliSyntax.PREFIX_TAG);
+        List<String> noteTerms = fields.getAllValues(CliSyntax.PREFIX_NOTE);
+        List<String> eventTerms = fields.getAllValues(CliSyntax.PREFIX_EVENT);
+
+        if (!nameTerms.isEmpty() || !tagTerms.isEmpty() || !noteTerms.isEmpty() || !eventTerms.isEmpty()) {
+            if (!fields.getPreamble().isBlank()) {
+                throw new ParseException(FindCommand.MESSAGE_MIXED_SEARCH);
             }
-            return new FindCommand(new EventContainsTermsPredicate(terms));
+            if (hasBlankTerm(nameTerms) || hasBlankTerm(tagTerms)
+                    || hasBlankTerm(noteTerms) || hasBlankTerm(eventTerms)) {
+                throw invalidFormat();
+            }
+            return new FindCommand(new TypedSearchPredicate(nameTerms, tagTerms, noteTerms, eventTerms));
         }
-        if (trimmedArgs.matches(".*(?:^|\\s)ev/.*")) {
-            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+        if (PREFIX_LIKE_TOKEN.matcher(trimmedArgs).find()) {
+            throw invalidFormat();
         }
         String[] nameKeywords = trimmedArgs.split("\\s+");
 
         return new FindCommand(new NameContainsKeywordsPredicate(List.of(nameKeywords)));
+    }
+
+    private static boolean hasBlankTerm(List<String> terms) {
+        return terms.stream().anyMatch(String::isBlank);
+    }
+
+    private static ParseException invalidFormat() {
+        return new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
     }
 
 }

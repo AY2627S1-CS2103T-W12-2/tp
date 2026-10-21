@@ -10,17 +10,19 @@ import seedu.address.model.Model;
 import seedu.address.model.person.Person;
 
 /**
- * Finds and lists all persons in the address book whose name contains any of the argument keywords.
- * Keyword matching is case insensitive.
+ * Finds and lists persons matching a plain name search or typed field search.
  */
 public class FindCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds all persons whose names contain any of "
-            + "the specified keywords (case-insensitive) and displays them as a list with index numbers.\n"
-            + "Parameters: KEYWORD [MORE_KEYWORDS]...\n"
-            + "Example: " + COMMAND_WORD + " alice bob charlie";
+    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds contacts by name, tag, note, or event.\n"
+            + "Plain format: " + COMMAND_WORD + " KEYWORD [MORE_KEYWORDS]...\n"
+            + "Typed format: " + COMMAND_WORD + " [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]...\n"
+            + "Examples: " + COMMAND_WORD + " alice bob\n"
+            + "          " + COMMAND_WORD + " n/Alex n/Sam t/hackathon";
+    public static final String MESSAGE_MIXED_SEARCH =
+            "Use either plain keywords or field prefixes in one find command.";
 
     private final Predicate<Person> predicate;
 
