@@ -437,3 +437,4 @@ Action | Format, Examples
 **Tag** | `tag INDEX t/TAG [t/TAG]…​`<br> e.g., `tag 1 t/frontend t/react`
 **Undo** | `undo`
 **View** | `view INDEX`<br> e.g., `view 1`
+**Recall previous command** | Press **Up** or **Down** in the command box. See [Recalling previous commands](#recalling-previous-commands-up-and-down-arrows)

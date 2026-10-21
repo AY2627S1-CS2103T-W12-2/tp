@@ -271,6 +271,15 @@ The following activity diagram summarizes what happens when a user executes a ne
 
 _{more aspects and alternatives to be added}_
 
+### Command history
+
+Pressing **Up** or **Down** in the command box brings back commands that were submitted earlier in the session. The logic is split in two classes so that it can be tested without the JavaFX toolkit:
+
+* `CommandHistory` is a plain Java class that holds the remembered commands and the browsing state. `record(commandText)` stores a command (blank text is ignored, a command equal to the newest entry is not stored twice, and the oldest entry is dropped once there are more than `CommandHistory#MAX_ENTRIES`, which is 50). `older(currentText)` and `newer()` move through the entries. When browsing starts, `older` keeps `currentText` as a draft, and `newer` returns that draft after the newest entry so the user gets back what they were typing.
+* `CommandBox` owns one `CommandHistory`. It records the text of every submitted command *before* running it, so commands that fail (an unknown command, an invalid index) are remembered too. It also adds a `KEY_PRESSED` event filter to its text field, which reacts only to a plain Up or Down key and consumes only those events. Key presses with Shift, Ctrl, Alt or Meta held down, and key presses in other controls, are left alone, so text selection with Shift+Up still works.
+
+The history lives in memory only and is not saved to the data file, so it starts empty each time the app is launched. `CommandHistory` does not depend on `Model` or `Logic`. Running `list`, `clear` or `undo` does not clear the history; those commands are remembered like any other.
+
 ### \[Proposed\] Data archiving
 
 _{Explain here how the data archiving feature will be implemented}_
