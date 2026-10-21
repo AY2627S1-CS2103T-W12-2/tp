@@ -40,6 +40,18 @@
       <FlowPane fx:id="tags" />
       <Label styleClass="detail-heading" text="NOTE" />
       <Label fx:id="note" styleClass="detail-value" wrapText="true" />
+      <GridPane hgap="20" vgap="6">
+        <columnConstraints>
+          <ColumnConstraints minWidth="80" prefWidth="80" />
+          <ColumnConstraints hgrow="ALWAYS" />
+        </columnConstraints>
+        <Label styleClass="detail-heading" text="CREATED" GridPane.columnIndex="0" GridPane.rowIndex="0" />
+        <Label fx:id="createdAt" styleClass="detail-value" GridPane.columnIndex="1" GridPane.rowIndex="0" />
+        <Label styleClass="detail-heading" text="LAST EDITED" GridPane.columnIndex="0" GridPane.rowIndex="1" />
+        <Label fx:id="lastEditedAt" styleClass="detail-value" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+        <Label styleClass="detail-heading" text="LAST VIEWED" GridPane.columnIndex="0" GridPane.rowIndex="2" />
+        <Label fx:id="lastViewedAt" styleClass="detail-value" GridPane.columnIndex="1" GridPane.rowIndex="2" />
+      </GridPane>
     </VBox>
   </ScrollPane>
 </StackPane>

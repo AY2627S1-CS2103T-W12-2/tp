@@ -13,6 +13,7 @@ import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalPersons.getTypicalPersons;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 import static seedu.address.testutil.TypicalTimes.NOW;
 
@@ -244,6 +245,7 @@ public class LogicManagerTest {
         // Triggers the saveAddressBook method by executing an add command
         String addCommand = AddCommand.COMMAND_WORD + NAME_DESC_AMY + PHONE_DESC_AMY
                 + EMAIL_DESC_AMY;
+        // a failed save must not leave the new contact in memory
         ModelManager expectedModel = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
         assertCommandFailure(addCommand, CommandException.class, expectedMessage, expectedModel);
     }
@@ -257,6 +259,123 @@ public class LogicManagerTest {
         Person reloaded = reader.readAddressBook().get().getPersonList().get(0);
 
         assertEquals(new Activity(NOW, null, NOW), reloaded.getActivity());
+    }
+
+    // ---- a failed save leaves the in-memory data as it was ----
+
+    /** Replaces {@code logic} with one whose storage always fails to save, over the typical contacts. */
+    private void useFailingStorageWithTypicalContacts() {
+        for (Person person : getTypicalPersons()) {
+            model.addPerson(person);
+        }
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("failing.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw DUMMY_IO_EXCEPTION;
+            }
+        };
+        JsonUserPrefsStorage userPrefsStorage = new JsonUserPrefsStorage(temporaryFolder.resolve("failingPrefs.json"));
+        logic = new LogicManager(model, new StorageManager(failingStorage, userPrefsStorage));
+    }
+
+    private void assertFailedSaveLeavesModelUnchanged(String command) {
+        useFailingStorageWithTypicalContacts();
+        AddressBook addressBookBefore = new AddressBook(model.getAddressBook());
+        List<Person> visibleBefore = new ArrayList<>(model.getFilteredPersonList());
+        Person viewedBefore = model.getViewedPerson().get();
+
+        assertThrows(CommandException.class, String.format(LogicManager.FILE_OPS_ERROR_FORMAT,
+                DUMMY_IO_EXCEPTION.getMessage()), () -> logic.execute(command));
+
+        assertEquals(addressBookBefore, model.getAddressBook());
+        assertEquals(visibleBefore, model.getFilteredPersonList());
+        assertEquals(viewedBefore, model.getViewedPerson().get());
+    }
+
+    @Test
+    public void execute_addWithFailedSave_leavesModelUnchanged() {
+        assertFailedSaveLeavesModelUnchanged(AddCommand.COMMAND_WORD + " n/Zed Zoo p/99998888");
+    }
+
+    @Test
+    public void execute_editWithFailedSave_leavesModelAndActivityUnchanged() {
+        assertFailedSaveLeavesModelUnchanged("edit 1 p/91234567");
+    }
+
+    @Test
+    public void execute_tagWithFailedSave_leavesModelUnchanged() {
+        assertFailedSaveLeavesModelUnchanged("tag 1 t/newtag");
+    }
+
+    @Test
+    public void execute_deleteWithFailedSave_leavesModelUnchanged() {
+        assertFailedSaveLeavesModelUnchanged("delete 1");
+    }
+
+    @Test
+    public void execute_clearWithFailedSave_leavesModelUnchanged() {
+        assertFailedSaveLeavesModelUnchanged("clear");
+    }
+
+    @Test
+    public void execute_viewWithFailedSave_doesNotRecordTheView() {
+        assertFailedSaveLeavesModelUnchanged("view 1");
+        assertEquals(Activity.EMPTY, model.getFilteredPersonList().get(0).getActivity());
+    }
+
+    @Test
+    public void execute_viewWithFailedSaveAfterEarlierView_keepsEarlierViewedPerson() {
+        useFailingStorageWithTypicalContacts();
+        model.viewPerson(model.getFilteredPersonList().get(1));
+        Person viewedBefore = model.getViewedPerson().get();
+        AddressBook addressBookBefore = new AddressBook(model.getAddressBook());
+
+        assertThrows(CommandException.class, () -> logic.execute("view 3"));
+
+        assertEquals(viewedBefore, model.getViewedPerson().get());
+        assertEquals(addressBookBefore, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_findWithFailedSave_restoresPreviousVisibleList() {
+        useFailingStorageWithTypicalContacts();
+        List<Person> visibleBefore = new ArrayList<>(model.getFilteredPersonList());
+
+        assertThrows(CommandException.class, () -> logic.execute("find Alice"));
+
+        assertEquals(visibleBefore, model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_accessDeniedWithFailedSave_leavesModelUnchanged() {
+        for (Person person : getTypicalPersons()) {
+            model.addPerson(person);
+        }
+        JsonAddressBookStorage failingStorage = new JsonAddressBookStorage(temporaryFolder.resolve("denied.json")) {
+            @Override
+            public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
+                throw DUMMY_AD_EXCEPTION;
+            }
+        };
+        logic = new LogicManager(model, new StorageManager(failingStorage,
+                new JsonUserPrefsStorage(temporaryFolder.resolve("deniedPrefs.json"))));
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        assertThrows(CommandException.class, () -> logic.execute("delete 1"));
+
+        assertEquals(before, model.getAddressBook());
+    }
+
+    @Test
+    public void execute_successfulSave_keepsTheChange() throws Exception {
+        for (Person person : getTypicalPersons()) {
+            model.addPerson(person);
+        }
+        int sizeBefore = model.getAddressBook().getPersonList().size();
+
+        logic.execute("delete 1");
+
+        assertEquals(sizeBefore - 1, model.getAddressBook().getPersonList().size());
     }
 
     @Test
