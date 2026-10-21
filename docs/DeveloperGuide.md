@@ -726,6 +726,31 @@ The card bounds its event cue to 32 displayed characters, and the detail panel s
 Tests cover strict/leap dates, 80/81-character bounds, partial updates and individual/all clears,
 old/malformed JSON and round trips, filtered targeting, no-ops, event search, UI, and rollback/undo.
 
+### Follow-up date implementation
+
+`Person` holds an optional `LocalDate followUpDate`, exposed as `Optional<LocalDate> getFollowUpDate()` and
+copied by `Person.toBuilder()` (`withFollowUpDate(null)` removes it). It takes part in `equals`, `hashCode` and
+`toString`. `isFollowUpDueOn(today)` (on or before today) and `isFollowUpOverdueOn(today)` (strictly before
+today) are the single definition of the boundary, so the card cue and the later `due` command cannot disagree.
+
+`FollowUpCommandParser` checks the displayed index, duplicate `d/`, and either `clear` or a date, then reuses
+`Meeting.parseDate`, so follow-up dates follow the same strict rules and message as `md/`. `FollowUpCommand`
+compares the new value with the current one. If they are equal it returns `Follow-up date unchanged.` without
+touching the model. Otherwise it calls `Model.editPerson` with `target.toBuilder().withFollowUpDate(date).build()`,
+which stamps last-edited time and keeps the viewed contact in step, as `MeetingCommand` does. `LogicManager` then
+saves and records the undo entry, and restores its snapshot if saving fails, so no separate history code exists.
+
+`JsonAdaptedPerson` writes `followUpDate` as an ISO string or null. It reads the field as an `Object` so that a
+non-string value reaches `parseFollowUpDate` and gets the field-specific error rather than a Jackson error.
+`PersonCard` takes `today` as a parameter in a package-private constructor, so tests do not depend on the real
+date; the public constructor uses `LocalDate.now(Model.DISPLAY_ZONE)`.
+
+The `due` command (#126, second part) will reuse `isFollowUpDueOn` and the shared sort pipeline owned by #128.
+A sequence diagram, `docs/diagrams/FollowUpSequenceDiagram.puml`, follows the same shape as the meeting one.
+
+Tests cover leap and invalid dates, set, replace, clear and no-op paths, out-of-range indexes, field
+preservation, old and malformed JSON with round trips, the due and overdue boundaries, and the card and detail UI.
+
 ### Contact photo implementation
 
 The sequence below shows photo validation/import, the identical-image no-op, and model rollback when saving fails.
