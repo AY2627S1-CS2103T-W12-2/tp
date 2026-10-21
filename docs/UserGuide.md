@@ -392,7 +392,23 @@ A missing or null value means no follow-up. A malformed value stops the file loa
 `Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` Back up the file before
 editing it by hand.
 
-The `due` command that lists contacts to follow up with is **coming soon**.
+### Showing contacts due for follow-up: `due`
+
+Format: `due`
+
+Shows every contact whose follow-up date is today or earlier, with the earliest date first. Contacts with
+the same date stay in their original list order. Contacts with no follow-up date, or a date after today, are
+left out. "Today" is the Singapore date when you run the command; nothing runs in the background, so run `due`
+again to refresh the list.
+
+* `due` replaces any search, group or sort that was active. A later `sort added|edited|viewed` can reorder
+  the contacts it shows.
+* No contact being due is a normal result: the list is empty and the message says `0 contact(s) listed!`.
+* Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date
+  from the due list removes that contact from it.
+* `list` or `reset` shows all contacts again in their original order.
+
+Example: `followup 2 d/2026-10-18` then `due` lists the second contact first if its date is the earliest.
 
 ### Contact photos: `photo`
 
@@ -496,6 +512,7 @@ Action | Format, Examples
 **Add** | `add n/NAME [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com l/james-ho t/friend t/colleague`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
+**Due** | `due`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Exit** | `exit`
 **Filter** | `filter starred` or `filter starred off`

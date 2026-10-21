@@ -1,6 +1,7 @@
 package seedu.address.model;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.Optional;
 import java.util.function.Function;
@@ -8,19 +9,28 @@ import java.util.function.Function;
 import seedu.address.model.person.Person;
 
 /**
- * The activity timestamp used to order the visible contact list.
+ * The order of the visible contact list: an activity timestamp, or the follow-up date.
  */
 public enum SortCriterion {
-    ADDED("added", person -> person.getActivity().getCreatedAt()),
-    EDITED("edited", person -> person.getActivity().getLastEditedAt()),
-    VIEWED("viewed", person -> person.getActivity().getLastViewedAt());
+    ADDED("added", newestFirst(person -> person.getActivity().getCreatedAt())),
+    EDITED("edited", newestFirst(person -> person.getActivity().getLastEditedAt())),
+    VIEWED("viewed", newestFirst(person -> person.getActivity().getLastViewedAt())),
+    /** Set by the {@code due} command only; it is not a {@code sort} argument. */
+    DUE("due", Comparator.comparing(person -> person.getFollowUpDate().orElse(null),
+            Comparator.nullsLast(Comparator.<LocalDate>naturalOrder())));
 
     private final String commandArgument;
-    private final Function<Person, Optional<Instant>> timestampExtractor;
+    private final Comparator<Person> comparator;
 
-    SortCriterion(String commandArgument, Function<Person, Optional<Instant>> timestampExtractor) {
+    SortCriterion(String commandArgument, Comparator<Person> comparator) {
         this.commandArgument = commandArgument;
-        this.timestampExtractor = timestampExtractor;
+        this.comparator = comparator;
+    }
+
+    /** Orders known timestamps newest first and unknown timestamps last. */
+    private static Comparator<Person> newestFirst(Function<Person, Optional<Instant>> timestampExtractor) {
+        return Comparator.comparing(person -> timestampExtractor.apply(person).orElse(null),
+                Comparator.nullsLast(Comparator.<Instant>reverseOrder()));
     }
 
     /**
@@ -31,10 +41,10 @@ public enum SortCriterion {
     }
 
     /**
-     * Returns a comparator that orders known timestamps newest first and unknown timestamps last.
+     * Returns the comparator for this criterion. Timestamps are newest first with unknown times last. The
+     * follow-up date is earliest first with no date last.
      */
     public Comparator<Person> getComparator() {
-        return Comparator.comparing(person -> timestampExtractor.apply(person).orElse(null),
-                Comparator.nullsLast(Comparator.reverseOrder()));
+        return comparator;
     }
 }

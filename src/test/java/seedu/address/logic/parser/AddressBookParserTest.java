@@ -168,6 +168,16 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_due() throws Exception {
+        assertEquals(new seedu.address.logic.commands.DueCommand(), parser.parseCommand("due"));
+    }
+
+    @Test
+    public void parseCommand_sortDue_isNotASortArgument() {
+        assertThrows(ParseException.class, () -> parser.parseCommand("sort due"));
+    }
+
+    @Test
     public void parseCommand_followUp() throws Exception {
         assertEquals(new seedu.address.logic.commands.FollowUpCommand(INDEX_FIRST_PERSON,
                         java.time.LocalDate.of(2026, 10, 25)),
