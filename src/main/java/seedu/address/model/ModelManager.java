@@ -9,8 +9,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -342,11 +344,22 @@ public class ModelManager implements Model {
 
     private void setSortCriterion(SortCriterion sortCriterion) {
         this.sortCriterion = sortCriterion;
-        Comparator<Person> comparator = sortCriterion == null
-                ? null
-                : sortCriterion.getComparator().thenComparingInt(addressBook.getPersonList()::indexOf);
+        Comparator<Person> comparator = null;
+        if (sortCriterion != null) {
+            Map<Person, Integer> sourcePositions = getSourcePositions();
+            comparator = sortCriterion.getComparator().thenComparingInt(sourcePositions::get);
+        }
         sortedPersons.setComparator(comparator);
         updatePersonListStatus();
+    }
+
+    private Map<Person, Integer> getSourcePositions() {
+        Map<Person, Integer> sourcePositions = new HashMap<>();
+        List<Person> persons = addressBook.getPersonList();
+        for (int index = 0; index < persons.size(); index++) {
+            sourcePositions.put(persons.get(index), index);
+        }
+        return sourcePositions;
     }
 
     private static Person preserveRecentViewTime(Person saved, Person current) {

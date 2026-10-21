@@ -83,6 +83,10 @@ public class EditCommand extends Command {
         }
 
         model.editPerson(personToEdit, editedPerson);
+        if (model.getViewedPerson().get() != null
+                && !model.getFilteredPersonList().contains(model.getViewedPerson().get())) {
+            model.setViewedPerson(null);
+        }
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
     }
 

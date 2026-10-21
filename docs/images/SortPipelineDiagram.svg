@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="820" height="290" viewBox="0 0 820 290" role="img" aria-labelledby="title description">
+  <title id="title">Activity-time sorting visible-list pipeline</title>
+  <desc id="description">SortCommand selects a criterion in ModelManager. A FilteredList feeds a SortedList, which is displayed in PersonListPanel.</desc>
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M 0 0 L 10 5 L 0 10 z" fill="#333333"/>
+    </marker>
+  </defs>
+  <rect width="820" height="290" fill="#ffffff"/>
+  <text x="410" y="28" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="bold">Activity-time sorting visible-list pipeline</text>
+  <rect x="38" y="102" width="145" height="74" rx="4" fill="#c8c8fa" stroke="#3333c4" stroke-width="2"/>
+  <text x="110" y="132" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold">SortCommand</text>
+  <text x="110" y="154" text-anchor="middle" font-family="Arial, sans-serif" font-size="13">sort added</text>
+  <rect x="245" y="82" width="155" height="114" rx="4" fill="#f97181" stroke="#9d0012" stroke-width="2"/>
+  <text x="323" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold">ModelManager</text>
+  <text x="323" y="137" text-anchor="middle" font-family="Arial, sans-serif" font-size="13">SortCriterion</text>
+  <text x="323" y="159" text-anchor="middle" font-family="Arial, sans-serif" font-size="13">source-position map</text>
+  <rect x="470" y="82" width="135" height="114" rx="4" fill="#f97181" stroke="#9d0012" stroke-width="2"/>
+  <text x="538" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold">FilteredList</text>
+  <text x="538" y="137" text-anchor="middle" font-family="Arial, sans-serif" font-size="13">active contacts</text>
+  <rect x="650" y="82" width="135" height="114" rx="4" fill="#f97181" stroke="#9d0012" stroke-width="2"/>
+  <text x="718" y="112" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="bold">SortedList</text>
+  <text x="718" y="137" text-anchor="middle" font-family="Arial, sans-serif" font-size="13">displayed order</text>
+  <line x1="184" y1="139" x2="244" y2="139" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="400" y1="139" x2="469" y2="139" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="605" y1="139" x2="649" y2="139" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+  <rect x="650" y="225" width="135" height="40" rx="4" fill="#83e769" stroke="#1d8900" stroke-width="2"/>
+  <text x="718" y="251" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold">PersonListPanel</text>
+  <line x1="718" y1="197" x2="718" y2="224" stroke="#333333" stroke-width="2" marker-end="url(#arrow)"/>
+</svg>

@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
@@ -214,6 +215,21 @@ public class EditCommandTest {
         new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(model);
 
         assertEquals(activity, model.getFilteredPersonList().get(0).getActivity());
+    }
+
+    @Test
+    public void execute_editHidesViewedPerson_clearsSelection() throws Exception {
+        Person personToEdit = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        String matchingName = personToEdit.getName().fullName.split("\\s+")[0];
+        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of(matchingName)));
+        new ViewCommand(INDEX_FIRST_PERSON).execute(model);
+
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withName("Zed Tan").build());
+        editCommand.execute(model);
+
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertNull(model.getViewedPerson().get());
     }
 
     @Test
