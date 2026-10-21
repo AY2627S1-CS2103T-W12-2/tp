@@ -729,7 +729,9 @@ non-string value reaches `parseFollowUpDate` and gets the field-specific error r
 date; the public constructor uses `LocalDate.now(Model.DISPLAY_ZONE)`.
 
 The `due` command (#126, second part) will reuse `isFollowUpDueOn` and the shared sort pipeline owned by #128.
-A sequence diagram, `docs/diagrams/FollowUpSequenceDiagram.puml`, follows the same shape as the meeting one.
+The sequence diagram below shows `followup 1 d/2026-10-25`, including the no-op and failed-save paths.
+
+![Interactions for the `followup 1 d/2026-10-25` Command](images/FollowUpSequenceDiagram.png)
 
 Tests cover leap and invalid dates, set, replace, clear and no-op paths, out-of-range indexes, field
 preservation, old and malformed JSON with round trips, the due and overdue boundaries, and the card and detail UI.
