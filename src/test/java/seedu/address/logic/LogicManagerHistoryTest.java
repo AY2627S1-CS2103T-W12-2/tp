@@ -8,6 +8,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
+import static seedu.address.testutil.TypicalTimes.EARLIEST;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 import static seedu.address.testutil.TypicalTimes.NOW;
 
@@ -26,10 +27,12 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Activity;
 import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.PersonBuilder;
 
 public class LogicManagerHistoryTest {
     private static final String ADD_BOB = "add n/Bob p/87654321 e/bob@example.com";
@@ -354,6 +357,39 @@ public class LogicManagerHistoryTest {
         assertThrows(CommandException.class, () -> logic.execute("find UnmatchedName"));
 
         assertEquals(1, model.getFilteredPersonList().size());
+    }
+
+    @Test
+    public void execute_listWithFailedSave_restoresActiveSort() throws Exception {
+        Person oldest = new PersonBuilder().withName("Oldest").withPhone("81111111")
+                .withActivity(new Activity(EARLIEST, null, null)).build();
+        Person newest = new PersonBuilder().withName("Newest").withPhone("82222222")
+                .withActivity(new Activity(NOW, null, null)).build();
+        model.addPerson(oldest);
+        model.addPerson(newest);
+        logic.execute("sort added");
+        failSave = true;
+
+        assertThrows(CommandException.class, () -> logic.execute("list"));
+
+        assertEquals(newest, model.getFilteredPersonList().get(0));
+        assertEquals(oldest, model.getFilteredPersonList().get(1));
+    }
+
+    @Test
+    public void execute_sortWithFailedSave_restoresOriginalOrder() {
+        Person oldest = new PersonBuilder().withName("Oldest").withPhone("81111111")
+                .withActivity(new Activity(EARLIEST, null, null)).build();
+        Person newest = new PersonBuilder().withName("Newest").withPhone("82222222")
+                .withActivity(new Activity(NOW, null, null)).build();
+        model.addPerson(oldest);
+        model.addPerson(newest);
+        failSave = true;
+
+        assertThrows(CommandException.class, () -> logic.execute("sort added"));
+
+        assertEquals(oldest, model.getFilteredPersonList().get(0));
+        assertEquals(newest, model.getFilteredPersonList().get(1));
     }
 
     private static String addAmy() {

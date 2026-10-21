@@ -94,11 +94,36 @@ Examples:
 
 ### Listing all contacts: `list`
 
-Shows a list of all contacts in LarperBoard.
+Shows all contacts in their original order. It also clears any active time sort.
 
 Format: `list`
 
-* Use `list` to return to the full contact list after `find` or `group`.
+* Use `list` or `reset` to return to the full, original-order list after `find` or `group`.
+### Resetting the displayed list: `reset`
+
+Clears the active filters and sort, then shows all contacts in their original order.
+
+Format: `reset`
+
+### Sorting contacts by activity time: `sort`
+
+Sorts the currently displayed contacts by a recorded activity time. The active order and result count are shown above
+the contact list.
+
+Format: `sort added|edited|viewed`
+
+* `sort added` puts most recently added contacts first.
+* `sort edited` puts most recently edited contacts first.
+* `sort viewed` puts most recently viewed contacts first. Viewing a contact can therefore move it in this list.
+* Contacts without the chosen recorded time appear last. Contacts with equal times keep their original list order.
+* The displayed indexes follow the order you see, so commands such as `view`, `edit`, `delete`, and `tag` use the
+  sorted contact index.
+* Use `list` or `reset` to return to the full, original-order list after `find` or `group`.
+
+Examples:
+
+* `sort added` shows the newest contacts first.
+* `sort viewed` followed by `view 2` records that view and may move that contact to the top.
 
 ### Editing a contact: `edit`
 
@@ -450,6 +475,8 @@ Action | Format, Examples
 
 **Photo** | `photo INDEX f/RELATIVE_PATH` or `photo INDEX clear`
 **Note** | `note INDEX nt/NOTE` or `note INDEX clear`<br> e.g., `note 1 nt/Met at the AI track`
+**Reset** | `reset`
+**Sort** | `sort added|edited|viewed`<br> e.g., `sort viewed`
 **Star** | `star INDEX`<br> e.g., `star 1`
 **Tag** | `tag INDEX t/TAG [t/TAG]…​`<br> e.g., `tag 1 t/frontend t/react`
 **Undo** | `undo`

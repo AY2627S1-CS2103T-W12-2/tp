@@ -399,6 +399,11 @@ public class ModelManagerTest {
         // resets modelManager to initial state for upcoming tests
         modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
 
+        // different sort -> returns false
+        modelManager.sortFilteredPersonList(SortCriterion.ADDED);
+        assertFalse(modelManager.equals(new ModelManager(addressBook, userPrefs)));
+        modelManager.clearPersonListSort();
+
         // different userPrefs -> returns false
         UserPrefs differentUserPrefs = new UserPrefs();
         differentUserPrefs.setGuiSettings(new GuiSettings(1, 2, 3, 4));

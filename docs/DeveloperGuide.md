@@ -193,6 +193,17 @@ Design considerations:
 * **Stamp in the model, not in each command.** Each command would otherwise repeat the "was anything really changed?" check and could drift apart. The trade-off is that `Model` gains two methods.
 * **Ignore the edited person's activity.** Commands build the edited `Person` from the old one, and a new field that someone forgets to copy would silently reset the times. Always taking the activity from `target` makes that mistake harmless.
 
+### Activity-time sorting
+
+`SortCommand` passes a `SortCriterion` (`ADDED`, `EDITED`, or `VIEWED`) to `ModelManager`. The model keeps one
+`FilteredList` for the current contacts and wraps it in a `SortedList`, which is the list exposed to the UI and every
+index-based command. This ensures that the index a user sees is the contact that `view`, `edit`, `delete`, and `tag`
+operate on.
+
+The comparator orders known activity times newest first and unknown times last. It then uses the source address-book
+order as a deterministic tie-breaker. Changing a filter leaves the active sort intact; `list` and `reset` clear both
+the filter and sort. A successful `view` replaces the contact with an updated `lastViewedAt`, which automatically causes the
+`SortedList` to reorder when `sort viewed` is active.
 ### Starring contacts
 
 `StarCommand` serves both `star` and `unstar`: `StarCommandParser` is created with `true` or `false` by `AddressBookParser`, so the two commands share one parser and one command class. `FilterCommand` serves `filter starred` and `filter starred off`.
@@ -204,6 +215,16 @@ The sequence diagram below shows what happens when the user executes `star 1`. `
 * **Changing a star:** `StarCommand` looks up the person at the displayed index and, if the flag really changes, calls `Model#editPerson` with `person.toBuilder().withStarred(...)`. Because it goes through `editPerson`, the change is saved, can be undone, and updates the last edited time. If the person already has the requested state, the command succeeds with a message saying nothing changed and does not touch the model, so no undo step is created.
 * **Filtering:** `FilterCommand` replaces the predicate of the filtered list, like `find` and `group`. The three do not combine; combining filters is tracked separately in #128.
 * **Logging:** `StarCommand` logs at `INFO` when a star changes and at `FINE` when nothing changes, and `FilterCommand` logs at `INFO` with the number of contacts shown. The logs contain only the displayed index and counts, never a name or any other personal detail.
+
+![Visible-list sorting pipeline](images/SortPipelineDiagram.svg)
+
+Design considerations:
+
+* **One sorted visible list instead of command-specific reordering.** Returning the `SortedList` from the model keeps
+  every displayed index aligned with the UI. The alternative—sorting separately in each index-based command—would let
+  commands act on a different contact from the one displayed.
+* **Record source positions once per sort.** The comparator uses a map of original positions as its tie-breaker. This
+  keeps equal timestamps stable without repeatedly scanning the address-book list during comparisons.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -692,6 +713,17 @@ Given below are instructions to test the app manually.
       Expected: The most recent window size and location are retained.
 
 1. _{ more test cases …​ }_
+
+### Activity-time sorting
+
+1. Add three contacts, then run `sort added`.<br>
+   Expected: Contacts are newest first; equal creation times retain their original order.
+
+1. Run `sort viewed`, then `view 2`.<br>
+   Expected: The viewed contact moves to the top and remains selected in the detail panel.
+
+1. Run `find NAME`, followed by `sort edited`, then `list` and `reset`.<br>
+   Expected: Filtering keeps the active sort; `list` and `reset` restore the full original-order list.
 
 ### Deleting a person
 

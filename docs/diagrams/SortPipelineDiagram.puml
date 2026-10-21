@@ -1,0 +1,40 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+title Activity-time sorting visible-list pipeline
+
+actor User USER_COLOR
+
+box Logic LOGIC_COLOR_T1
+participant ":SortCommand" as SortCommand LOGIC_COLOR
+end box
+
+box Model MODEL_COLOR_T1
+participant "m:ModelManager" as ModelManager MODEL_COLOR
+collections "FilteredList<Person>" as FilteredList MODEL_COLOR
+collections "SortedList<Person>" as SortedList MODEL_COLOR
+end box
+
+box UI UI_COLOR_T1
+participant ":PersonListPanel" as PersonListPanel UI_COLOR
+end box
+
+User -> SortCommand : sort added
+activate SortCommand
+SortCommand -> ModelManager : sortFilteredPersonList(ADDED)
+activate ModelManager
+ModelManager -> ModelManager : build source-position map
+ModelManager -> SortedList : setComparator(activity, source position)
+activate SortedList
+SortedList -> FilteredList : read current filtered contacts
+FilteredList --> SortedList : visible contacts
+SortedList --> ModelManager : ordered contacts
+deactivate SortedList
+ModelManager --> SortCommand
+deactivate ModelManager
+SortCommand --> User
+deactivate SortCommand
+
+SortedList -> PersonListPanel : displayed contacts and indexes
+@enduml
