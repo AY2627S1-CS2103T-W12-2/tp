@@ -183,7 +183,7 @@ Each `Person` carries an `Activity` with its created, last edited and last viewe
 * **Created:** `AddCommand` adds the new person with `created` set to `Model#now()`. A command that fails (for example, a duplicate) records nothing.
 * **Last edited:** `Model#editPerson(target, edited)` is the rule that every command changing a contact must use instead of `Model#setPerson`. If `edited.hasSameDetails(target)` it does nothing. Otherwise it stores `edited` with the activity of `target` and `lastEditedAt` set to now. The activity of `edited` is ignored, so a copy built without activity cannot wipe the other times. `EditCommand` and `TagCommand` use it, and new commands (notes, star, follow-up, photo) should too.
 * **Last viewed:** `Model#viewPerson(person)` sets `lastViewedAt` to now and makes the stored person the viewed person. `ViewCommand` uses it. Viewing is not part of undo history, so undoing a change does not restore an earlier last-viewed time.
-* **A failed save changes nothing.** `LogicManager` takes `Model#createSnapshot()` before it runs a command. If saving the data file then fails, it calls `Model#restore(snapshot)` and shows the error, so the contacts, the viewed contact and the visible-list filter are as they were and no created, edited or viewed time is kept. The snapshot is opaque (`Model.Snapshot`), so the undo history (#108) can add its stacks to it later. It only covers what a command changes in memory, not the user preferences.
+* **A failed save changes nothing.** `LogicManager` takes `Model#createSnapshot()` before it runs a command. If saving the data file then fails, it calls `Model#restore(snapshot)` and shows the error, so the contacts, the viewed contact, the visible-list filter and sort, and the undo and redo stacks are as they were. No created, edited or viewed time is kept. The snapshot is opaque (`Model.Snapshot`) and covers in-memory command changes, not user preferences.
 * **Display:** the detail panel shows the three times as `yyyy-MM-dd HH:mm` in `Model.DISPLAY_ZONE` (Asia/Singapore), or an em dash (`—`) when a time is not known. The block sits at the bottom of `PersonDetailPanel.fxml`.
 
 <img src="images/EditActivitySequenceDiagram.png" width="600" />
@@ -204,6 +204,17 @@ The comparator orders known activity times newest first and unknown times last. 
 order as a deterministic tie-breaker. Changing a filter leaves the active sort intact; `list` and `reset` clear both
 the filter and sort. A successful `view` replaces the contact with an updated `lastViewedAt`, which automatically causes the
 `SortedList` to reorder when `sort viewed` is active.
+
+![Visible-list sorting pipeline](images/SortPipelineDiagram.svg)
+
+Design considerations:
+
+* **One sorted visible list instead of command-specific reordering.** Returning the `SortedList` from the model keeps
+  every displayed index aligned with the UI. The alternative—sorting separately in each index-based command—would let
+  commands act on a different contact from the one displayed.
+* **Use current source positions for equal times.** Contacts can be added or replaced while a sort is active. Looking
+  up positions in the current address book keeps ties in original order even after those changes.
+
 ### Starring contacts
 
 `StarCommand` serves both `star` and `unstar`: `StarCommandParser` is created with `true` or `false` by `AddressBookParser`, so the two commands share one parser and one command class. `FilterCommand` serves `filter starred` and `filter starred off`.
@@ -216,97 +227,21 @@ The sequence diagram below shows what happens when the user executes `star 1`. `
 * **Filtering:** `FilterCommand` replaces the predicate of the filtered list, like `find` and `group`. The three do not combine; combining filters is tracked separately in #128.
 * **Logging:** `StarCommand` logs at `INFO` when a star changes and at `FINE` when nothing changes, and `FilterCommand` logs at `INFO` with the number of contacts shown. The logs contain only the displayed index and counts, never a name or any other personal detail.
 
-![Visible-list sorting pipeline](images/SortPipelineDiagram.svg)
+### Undo history
 
-Design considerations:
+`ModelManager` keeps up to 50 contact states in a session-only undo stack. Each state copies the address book, the viewed contact, the active visible-list predicate, and the sort criterion. Its `ModelSnapshot` also captures both history stacks so a failed save can restore them. History is not written to JSON; the restored contacts are.
 
-* **One sorted visible list instead of command-specific reordering.** Returning the `SortedList` from the model keeps
-  every displayed index aligned with the UI. The alternative—sorting separately in each index-based command—would let
-  commands act on a different contact from the one displayed.
-* **Record source positions once per sort.** The comparator uses a map of original positions as its tie-breaker. This
-  keeps equal timestamps stable without repeatedly scanning the address-book list during comparisons.
+`LogicManager` takes a snapshot before running each command. After the command succeeds, it saves the address book. Only after a successful save does `Model#recordSuccessfulMutation(before)` compare the contact data and add the previous state to history. The comparison ignores `lastViewedAt`, so `view` is not an undoable contact change. Failed commands, failed saves, and changes that leave contacts unchanged add no entry. A new saved mutation clears redo history.
 
-### \[Proposed\] Undo/redo feature
+The following sequence shows the `undo` command, including rollback if saving the restored state fails:
 
-#### Proposed Implementation
+![Undo through Logic and Storage](images/UndoSequenceDiagram-Logic.png)
 
-The proposed undo/redo mechanism is facilitated by `VersionedAddressBook`. It extends `AddressBook` with an undo/redo history, stored internally as an `addressBookStateList` and `currentStatePointer`. Additionally, it implements the following operations:
+`UndoCommand` checks `Model#canUndo()` and reports `Nothing to undo.` when the stack is empty. Otherwise, `ModelManager#undo()` moves the current state to the redo stack and restores the latest undo state. Restoration reinstates contact data, timestamps, the visible-list predicate, sort order, and the detail selection without stamping the current time. A later explicit view of a surviving contact is preserved; a deleted contact comes back with its pre-deletion view time.
 
-* `VersionedAddressBook#commit()` — Saves the current address book state in its history.
-* `VersionedAddressBook#undo()` — Restores the previous address book state from its history.
-* `VersionedAddressBook#redo()` — Restores a previously undone address book state from its history.
+![Undo within the Model](images/UndoSequenceDiagram-Model.png)
 
-These operations are exposed in the `Model` interface as `Model#commitAddressBook()`, `Model#undoAddressBook()` and `Model#redoAddressBook()` respectively.
-
-Given below is an example usage scenario and how the undo/redo mechanism behaves at each step.
-
-Step 1. The user launches the application for the first time. The `VersionedAddressBook` will be initialized with the initial address book state, and the `currentStatePointer` pointing to that single address book state.
-
-![UndoRedoState0](images/UndoRedoState0.png)
-
-Step 2. The user executes `delete 5` command to delete the 5th person in the address book. The `delete` command calls `Model#commitAddressBook()`, causing the modified state of the address book after the `delete 5` command executes to be saved in the `addressBookStateList`, and the `currentStatePointer` is shifted to the newly inserted address book state.
-
-![UndoRedoState1](images/UndoRedoState1.png)
-
-Step 3. The user executes `add n/David …​` to add a new person. The `add` command also calls `Model#commitAddressBook()`, causing another modified address book state to be saved into the `addressBookStateList`.
-
-![UndoRedoState2](images/UndoRedoState2.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If a command fails its execution, it will not call `Model#commitAddressBook()`, so the address book state will not be saved into the `addressBookStateList`.
-
-</div>
-
-Step 4. The user now decides that adding the person was a mistake, and decides to undo that action by executing the `undo` command. The `undo` command will call `Model#undoAddressBook()`, which will shift the `currentStatePointer` once to the left, pointing it to the previous address book state, and restores the address book to that state.
-
-![UndoRedoState3](images/UndoRedoState3.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index 0, pointing to the initial AddressBook state, then there are no previous AddressBook states to restore. The `undo` command uses `Model#canUndoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the undo.
-
-</div>
-
-The following sequence diagram shows how an undo operation goes through the `Logic` component:
-
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Logic.png)
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `UndoCommand` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
-
-</div>
-
-Similarly, how an undo operation goes through the `Model` component is shown below:
-
-![UndoSequenceDiagram](images/UndoSequenceDiagram-Model.png)
-
-The `redo` command does the opposite — it calls `Model#redoAddressBook()`, which shifts the `currentStatePointer` once to the right, pointing to the previously undone state, and restores the address book to that state.
-
-<div markdown="span" class="alert alert-info">:information_source: **Note:** If the `currentStatePointer` is at index `addressBookStateList.size() - 1`, pointing to the latest address book state, then there are no undone AddressBook states to restore. The `redo` command uses `Model#canRedoAddressBook()` to check if this is the case. If so, it will return an error to the user rather than attempting to perform the redo.
-
-</div>
-
-Step 5. The user then decides to execute the command `list`. Commands that do not modify the address book, such as `list`, will usually not call `Model#commitAddressBook()`, `Model#undoAddressBook()` or `Model#redoAddressBook()`. Thus, the `addressBookStateList` remains unchanged.
-
-![UndoRedoState4](images/UndoRedoState4.png)
-
-Step 6. The user executes `clear`, which calls `Model#commitAddressBook()`. Since the `currentStatePointer` is not pointing at the end of the `addressBookStateList`, all address book states after the `currentStatePointer` will be purged. Reason: It no longer makes sense to redo the `add n/David …​` command. This is the behavior that most modern desktop applications follow.
-
-![UndoRedoState5](images/UndoRedoState5.png)
-
-The following activity diagram summarizes what happens when a user executes a new command:
-
-<img src="images/CommitActivityDiagram.png" width="250" />
-
-#### Design considerations:
-
-**Aspect: How undo & redo execute:**
-
-* **Alternative 1 (current choice):** Saves the entire address book.
-  * Pros: Easy to implement.
-  * Cons: May have performance issues in terms of memory usage.
-
-* **Alternative 2:** Individual command knows how to undo/redo by itself.
-  * Pros: Will use less memory (e.g. for `delete`, just save the person being deleted).
-  * Cons: We must ensure that the implementation of each individual command is correct.
-
-_{more aspects and alternatives to be added}_
+The saved state copies the full address book. This keeps undo independent of individual command implementations and lets it restore fields added by later features. The trade-off is memory proportional to the number and size of saved address books, bounded by the 50-entry history limit. `ModelManager` also maintains a redo stack, but the `redo` CLI command is tracked separately in #132.
 
 ### \[Proposed\] Data archiving
 

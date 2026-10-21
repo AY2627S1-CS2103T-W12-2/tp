@@ -9,11 +9,8 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Deque;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Logger;
@@ -346,20 +343,11 @@ public class ModelManager implements Model {
         this.sortCriterion = sortCriterion;
         Comparator<Person> comparator = null;
         if (sortCriterion != null) {
-            Map<Person, Integer> sourcePositions = getSourcePositions();
-            comparator = sortCriterion.getComparator().thenComparingInt(sourcePositions::get);
+            comparator = sortCriterion.getComparator()
+                    .thenComparingInt(addressBook.getPersonList()::indexOf);
         }
         sortedPersons.setComparator(comparator);
         updatePersonListStatus();
-    }
-
-    private Map<Person, Integer> getSourcePositions() {
-        Map<Person, Integer> sourcePositions = new HashMap<>();
-        List<Person> persons = addressBook.getPersonList();
-        for (int index = 0; index < persons.size(); index++) {
-            sourcePositions.put(persons.get(index), index);
-        }
-        return sourcePositions;
     }
 
     private static Person preserveRecentViewTime(Person saved, Person current) {
@@ -383,8 +371,10 @@ public class ModelManager implements Model {
         // A real edit can change one contact's identity while all other contacts keep their positions.
         if (hasSingleIdentityChangeAt(index, savedPersons)) {
             Person current = addressBook.getPersonList().get(index);
-            if (!Objects.equals(saved.getActivity().getLastEditedAt(),
-                    current.getActivity().getLastEditedAt())) {
+            // Undo can restore an identity edit made in the same second as the previous edit.
+            // Redo can restore it when the earlier version has no last-edited time.
+            if (current.getActivity().getLastEditedAt().isPresent()
+                    || !saved.getActivity().getLastEditedAt().equals(current.getActivity().getLastEditedAt())) {
                 return current;
             }
         }

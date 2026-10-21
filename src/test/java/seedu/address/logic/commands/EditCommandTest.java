@@ -84,7 +84,7 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor());
         Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage = String.format("Person unchanged: %1$s", Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), FIXED_CLOCK);
 
@@ -212,9 +212,11 @@ public class EditCommandTest {
         model.setPerson(original, original.withActivity(activity));
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(original).build();
 
-        new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(model);
+        CommandResult result = new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(model);
 
         assertEquals(activity, model.getFilteredPersonList().get(0).getActivity());
+        assertEquals(String.format("Person unchanged: %1$s", Messages.format(model.getFilteredPersonList().get(0))),
+                result.getFeedbackToUser());
     }
 
     @Test

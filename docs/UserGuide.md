@@ -137,6 +137,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]â€¦â
 * When editing tags, all of the contact's existing tags are replaced; adding tags with `edit` is not cumulative.
 * To remove all of a contact's tags, enter `t/` without a tag after it.
 * To remove a contact's LinkedIn handle, enter `l/` without a handle after it.
+* If the supplied values already match the contact, the command reports `Person unchanged:` followed by the
+  contact's details. The displayed list, activity times, and undo history stay unchanged.
 
 Examples:
 * `edit 1 p/91234567 e/johndoe@example.com` changes the 1st contact's phone number and email address to `91234567` and `johndoe@example.com`.

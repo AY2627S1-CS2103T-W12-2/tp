@@ -80,6 +80,31 @@ public class SortCommandTest {
     }
 
     @Test
+    public void execute_sortEdited_keepsEqualTimeOrderAfterStarChange() throws Exception {
+        Person first = person("First", "11111111", new Activity(null, NOW, null));
+        Person second = person("Second", "22222222", new Activity(null, NOW, null));
+        ModelManager model = modelWith(FIXED_CLOCK, first, second);
+
+        new SortCommand(SortCriterion.EDITED).execute(model);
+        model.editPerson(first, first.toBuilder().withStarred(true).build());
+
+        assertEquals(List.of("First", "Second"), model.getFilteredPersonList().stream()
+                .map(person -> person.getName().fullName).toList());
+    }
+
+    @Test
+    public void execute_sortAdded_keepsEqualTimeOrderAfterAdd() throws Exception {
+        Person first = person("First", "11111111", new Activity(NOW, null, null));
+        Person second = person("Second", "22222222", new Activity(NOW, null, null));
+        ModelManager model = modelWith(first);
+
+        new SortCommand(SortCriterion.ADDED).execute(model);
+        model.addPerson(second);
+
+        assertEquals(List.of(first, second), model.getFilteredPersonList());
+    }
+
+    @Test
     public void execute_sortViewed_reordersAfterSuccessfulView() throws Exception {
         Person viewedEarlier = person("Earlier", "11111111", new Activity(null, null, EARLIER));
         Person notViewed = person("Not Viewed", "22222222", Activity.EMPTY);
