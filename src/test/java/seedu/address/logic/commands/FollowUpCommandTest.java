@@ -77,7 +77,7 @@ public class FollowUpCommandTest {
         assertCommandSuccess(new FollowUpCommand(INDEX_FIRST_PERSON, DATE), modelWithDate,
                 FollowUpCommand.MESSAGE_UNCHANGED, expectedModel);
         assertEquals(withDate.getActivity(), modelWithDate.getFilteredPersonList().get(0).getActivity());
-        assertFalse(modelWithDate.canUndo() && !model.canUndo());
+        assertFalse(modelWithDate.canUndo());
     }
 
     @Test

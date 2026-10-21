@@ -399,6 +399,6 @@
 }
 
 .cell_small_label.overdue {
-    -fx-text-fill: #b00020;
+    -fx-text-fill: #ff6b6b;
     -fx-font-weight: bold;
 }
