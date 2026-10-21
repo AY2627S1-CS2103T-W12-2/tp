@@ -10,7 +10,7 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
-<StackPane styleClass="detail-panel" xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
+<StackPane xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
   <Label fx:id="placeholder" styleClass="detail-placeholder" text="No contact selected" />
   <ScrollPane fx:id="scrollPane" styleClass="detail-scroll" fitToWidth="true" hbarPolicy="NEVER">
     <VBox fx:id="content" spacing="12" alignment="TOP_LEFT">
