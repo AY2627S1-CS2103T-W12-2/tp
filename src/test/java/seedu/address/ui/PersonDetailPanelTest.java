@@ -68,6 +68,23 @@ public class PersonDetailPanelTest {
     }
 
     @Test
+    public void star_visibleOnlyForStarredViewedPerson() {
+        ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>();
+        PersonDetailPanel panel = new PersonDetailPanel(viewedPerson);
+        assertFalse(lookup(panel, "#star").isVisible());
+
+        viewedPerson.set(new PersonBuilder().withStarred(true).build());
+        assertTrue(lookup(panel, "#star").isVisible());
+
+        viewedPerson.set(new PersonBuilder().withStarred(false).build());
+        assertFalse(lookup(panel, "#star").isVisible());
+
+        viewedPerson.set(new PersonBuilder().withStarred(true).build());
+        viewedPerson.set(null);
+        assertFalse(lookup(panel, "#star").isVisible());
+    }
+
+    @Test
     public void constructor_personWithoutLinkedIn_showsDash() {
         Person person = new PersonBuilder().withLinkedIn("").build();
         PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));

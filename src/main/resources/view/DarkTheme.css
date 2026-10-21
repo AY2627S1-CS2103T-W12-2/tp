@@ -384,3 +384,12 @@
 .detail-scroll > .viewport {
     -fx-background-color: transparent;
 }
+
+.label.star {
+    -fx-text-fill: #f5c542;
+    -fx-font-size: 18px;
+}
+
+.list-cell .label.star {
+    -fx-text-fill: #f5c542;
+}
