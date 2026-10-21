@@ -83,8 +83,8 @@ until loading finishes. Replaced requests and discarded contact cards cancel que
 an already-running decode can finish, but its stale result is never displayed.
 The detail panel observes
 the viewed person and scrolls vertically to keep full meeting and contact details accessible.
-Both `PersonCard` and `PersonDetailPanel` show a ★ label next to the name of a starred person; the label is
-hidden and takes no space otherwise.
+Both `PersonCard` and `PersonDetailPanel` show a ★ label in the top right corner of the card or panel of a starred
+person; the label is hidden otherwise (and in `PersonCard` it also takes no space).
 
 The `UI` component,
 
@@ -194,6 +194,13 @@ Design considerations:
 ### Starring contacts
 
 `StarCommand` serves both `star` and `unstar`: `StarCommandParser` is created with `true` or `false` by `AddressBookParser`, so the two commands share one parser and one command class. `FilterCommand` serves `filter starred` and `filter starred off`.
+
+The sequence diagram below shows what happens when the user executes `star 1`. `unstar 1` takes the same steps with `false` in place of `true`.
+
+![Interactions Inside the Logic Component for the `star 1` Command](images/StarSequenceDiagram.png)
+
+<div markdown="span" class="alert alert-info">:information_source: **Note:** The lifeline for `StarCommandParser` should end at the destroy marker (X), but due to a limitation of PlantUML, it continues to the end of the diagram.
+</div>
 
 * **Changing a star:** `StarCommand` looks up the person at the displayed index and, if the flag really changes, calls `Model#editPerson` with `person.toBuilder().withStarred(...)`. Because it goes through `editPerson`, the change is saved, can be undone, and updates the last edited time. If the person already has the requested state, the command succeeds with a message saying nothing changed and does not touch the model, so no undo step is created.
 * **Filtering:** `FilterCommand` replaces the predicate of the filtered list, like `find` and `group`. The three do not combine; combining filters is tracked separately in #128.
