@@ -86,11 +86,11 @@ public class PersonDetailPanel extends UiPart<Region> {
      * amount as a fraction of the whole content height, not of the part that can scroll, so it feels far too slow.
      */
     private void handleScroll(ScrollEvent event) {
-        assert scrollPane.getVmin() == 0 && scrollPane.getVmax() == 1 : "scrolledVvalue assumes a 0..1 range";
         // the layout bounds are what ScrollPane itself uses to size its scroll range, so an effect or transform
         // on the content does not change the result
         OptionalDouble newVvalue = scrolledVvalue(scrollPane.getVvalue(), event.getDeltaY(),
-                content.getLayoutBounds().getHeight(), scrollPane.getViewportBounds().getHeight());
+                content.getLayoutBounds().getHeight(), scrollPane.getViewportBounds().getHeight(),
+                scrollPane.getVmin(), scrollPane.getVmax());
         if (newVvalue.isPresent()) {
             scrollPane.setVvalue(newVvalue.getAsDouble());
             event.consume();
@@ -99,16 +99,18 @@ public class PersonDetailPanel extends UiPart<Region> {
 
     /**
      * Returns the vertical scroll position after scrolling up by {@code deltaY} pixels (down if it is negative),
-     * between 0 (top) and 1 (bottom). Returns an empty {@code OptionalDouble} if nothing should change: when
-     * {@code deltaY} is zero, or when the content is not taller than the viewport so there is nothing to scroll.
+     * between {@code vmin} (top) and {@code vmax} (bottom), the range of the scroll pane's {@code vvalue}.
+     * Returns an empty {@code OptionalDouble} if nothing should change: when {@code deltaY} is zero, or when the
+     * content is not taller than the viewport so there is nothing to scroll.
      */
     static OptionalDouble scrolledVvalue(double vvalue, double deltaY, double contentHeight,
-            double viewportHeight) {
+            double viewportHeight, double vmin, double vmax) {
         double scrollableHeight = contentHeight - viewportHeight;
         if (scrollableHeight <= 0 || deltaY == 0) {
             return OptionalDouble.empty();
         }
-        return OptionalDouble.of(Math.min(1, Math.max(0, vvalue - deltaY / scrollableHeight)));
+        double scrolled = vvalue - deltaY / scrollableHeight * (vmax - vmin);
+        return OptionalDouble.of(Math.min(vmax, Math.max(vmin, scrolled)));
     }
 
     /**
