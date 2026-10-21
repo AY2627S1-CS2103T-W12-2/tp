@@ -117,6 +117,9 @@ public class CommandTestUtil {
     /**
      * Returns a new model with a copy of {@code source}'s address book, so that an expected result can be built
      * without changing {@code source}.
+     * The copy uses {@code FIXED_CLOCK} and fresh {@code UserPrefs}, not the clock or preferences of
+     * {@code source}. Tests that compare activity times depend on the fixed clock, so only use this for a
+     * {@code source} that was also created with {@code FIXED_CLOCK}.
      */
     public static Model copyOf(Model source) {
         return new ModelManager(new AddressBook(source.getAddressBook()), new UserPrefs(), FIXED_CLOCK);
