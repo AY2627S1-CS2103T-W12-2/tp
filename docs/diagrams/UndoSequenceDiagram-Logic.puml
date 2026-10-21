@@ -4,43 +4,53 @@ skinparam ArrowFontStyle plain
 
 box Logic LOGIC_COLOR_T1
 participant ":LogicManager" as LogicManager LOGIC_COLOR
-participant ":AddressBookParser" as AddressBookParser LOGIC_COLOR
+participant ":AddressBookParser" as Parser LOGIC_COLOR
 participant "u:UndoCommand" as UndoCommand LOGIC_COLOR
 end box
 
 box Model MODEL_COLOR_T1
-participant ":Model" as Model MODEL_COLOR
+participant "m:ModelManager" as Model MODEL_COLOR
 end box
-[-> LogicManager : execute(undo)
+
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
+[-> LogicManager : execute("undo")
 activate LogicManager
-
-LogicManager -> AddressBookParser : parseCommand(undo)
-activate AddressBookParser
-
-create UndoCommand
-AddressBookParser -> UndoCommand
-activate UndoCommand
-
-UndoCommand --> AddressBookParser
-deactivate UndoCommand
-
-AddressBookParser --> LogicManager : u
-deactivate AddressBookParser
-
-LogicManager -> UndoCommand : execute()
-activate UndoCommand
-
-UndoCommand -> Model : undoAddressBook()
+LogicManager -> Parser : parseCommand("undo")
+activate Parser
+Parser --> LogicManager : u
+deactivate Parser
+LogicManager -> Model : createSnapshot()
 activate Model
-
+Model --> LogicManager : before
+deactivate Model
+LogicManager -> UndoCommand : execute(m)
+activate UndoCommand
+UndoCommand -> Model : canUndo()
+activate Model
+Model --> UndoCommand : true
+deactivate Model
+UndoCommand -> Model : undo()
+activate Model
 Model --> UndoCommand
 deactivate Model
-
 UndoCommand --> LogicManager : result
 deactivate UndoCommand
-UndoCommand -[hidden]-> LogicManager : result
-destroy UndoCommand
-
-[<--LogicManager
+LogicManager -> Storage : saveAddressBook(m.getAddressBook())
+activate Storage
+alt save succeeds
+    Storage --> LogicManager
+    LogicManager -->] : result
+else save fails
+    Storage --> LogicManager : IOException
+    LogicManager -> Model : restore(before)
+    activate Model
+    Model --> LogicManager
+    deactivate Model
+    LogicManager -->] : CommandException
+end
+deactivate Storage
 deactivate LogicManager
 @enduml

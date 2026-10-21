@@ -14,6 +14,9 @@ import static seedu.address.testutil.TypicalTimes.NOW;
 
 import java.io.IOException;
 import java.nio.file.Path;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -45,11 +48,13 @@ public class LogicManagerHistoryTest {
     private ModelManager model;
     private LogicManager logic;
     private JsonAddressBookStorage addressBookStorage;
+    private MutableClock clock;
     private boolean failSave;
 
     @BeforeEach
     public void setUp() {
-        model = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
+        clock = new MutableClock(FIXED_CLOCK.instant(), FIXED_CLOCK.getZone());
+        model = new ModelManager(new AddressBook(), new UserPrefs(), clock);
         addressBookStorage = new JsonAddressBookStorage(temporaryFolder.resolve("addressBook.json")) {
             @Override
             public void saveAddressBook(ReadOnlyAddressBook addressBook) throws IOException {
@@ -97,12 +102,15 @@ public class LogicManagerHistoryTest {
         ReadOnlyAddressBook beforeClear = new AddressBook(model.getAddressBook());
         logic.execute("clear");
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        clock.advanceSeconds(60);
 
         logic.execute("undo");
 
         assertEquals(beforeClear, model.getAddressBook());
         assertEquals(selected, model.getViewedPerson().get());
         assertEquals(beforeClear, addressBookStorage.readAddressBook().orElseThrow());
+        assertEquals(NOW, model.getAddressBook().getPersonList().get(0)
+                .getActivity().getLastViewedAt().orElseThrow());
     }
 
     @Test
@@ -114,12 +122,36 @@ public class LogicManagerHistoryTest {
 
         logic.execute("delete 1");
         assertNull(model.getViewedPerson().get());
+        clock.advanceSeconds(60);
         logic.execute("undo");
 
-        assertEquals(beforeDelete, model.getAddressBook().getPersonList().get(0));
+        Person restored = model.getAddressBook().getPersonList().get(0);
+        assertEquals(beforeDelete, restored);
         assertEquals(beforeDelete, model.getViewedPerson().get());
         assertEquals(beforeDelete, addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0));
-        assertEquals(NOW, beforeDelete.getActivity().getLastViewedAt().orElseThrow());
+        assertEquals(NOW, restored.getActivity().getLastViewedAt().orElseThrow());
+    }
+
+    @Test
+    public void execute_deleteThenViewAnotherThenUndo_preservesLaterViewOfSurvivingContact() throws Exception {
+        logic.execute(addAmy());
+        logic.execute(ADD_BOB);
+        logic.execute("view 1");
+        Person beforeDelete = model.getAddressBook().getPersonList().get(0);
+        logic.execute("delete 1");
+
+        clock.advanceSeconds(60);
+        logic.execute("view 1");
+        clock.advanceSeconds(60);
+        logic.execute("undo");
+
+        Person restoredAmy = model.getAddressBook().getPersonList().get(0);
+        Person survivingBob = model.getAddressBook().getPersonList().get(1);
+        assertEquals(beforeDelete, restoredAmy);
+        assertEquals(NOW, restoredAmy.getActivity().getLastViewedAt().orElseThrow());
+        assertEquals(NOW.plusSeconds(60), survivingBob.getActivity().getLastViewedAt().orElseThrow());
+        assertEquals(restoredAmy, model.getViewedPerson().get());
+        assertEquals(model.getAddressBook(), addressBookStorage.readAddressBook().orElseThrow());
     }
 
     @Test
@@ -443,5 +475,34 @@ public class LogicManagerHistoryTest {
 
     private static String addAmy() {
         return "add" + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY;
+    }
+
+    private static class MutableClock extends Clock {
+        private Instant instant;
+        private final ZoneId zone;
+
+        MutableClock(Instant instant, ZoneId zone) {
+            this.instant = instant;
+            this.zone = zone;
+        }
+
+        void advanceSeconds(long seconds) {
+            instant = instant.plusSeconds(seconds);
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return zone;
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            return new MutableClock(instant, zone);
+        }
+
+        @Override
+        public Instant instant() {
+            return instant;
+        }
     }
 }

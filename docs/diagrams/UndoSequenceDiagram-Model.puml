@@ -3,21 +3,36 @@
 skinparam ArrowFontStyle plain
 
 box Model MODEL_COLOR_T1
-participant ":Model" as Model MODEL_COLOR
-participant ":VersionedAddressBook" as VersionedAddressBook MODEL_COLOR
+participant "m:ModelManager" as Model MODEL_COLOR
+participant ":AddressBook" as AddressBook MODEL_COLOR
+participant "filteredPersons:FilteredList" as FilteredList MODEL_COLOR
+participant "viewedPerson:ObjectProperty" as ViewedPerson MODEL_COLOR
 end box
 
-[-> Model : undoAddressBook()
+[-> Model : undo()
 activate Model
-
-Model -> VersionedAddressBook : undo()
-activate VersionedAddressBook
-
-VersionedAddressBook -> VersionedAddressBook :resetData(ReadOnlyAddressBook)
-VersionedAddressBook --> Model :
-deactivate VersionedAddressBook
-
+Model -> Model : captureState()
+note right: Save current state for redo.
+Model -> Model : undoHistory.removeLast()
+Model -> Model : redoHistory.addLast(current)
+Model -> Model : restoreState(previous, true)
+note right
+  Restore saved contact fields and activity times.
+  Keep later explicit views of surviving contacts.
+  Restoring a deleted contact is not a new view.
+end note
+Model -> AddressBook : setPersons(restored)
+activate AddressBook
+AddressBook --> Model
+deactivate AddressBook
+Model -> FilteredList : setPredicate(previous.filter)
+activate FilteredList
+FilteredList --> Model
+deactivate FilteredList
+Model -> ViewedPerson : set(restoredSelection)
+activate ViewedPerson
+ViewedPerson --> Model
+deactivate ViewedPerson
 [<-- Model
 deactivate Model
-
 @enduml
