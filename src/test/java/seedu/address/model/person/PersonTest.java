@@ -14,7 +14,9 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -36,7 +38,7 @@ public class PersonTest {
 
     @Test
     public void followUpDate_dueAndOverdueBoundaries() {
-        java.time.LocalDate today = java.time.LocalDate.of(2026, 10, 21);
+        LocalDate today = LocalDate.of(2026, 10, 21);
         Person none = new PersonBuilder().build();
         Person yesterday = new PersonBuilder().withFollowUpDate(today.minusDays(1)).build();
         Person dueToday = new PersonBuilder().withFollowUpDate(today).build();
@@ -53,11 +55,11 @@ public class PersonTest {
 
     @Test
     public void toBuilder_keepsFollowUpDateAndEqualityUsesIt() {
-        Person withDate = new PersonBuilder().withFollowUpDate(java.time.LocalDate.of(2026, 10, 25)).build();
+        Person withDate = new PersonBuilder().withFollowUpDate(LocalDate.of(2026, 10, 25)).build();
 
         assertEquals(withDate, withDate.toBuilder().build());
         assertNotEquals(withDate, withDate.toBuilder().withFollowUpDate(null).build());
-        assertEquals(java.util.Optional.of(java.time.LocalDate.of(2026, 10, 25)), withDate.getFollowUpDate());
+        assertEquals(Optional.of(LocalDate.of(2026, 10, 25)), withDate.getFollowUpDate());
     }
 
     @Test

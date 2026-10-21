@@ -36,6 +36,7 @@ public class FollowUpCommandParserTest {
     @Test
     public void parse_clear_success() {
         assertParseSuccess(parser, " 1 clear", new FollowUpCommand(INDEX_FIRST_PERSON, null));
+        assertParseSuccess(parser, " 1 CLEAR", new FollowUpCommand(INDEX_FIRST_PERSON, null));
     }
 
     @Test
