@@ -75,6 +75,28 @@ public class PersonCardTest {
         return (Label) card.getRoot().lookup("#followUp");
     }
 
+    @Test
+    public void constructor_starredPerson_showsStar() {
+        Person person = new PersonBuilder().withStarred(true).build();
+        Label star = getStarLabel(new PersonCard(person, 1));
+
+        assertTrue(star.isVisible());
+        assertTrue(star.isManaged());
+    }
+
+    @Test
+    public void constructor_unstarredPerson_hidesStar() {
+        Person person = new PersonBuilder().withStarred(false).build();
+        Label star = getStarLabel(new PersonCard(person, 1));
+
+        assertFalse(star.isVisible());
+        assertFalse(star.isManaged());
+    }
+
+    private Label getStarLabel(PersonCard personCard) {
+        return (Label) personCard.getRoot().lookup("#star");
+    }
+
     private Label getLinkedInLabel(PersonCard personCard) {
         return (Label) personCard.getRoot().lookup("#linkedIn");
     }

@@ -192,7 +192,7 @@ public class PersonTest {
                 + ", email=" + ALICE.getEmail()
                 + ", linkedIn=" + ALICE.getLinkedIn() + ", tags=" + ALICE.getTags()
                 + ", note=none, activity=" + ALICE.getActivity() + ", meeting=" + ALICE.getMeeting().toLogString()
-                + ", photoPath=" + ALICE.getPhotoPath() + ", followUpDate=null}";
+                + ", photoPath=" + ALICE.getPhotoPath() + ", starred=false, followUpDate=null}";
         assertEquals(expected, ALICE.toString());
     }
 

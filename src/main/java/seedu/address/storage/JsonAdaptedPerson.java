@@ -34,6 +34,7 @@ class JsonAdaptedPerson {
     /** Message for a malformed field in the data file, as {@code Invalid contact data: '<field>' <reason>.} */
     public static final String INVALID_FIELD_MESSAGE_FORMAT = "Invalid contact data: '%s' %s.";
     public static final String REASON_INVALID_TIME = "must be an ISO-8601 UTC timestamp";
+    public static final String REASON_INVALID_STARRED = "must be true or false";
     public static final String REASON_INVALID_NOTE =
             "must be a string of at most " + Note.MAX_LENGTH + " characters";
 
@@ -55,6 +56,8 @@ class JsonAdaptedPerson {
     @com.fasterxml.jackson.annotation.JsonInclude(com.fasterxml.jackson.annotation.JsonInclude.Include.NON_NULL)
     private Object meeting;
     private Object photoPath;
+    // Object, not Boolean, so that a value that is not true or false gets the field-specific message
+    private Object starred;
     private Object followUpDate;
 
     /**
@@ -117,6 +120,7 @@ class JsonAdaptedPerson {
             meeting = values;
         }
         photoPath = source.getPhotoPath().isEmpty() ? null : source.getPhotoPath();
+        starred = source.isStarred();
         followUpDate = source.getFollowUpDate().map(LocalDate::toString).orElse(null);
         Activity activity = source.getActivity();
         createdAt = activity.getCreatedAt().map(Instant::toString).orElse(null);
@@ -168,7 +172,7 @@ class JsonAdaptedPerson {
         final Note modelNote = parseNote(note);
         return new Person(modelName, modelPhone, modelEmail, modelLinkedIn, modelTags, modelActivity, modelNote)
                 .toBuilder().withMeeting(parseMeeting()).withPhotoPath(readPhotoReference())
-                .withFollowUpDate(parseFollowUpDate()).build();
+                .withStarred(parseStarred()).withFollowUpDate(parseFollowUpDate()).build();
     }
 
     /**
@@ -186,6 +190,21 @@ class JsonAdaptedPerson {
             throw new IllegalValueException(String.format(INVALID_FIELD_MESSAGE_FORMAT, "note", REASON_INVALID_NOTE));
         }
         return new Note(text);
+    }
+
+    /**
+     * Reads the starred flag. A missing or null value means not starred, so that older data files still load.
+     *
+     * @throws IllegalValueException if the value is present but is not true or false.
+     */
+    private boolean parseStarred() throws IllegalValueException {
+        if (starred == null) {
+            return false;
+        }
+        if (starred instanceof Boolean flag) {
+            return flag;
+        }
+        throw new IllegalValueException(String.format(INVALID_FIELD_MESSAGE_FORMAT, "starred", REASON_INVALID_STARRED));
     }
 
     /** Reads the optional follow-up date; a missing or null value means no follow-up. */

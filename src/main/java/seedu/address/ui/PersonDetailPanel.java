@@ -40,6 +40,8 @@ public class PersonDetailPanel extends UiPart<Region> {
     @FXML
     private Label name;
     @FXML
+    private Label star;
+    @FXML
     private Label phone;
     @FXML
     private Label email;
@@ -87,6 +89,7 @@ public class PersonDetailPanel extends UiPart<Region> {
         placeholder.setVisible(!hasPerson);
         scrollPane.setVisible(hasPerson);
         content.setVisible(hasPerson);
+        star.setVisible(hasPerson && person.isStarred());
 
         tags.getChildren().clear();
         if (!hasPerson) {

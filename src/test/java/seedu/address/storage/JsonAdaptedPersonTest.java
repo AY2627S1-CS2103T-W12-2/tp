@@ -1,6 +1,7 @@
 package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -332,6 +333,40 @@ public class JsonAdaptedPersonTest {
             JsonAdaptedPerson adapted = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
             assertThrows(IllegalValueException.class, expected, adapted::toModelType);
         }
+    }
+
+    /*
+     * Equivalence partitions for the starred field in the data file:
+     *   - missing or null, which means not starred  - valid
+     *   - true or false                             - valid
+     *   - anything else, such as a string or number - invalid
+     */
+    @Test
+    public void toModelType_starredRoundTrip_preservesStar() throws Exception {
+        Person starred = new PersonBuilder(BENSON).withStarred(true).build();
+
+        assertTrue(new JsonAdaptedPerson(starred).toModelType().isStarred());
+        assertFalse(new JsonAdaptedPerson(BENSON).toModelType().isStarred());
+    }
+
+    @Test
+    public void toModelType_missingOrNullStarred_defaultsToNotStarred() throws Exception {
+        assertFalse(personWithStarred("").toModelType().isStarred());
+        assertFalse(personWithStarred(", \"starred\": null").toModelType().isStarred());
+    }
+
+    @Test
+    public void toModelType_invalidStarred_throwsFieldSpecificMessage() throws Exception {
+        String expected = "Invalid contact data: 'starred' must be true or false.";
+
+        assertThrows(IllegalValueException.class, expected, personWithStarred(", \"starred\": \"yes\"")::toModelType);
+        assertThrows(IllegalValueException.class, expected, personWithStarred(", \"starred\": 1")::toModelType);
+    }
+
+    private static JsonAdaptedPerson personWithStarred(String starredEntry) throws Exception {
+        String json = "{\"name\": \"" + VALID_NAME + "\", \"phone\": \"" + VALID_PHONE + "\", \"email\": \""
+                + VALID_EMAIL + "\", \"linkedIn\": \"" + VALID_LINKEDIN + "\"" + starredEntry + "}";
+        return JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
     }
 
     private static JsonAdaptedPerson personWithNote(Object note) {

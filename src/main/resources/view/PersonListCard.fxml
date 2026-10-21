@@ -37,5 +37,10 @@
       <Label fx:id="email" styleClass="cell_small_label" text="\$email" />
       <Label fx:id="linkedIn" styleClass="cell_small_label" text="\$linkedIn" />
     </VBox>
+    <Label fx:id="star" text="★" styleClass="star" GridPane.columnIndex="0" GridPane.halignment="RIGHT" GridPane.valignment="TOP">
+      <GridPane.margin>
+        <Insets top="5" right="10" />
+      </GridPane.margin>
+    </Label>
   </GridPane>
 </HBox>

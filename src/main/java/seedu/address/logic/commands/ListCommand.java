@@ -17,8 +17,13 @@ public class ListCommand extends Command {
 
     @Override
     public CommandResult execute(Model model) {
+        resetVisibleList(model);
+        return new CommandResult(MESSAGE_SUCCESS);
+    }
+
+    static void resetVisibleList(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
-        return new CommandResult(MESSAGE_SUCCESS);
+        model.clearPersonListSort();
     }
 }

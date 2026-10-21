@@ -94,11 +94,36 @@ Examples:
 
 ### Listing all contacts: `list`
 
-Shows a list of all contacts in LarperBoard.
+Shows all contacts in their original order. It also clears any active time sort.
 
 Format: `list`
 
-* Use `list` to return to the full contact list after `find` or `group`.
+* Use `list` or `reset` to return to the full, original-order list after `find` or `group`.
+### Resetting the displayed list: `reset`
+
+Clears the active filters and sort, then shows all contacts in their original order.
+
+Format: `reset`
+
+### Sorting contacts by activity time: `sort`
+
+Sorts the currently displayed contacts by a recorded activity time. The active order and result count are shown above
+the contact list.
+
+Format: `sort added|edited|viewed`
+
+* `sort added` puts most recently added contacts first.
+* `sort edited` puts most recently edited contacts first.
+* `sort viewed` puts most recently viewed contacts first. Viewing a contact can therefore move it in this list.
+* Contacts without the chosen recorded time appear last. Contacts with equal times keep their original list order.
+* The displayed indexes follow the order you see, so commands such as `view`, `edit`, `delete`, and `tag` use the
+  sorted contact index.
+* Use `list` or `reset` to return to the full, original-order list after `find` or `group`.
+
+Examples:
+
+* `sort added` shows the newest contacts first.
+* `sort viewed` followed by `view 2` records that view and may move that contact to the top.
 
 ### Editing a contact: `edit`
 
@@ -112,6 +137,8 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…�
 * When editing tags, all of the contact's existing tags are replaced; adding tags with `edit` is not cumulative.
 * To remove all of a contact's tags, enter `t/` without a tag after it.
 * To remove a contact's LinkedIn handle, enter `l/` without a handle after it.
+* If the supplied values already match the contact, the command reports `Person unchanged:` followed by the
+  contact's details. The displayed list, activity times, and undo history stay unchanged.
 
 Examples:
 * `edit 1 p/91234567 e/johndoe@example.com` changes the 1st contact's phone number and email address to `91234567` and `johndoe@example.com`.
@@ -193,6 +220,36 @@ Format: `group t/TAG`
 Examples:
 * `group t/react`
 * `group t/UI-UX`
+
+### Starring important contacts: `star` and `unstar`
+
+Marks a contact as important with a star, or removes the star again.
+
+Format: `star INDEX` or `unstar INDEX`
+
+* `INDEX` refers to the index number shown in the displayed contact list and must be a positive integer.
+* A starred contact shows a ★ in the top right corner of its card in the contact list, and in the top right corner of the contact details.
+* Starring a contact that is already starred (or removing the star from one that is not) changes nothing, and LarperBoard tells you so.
+* Stars are saved with your data, and you can reverse a change with `undo`.
+
+Examples:
+* `star 1` stars the first contact in the displayed list.
+* `unstar 1` removes the star from it.
+
+### Showing only starred contacts: `filter`
+
+Shows only your starred contacts, or shows all contacts again.
+
+Format: `filter starred` or `filter starred off`
+
+* The keywords are case-insensitive.
+* The result message shows how many contacts are listed. If you have not starred anyone, the list is empty.
+* `filter` replaces the current `find`, `group` or `filter` result rather than combining with it.
+* `list` also shows all contacts again.
+
+Examples:
+* `filter starred` shows only the starred contacts.
+* `filter starred off` shows every contact again.
 
 ### Deleting a contact: `delete`
 
@@ -408,6 +465,8 @@ Field | Meaning | Format
 
 Each contact can also have an optional `note` field: a string of at most 1000 characters. A missing or `null` field means the contact has no note. A note that is empty or only spaces, longer than 1000 characters, or not a string makes the data file invalid, and LarperBoard reports `Invalid contact data: 'note' must be a string of at most 1000 characters.`
 
+Each contact can also have an optional `starred` field, which is `true` or `false`. A missing or `null` field means the contact is not starred. Any other value makes the data file invalid, and LarperBoard reports `Invalid contact data: 'starred' must be true or false.`
+
 LarperBoard fills the time fields in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid, and LarperBoard reports `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem). Times are shown in Singapore time (Asia/Singapore).
 
 ### Archiving data files `[coming in v2.0]`
@@ -439,6 +498,7 @@ Action | Format, Examples
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Exit** | `exit`
+**Filter** | `filter starred` or `filter starred off`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…​`<br> e.g., `find James Jake`
 **Follow-up** | `followup INDEX d/YYYY-MM-DD` or `followup INDEX clear`<br> e.g., `followup 1 d/2026-10-25`
 **Group** | `group t/TAG`<br> e.g., `group t/react`
@@ -448,6 +508,10 @@ Action | Format, Examples
 
 **Photo** | `photo INDEX f/RELATIVE_PATH` or `photo INDEX clear`
 **Note** | `note INDEX nt/NOTE` or `note INDEX clear`<br> e.g., `note 1 nt/Met at the AI track`
+**Reset** | `reset`
+**Sort** | `sort added|edited|viewed`<br> e.g., `sort viewed`
+**Star** | `star INDEX`<br> e.g., `star 1`
 **Tag** | `tag INDEX t/TAG [t/TAG]…​`<br> e.g., `tag 1 t/frontend t/react`
 **Undo** | `undo`
+**Unstar** | `unstar INDEX`<br> e.g., `unstar 1`
 **View** | `view INDEX`<br> e.g., `view 1`

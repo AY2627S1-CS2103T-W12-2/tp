@@ -38,6 +38,8 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label id;
     @FXML
+    private Label star;
+    @FXML
     private Label phone;
     @FXML
     private Label email;
@@ -70,6 +72,8 @@ public class PersonCard extends UiPart<Region> {
         ContactPhoto.show(person.getPhotoPath(), photo, photoPlaceholder, PhotoStorage.forApplication());
         id.setText(displayedIndex + ". ");
         name.setText(person.getName().fullName);
+        star.setVisible(person.isStarred());
+        star.setManaged(person.isStarred());
         phone.setText(person.getPhone().value);
         email.setText(person.getEmail().value);
         linkedIn.setText(person.getLinkedIn().value);

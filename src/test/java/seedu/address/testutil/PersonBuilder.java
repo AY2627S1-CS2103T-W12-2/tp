@@ -34,6 +34,7 @@ public class PersonBuilder {
     private Activity activity;
     private Meeting meeting;
     private String photoPath;
+    private boolean starred;
     private LocalDate followUpDate;
 
     /**
@@ -49,6 +50,7 @@ public class PersonBuilder {
         activity = Activity.EMPTY;
         meeting = Meeting.EMPTY;
         photoPath = "";
+        starred = false;
     }
 
     /**
@@ -64,6 +66,7 @@ public class PersonBuilder {
         activity = personToCopy.getActivity();
         meeting = personToCopy.getMeeting();
         photoPath = personToCopy.getPhotoPath();
+        starred = personToCopy.isStarred();
         followUpDate = personToCopy.getFollowUpDate().orElse(null);
     }
 
@@ -123,10 +126,19 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets whether the {@code Person} that we are building is starred.
+     */
+    public PersonBuilder withStarred(boolean starred) {
+        this.starred = starred;
+        return this;
+    }
+
     /** Builds a contact while retaining all copied fields. */
     public Person build() {
         return new Person(name, phone, email, linkedIn, tags, activity, note)
-                .toBuilder().withMeeting(meeting).withPhotoPath(photoPath).withFollowUpDate(followUpDate).build();
+                .toBuilder().withMeeting(meeting).withPhotoPath(photoPath).withStarred(starred)
+                .withFollowUpDate(followUpDate).build();
     }
 
     /**

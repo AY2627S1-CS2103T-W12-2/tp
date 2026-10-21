@@ -34,6 +34,7 @@ public class Person {
     private final Meeting meeting;
     private final String photoPath;
     private final LocalDate followUpDate;
+    private final boolean starred;
 
     /**
      * Creates a new person with no known activity times.
@@ -59,12 +60,12 @@ public class Person {
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity,
             Note note) {
-        this(name, phone, email, linkedIn, tags, activity, note, Meeting.EMPTY, "", null);
+        this(name, phone, email, linkedIn, tags, activity, note, Meeting.EMPTY, "", false, null);
     }
 
     /** Creates a complete contact with optional meeting context. */
     private Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity,
-            Note note, Meeting meeting, String photoPath, LocalDate followUpDate) {
+            Note note, Meeting meeting, String photoPath, boolean starred, LocalDate followUpDate) {
         requireAllNonNull(name, phone, email, linkedIn, tags, activity, note, meeting, photoPath);
         this.name = name;
         this.phone = phone;
@@ -75,6 +76,7 @@ public class Person {
         this.note = note;
         this.meeting = meeting;
         this.photoPath = photoPath;
+        this.starred = starred;
         this.followUpDate = followUpDate;
     }
 
@@ -128,6 +130,11 @@ public class Person {
     /** Returns true if there is a follow-up date strictly before {@code today}. */
     public boolean isFollowUpOverdueOn(LocalDate today) {
         return followUpDate != null && followUpDate.isBefore(today);
+    }
+
+    /** Returns true if the user has starred this contact as important. */
+    public boolean isStarred() {
+        return starred;
     }
 
     public Activity getActivity() {
@@ -196,13 +203,15 @@ public class Person {
                 && activity.equals(otherPerson.activity)
                 && meeting.equals(otherPerson.meeting)
                 && photoPath.equals(otherPerson.photoPath)
+                && starred == otherPerson.starred
                 && Objects.equals(followUpDate, otherPerson.followUpDate);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, linkedIn, tags, note, activity, meeting, photoPath, followUpDate);
+        return Objects.hash(name, phone, email, linkedIn, tags, note, activity, meeting, photoPath, starred,
+                followUpDate);
     }
 
     @Override
@@ -218,6 +227,7 @@ public class Person {
                 .add("activity", activity)
                 .add("meeting", meeting.toLogString())
                 .add("photoPath", photoPath)
+                .add("starred", starred)
                 .add("followUpDate", followUpDate)
                 .toString();
     }
@@ -237,6 +247,7 @@ public class Person {
         private Activity activity;
         private Meeting meeting;
         private String photoPath;
+        private boolean starred;
         private LocalDate followUpDate;
 
         private Builder(Person source) {
@@ -249,6 +260,7 @@ public class Person {
             activity = source.activity;
             meeting = source.meeting;
             photoPath = source.photoPath;
+            starred = source.starred;
             followUpDate = source.followUpDate;
         }
 
@@ -333,11 +345,17 @@ public class Person {
             return this;
         }
 
+        /** Replaces only the starred flag, retaining all other fields. */
+        public Builder withStarred(boolean starred) {
+            this.starred = starred;
+            return this;
+        }
+
         /**
          * Returns a new {@code Person} with the fields set so far.
          */
         public Person build() {
-            return new Person(name, phone, email, linkedIn, tags, activity, note, meeting, photoPath,
+            return new Person(name, phone, email, linkedIn, tags, activity, note, meeting, photoPath, starred,
                     followUpDate);
         }
     }

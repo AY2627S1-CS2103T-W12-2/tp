@@ -2,6 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.DESC_BOB;
@@ -19,6 +20,8 @@ import static seedu.address.testutil.TypicalTimes.EARLIEST;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 import static seedu.address.testutil.TypicalTimes.NOW;
 
+import java.util.List;
+
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
@@ -29,6 +32,7 @@ import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.model.person.Activity;
+import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.EditPersonDescriptorBuilder;
 import seedu.address.testutil.PersonBuilder;
@@ -80,7 +84,7 @@ public class EditCommandTest {
         EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON, new EditPersonDescriptor());
         Person editedPerson = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
 
-        String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
+        String expectedMessage = String.format("Person unchanged: %1$s", Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), FIXED_CLOCK);
 
@@ -99,6 +103,8 @@ public class EditCommandTest {
         String expectedMessage = String.format(EditCommand.MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson));
 
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), FIXED_CLOCK);
+        String keyword = personInFilteredList.getName().fullName.split("\\s+")[0];
+        expectedModel.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of(keyword)));
         expectedModel.editPerson(model.getFilteredPersonList().get(0), editedPerson);
 
         assertCommandSuccess(editCommand, model, expectedMessage, expectedModel);
@@ -206,9 +212,26 @@ public class EditCommandTest {
         model.setPerson(original, original.withActivity(activity));
         EditPersonDescriptor descriptor = new EditPersonDescriptorBuilder(original).build();
 
-        new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(model);
+        CommandResult result = new EditCommand(INDEX_FIRST_PERSON, descriptor).execute(model);
 
         assertEquals(activity, model.getFilteredPersonList().get(0).getActivity());
+        assertEquals(String.format("Person unchanged: %1$s", Messages.format(model.getFilteredPersonList().get(0))),
+                result.getFeedbackToUser());
+    }
+
+    @Test
+    public void execute_editHidesViewedPerson_clearsSelection() throws Exception {
+        Person personToEdit = model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased());
+        String matchingName = personToEdit.getName().fullName.split("\\s+")[0];
+        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of(matchingName)));
+        new ViewCommand(INDEX_FIRST_PERSON).execute(model);
+
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withName("Zed Tan").build());
+        editCommand.execute(model);
+
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertNull(model.getViewedPerson().get());
     }
 
     @Test

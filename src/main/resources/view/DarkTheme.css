@@ -328,6 +328,10 @@
     -fx-text-fill: white;
 }
 
+#personListStatus {
+    -fx-text-fill: #e6e6e6;
+}
+
 #filterField, #personListPanel, #personWebpage {
     -fx-effect: innershadow(gaussian, black, 10, 0, 0, 0);
 }
@@ -383,6 +387,15 @@
 
 .detail-scroll > .viewport {
     -fx-background-color: transparent;
+}
+
+.label.star {
+    -fx-text-fill: #f5c542;
+    -fx-font-size: 18px;
+}
+
+.list-cell .label.star {
+    -fx-text-fill: #f5c542;
 }
 
 .cell_small_label.overdue {
