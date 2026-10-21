@@ -3,9 +3,12 @@ package seedu.address.testutil;
 import java.util.HashSet;
 import java.util.Set;
 
+import seedu.address.model.person.Activity;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.LinkedIn;
+import seedu.address.model.person.Meeting;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
@@ -26,6 +29,10 @@ public class PersonBuilder {
     private Email email;
     private LinkedIn linkedIn;
     private Set<Tag> tags;
+    private Note note;
+    private Activity activity;
+    private Meeting meeting;
+    private String photoPath;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -36,6 +43,10 @@ public class PersonBuilder {
         email = new Email(DEFAULT_EMAIL);
         linkedIn = new LinkedIn(DEFAULT_LINKEDIN);
         tags = new HashSet<>();
+        note = Note.EMPTY;
+        activity = Activity.EMPTY;
+        meeting = Meeting.EMPTY;
+        photoPath = "";
     }
 
     /**
@@ -47,6 +58,10 @@ public class PersonBuilder {
         email = personToCopy.getEmail();
         linkedIn = personToCopy.getLinkedIn();
         tags = new HashSet<>(personToCopy.getTags());
+        note = personToCopy.getNote();
+        activity = personToCopy.getActivity();
+        meeting = personToCopy.getMeeting();
+        photoPath = personToCopy.getPhotoPath();
     }
 
     /**
@@ -89,8 +104,26 @@ public class PersonBuilder {
         return this;
     }
 
+    /**
+     * Sets the {@code Note} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withNote(String note) {
+        this.note = new Note(note);
+        return this;
+    }
+
+    /**
+     * Sets the {@code Activity} of the {@code Person} that we are building.
+     */
+    public PersonBuilder withActivity(Activity activity) {
+        this.activity = activity;
+        return this;
+    }
+
+    /** Builds a contact while retaining all copied fields. */
     public Person build() {
-        return new Person(name, phone, email, linkedIn, tags);
+        return new Person(name, phone, email, linkedIn, tags, activity, note)
+                .toBuilder().withMeeting(meeting).withPhotoPath(photoPath).build();
     }
 
 }

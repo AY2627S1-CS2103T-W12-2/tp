@@ -72,9 +72,17 @@ The **API** of this component is specified in [`Ui.java`](https://github.com/se-
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
-The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
+The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, `PersonDetailPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+
+`PersonCard` and `PersonDetailPanel` use `ContactPhoto` to display bounded images from validated
+`PhotoStorage` bytes. A single background worker performs file validation and image decoding,
+so building a contact list does not block the JavaFX thread on photo reads. A placeholder is shown
+until loading finishes. Replaced requests and discarded contact cards cancel queued photo work;
+an already-running decode can finish, but its stale result is never displayed.
+The detail panel observes
+the viewed person and scrolls vertically to keep full meeting and contact details accessible.
 
 The `UI` component,
 
@@ -119,14 +127,17 @@ How the parsing works:
 
 **API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
 
-<img src="images/ModelClassDiagram.png" width="450" />
+<img src="images/ModelClassDiagram.png" width="800" />
 
 The `Model` component,
 
 * stores the address book data i.e., all `Person` objects (which are contained in a `UniquePersonList` object).
 * stores the `Person` objects selected by the current filter, such as search results, in a separate _filtered_ list. It exposes this list as an unmodifiable `ObservableList<Person>` that the UI can observe and bind to, so the UI updates when the list changes.
+* keeps immutable meeting context in each `Person`, using `Meeting.EMPTY` when all event/date/role fields are absent; the complete builder also preserves the optional `photoPath` reference when other fields change.
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
+* gives every `Person` an immutable `Activity` holding when the person was created, last edited and last viewed. Each time is optional: an unknown time is absent, never invented. `Person#withActivity` copies a person with new activity, and `Person#hasSameDetails` compares two persons while ignoring activity.
+* gives every `Person` an optional free-form `Note` of at most 1000 characters. An empty `Note` means that the person has no note. The `note` command changes it through `Person#toBuilder` and `Model#editPerson`, so the other fields and the activity times are kept, and the last edited time changes only when the note really changes.
 
 <div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
 
@@ -143,8 +154,11 @@ The `Model` component,
 The `Storage` component,
 
 * can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
+* keeps photo file access in the separate `PhotoStorage` class. Commands import validated PNG/JPEG files into the application-folder `photos/` directory; `ContactPhoto` reads validated image bytes through the same service. Imported assets are retained for history restoration.
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+* saves a person's activity as optional `createdAt`, `lastEditedAt` and `lastViewedAt` fields in `addressbook.json`. Each is a whole-second ISO-8601 UTC timestamp written exactly as `2026-10-17T04:12:33Z`. A missing or `null` field loads as an absent time, so data files from v1.3 still load. A value with a fraction of a second, an offset other than `Z`, surrounding spaces or any other format makes the file fail to load with `Invalid contact data: '<field>' must be an ISO-8601 UTC timestamp.`, naming the field (`createdAt`, `lastEditedAt` or `lastViewedAt`). `JsonAdaptedPerson.INVALID_FIELD_MESSAGE_FORMAT` holds this message pattern so other fields use the same wording.
+* saves a person's note as an optional `note` string in `addressbook.json`. A missing or `null` field loads as no note, so older data files still load. A note that is blank, longer than 1000 characters or not a string makes the file fail to load with `Invalid contact data: 'note' must be a string of at most 1000 characters.`
 
 ### Common classes
 
@@ -155,6 +169,25 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 ## **Implementation**
 
 This section describes some noteworthy details on how certain features are implemented.
+
+### Contact activity
+
+Each `Person` carries an `Activity` with its created, last edited and last viewed times (see the [Model component](#model-component) and [Storage component](#storage-component) for the data and file format). The model is the only place that decides when these times change, so every feature records them the same way.
+
+* `ModelManager` holds a `java.time.Clock`. By default it is the system clock in `Model.DISPLAY_ZONE` (Asia/Singapore), which is the zone used to display activity times and to decide what "today" is. Tests inject a fixed clock. `Model#now()` returns the current time in whole seconds.
+* **Copying a contact:** `Person` is immutable. To change an existing contact, call `person.toBuilder()`, set the fields to change, and call `build()`. The builder starts with every field, so a field you do not set (including activity times and fields added by later features) is kept. Do not call the `Person` constructors with a partial set of fields. A new `Person` field must also be added to `Person.Builder`. The constructors without an activity argument are for new contacts and tests.
+* **Created:** `AddCommand` adds the new person with `created` set to `Model#now()`. A command that fails (for example, a duplicate) records nothing.
+* **Last edited:** `Model#editPerson(target, edited)` is the rule that every command changing a contact must use instead of `Model#setPerson`. If `edited.hasSameDetails(target)` it does nothing. Otherwise it stores `edited` with the activity of `target` and `lastEditedAt` set to now. The activity of `edited` is ignored, so a copy built without activity cannot wipe the other times. `EditCommand` and `TagCommand` use it, and new commands (notes, star, follow-up, photo) should too.
+* **Last viewed:** `Model#viewPerson(person)` sets `lastViewedAt` to now and makes the stored person the viewed person. `ViewCommand` uses it. Viewing is not part of undo history, so undoing a change does not restore an earlier last-viewed time.
+* **A failed save changes nothing.** `LogicManager` takes `Model#createSnapshot()` before it runs a command. If saving the data file then fails, it calls `Model#restore(snapshot)` and shows the error, so the contacts, the viewed contact and the visible-list filter are as they were and no created, edited or viewed time is kept. The snapshot is opaque (`Model.Snapshot`), so the undo history (#108) can add its stacks to it later. It only covers what a command changes in memory, not the user preferences.
+* **Display:** the detail panel shows the three times as `yyyy-MM-dd HH:mm` in `Model.DISPLAY_ZONE` (Asia/Singapore), or an em dash (`—`) when a time is not known. The block sits at the bottom of `PersonDetailPanel.fxml`.
+
+<img src="images/EditActivitySequenceDiagram.png" width="600" />
+
+Design considerations:
+
+* **Stamp in the model, not in each command.** Each command would otherwise repeat the "was anything really changed?" check and could drift apart. The trade-off is that `Model` gains two methods.
+* **Ignore the edited person's activity.** Commands build the edited `Person` from the old one, and a new field that someone forgets to copy would silently reset the times. Always taking the activity from `target` makes that mistake harmless.
 
 ### \[Proposed\] Undo/redo feature
 
@@ -387,6 +420,33 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
   * 2a1. LarperBoard informs the user that no matching persons were found.
 
     Use case ends.
+
+**Use case: Group contacts by tag**
+
+The user enters `group t/TAG` to display contacts with a selected tag.
+
+**MSS**
+
+1. User requests to group contacts by one tag.
+2. LarperBoard filters the displayed contact list to contacts with the specified tag, ignoring tag letter case.
+3. LarperBoard displays the selected tag and the number of matching contacts.
+4. User enters `list` to return to the full contact list.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user omits the tag or provides an invalid tag.
+  * 1a1. LarperBoard displays an error message.
+
+    Use case resumes at step 1.
+
+* 2a. No contacts have the specified tag.
+  * 2a1. LarperBoard displays the selected tag and a result count of zero.
+
+    Use case ends.
+
+**Implementation note:** Grouping updates the existing filtered person list. Tags stored on each contact remain the source of truth; no separate group data is stored. Index-based commands continue to use the displayed list.
 
 **Use case: Edit a person's details**
 
@@ -641,3 +701,51 @@ Given below are instructions to test the app manually.
    1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
 
 1. _{ more test cases …​ }_
+
+### Meeting context implementation
+
+The sequence below shows a partial meeting update, the no-op path, and rollback when saving fails.
+The `createSnapshot`, `restore`, and `recordSuccessfulMutation` calls show shared existing
+snapshot/history behavior from #108 and #131/#132, rather than functionality implemented by #130.
+
+![Meeting context implementation](images/MeetingUpdateSequenceDiagram.png)
+
+`Meeting` is an immutable optional value held by `Person` and copied by `Person.toBuilder()`.
+`MeetingCommandParser` validates the displayed index, duplicate prefixes, strict real dates, nonblank
+text bounds, and explicit clear grammar. `MeetingCommand` merges only supplied fields, then calls
+`Model.editPerson` using a complete copy. Same-value updates return without mutation. Logic saves
+before recording history, restoring its snapshot on failed saves. Existing snapshots therefore retain
+meeting fields without a separate history mechanism. History integration remains owned by #131/#132.
+
+`JsonAdaptedPerson` accepts absent/null meeting fields for older data, validates present JSON types
+without coercion, and reports the exact offending meeting field. Empty context is omitted on save.
+`EventContainsTermsPredicate` supplies case-insensitive partial OR matching to #127/#128; the base
+parser exposes event-only `find ev/TERM` without implementing other owners' search features.
+The card bounds its event cue to 32 displayed characters, and the detail panel scrolls vertically.
+
+Tests cover strict/leap dates, 80/81-character bounds, partial updates and individual/all clears,
+old/malformed JSON and round trips, filtered targeting, no-ops, event search, UI, and rollback/undo.
+
+### Contact photo implementation
+
+The sequence below shows photo validation/import, the identical-image no-op, and model rollback when saving fails.
+
+![Contact photo implementation](images/PhotoImportSequenceDiagram.png)
+
+`Person.photoPath` is an optional relative reference; complete builder copies, equality and detail
+comparison preserve it. `PhotoCommandParser` validates syntax; `PhotoCommand` validates the displayed
+index before any import, retains all fields via `toBuilder()`, and delegates real changes to
+`Model.editPerson`. Existing LogicManager save/snapshot handling supplies rollback and history.
+#131/#132 own shared undo/redo integration; imported assets remain available for restoration.
+
+`PhotoStorage` derives its root from the running JAR's code location (working folder during Gradle
+development); tests inject a temporary root. It rejects absolute paths, parent components and real-path
+symlink escapes; reads at most 5 MiB plus one byte; checks image type and dimensions before bounded
+decoding; and copies into a confined `photos/` directory with collision-safe generated names.
+No user path or stored URI is passed directly to JavaFX. UI rendering uses validated bytes and a
+placeholder with logging on failure. Missing/malformed optional references do not block contact loading.
+Assets are deliberately retained after mutation or failed saves to avoid breaking history.
+
+Tests cover traversal and symlink escapes (including the managed directory), corrupt/type/size/dimension
+cases, copies and no-ops, filtered indexes, JSON compatibility/round trips, rollback and undo restoration.
+Verify the packaged JAR at 1280×720/150% with attach/replace/clear, reload and retained assets.

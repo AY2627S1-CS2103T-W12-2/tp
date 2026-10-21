@@ -1,0 +1,64 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":AddressBookParser" as Parser LOGIC_COLOR
+participant ":MeetingCommand" as Command LOGIC_COLOR
+participant ":ModelManager" as Model MODEL_COLOR
+participant "target:Person" as Target MODEL_COLOR
+participant ":StorageManager" as Storage STORAGE_COLOR
+
+[-> Logic : execute("meeting 1 ev/Hack Singapore")
+Logic -> Parser : parseCommand(commandText)
+note right of Parser
+  MeetingCommandParser validates syntax,
+  displayed index text and supplied fields.
+  Parse failures stop before a snapshot.
+end note
+Parser --> Logic : command
+note over Logic, Model
+  Shared existing snapshot and history behavior (#108, #131/#132).
+  Shown for context; not implemented by meeting feature #130.
+end note
+Logic -> Model : createSnapshot()
+Model --> Logic : before
+Logic -> Command : execute(model)
+Command -> Model : getFilteredPersonList()
+Model --> Command : displayed contacts
+alt index outside displayed list
+    Command --> Logic : throws CommandException
+    [<-- Logic : error; no save or history change
+else valid displayed index
+    Command -> Target : getMeeting()
+    Target --> Command : existing context
+    Command -> Command : merge(existing)
+    alt same context
+        note right of Command : No model edit or timestamp change.
+    else real change
+        Command -> Target : toBuilder().withMeeting(replacement).build()
+        Target --> Command : edited person (all other fields preserved)
+        Command -> Model : editPerson(target, edited)
+        note right of Model
+          Stamps lastEditedAt only for a real change.
+          Updates the viewed contact if needed.
+        end note
+        opt edited contact is viewed and excluded from visible results
+        Command -> Model : setViewedPerson(null)
+    end
+    end
+    Command --> Logic : CommandResult
+    Logic -> Storage : saveAddressBook(model.getAddressBook())
+    alt save succeeds
+        Storage --> Logic : saved
+        Logic -> Model : recordSuccessfulMutation(before)
+        note right of Model : No-op updates do not enter history.
+        [<-- Logic : CommandResult
+    else save throws IOException
+        Storage --> Logic : IOException
+        Logic -> Model : restore(before)
+        note right of Model : Restores contacts, selection, filter and history.
+        [<-- Logic : CommandException
+    end
+end
+@enduml

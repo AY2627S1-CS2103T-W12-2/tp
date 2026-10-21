@@ -17,4 +17,11 @@ public abstract class Command {
      */
     public abstract CommandResult execute(Model model) throws CommandException;
 
+    /**
+     * Returns whether a successful contact change by this command should enter undo history.
+     */
+    public boolean recordsHistory() {
+        return true;
+    }
+
 }

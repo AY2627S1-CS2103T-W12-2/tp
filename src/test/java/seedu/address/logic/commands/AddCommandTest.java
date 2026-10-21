@@ -6,7 +6,10 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
+import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
+import static seedu.address.testutil.TypicalTimes.NOW;
 
+import java.time.Clock;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Predicate;
@@ -22,6 +25,7 @@ import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ReadOnlyAddressBook;
 import seedu.address.model.ReadOnlyUserPrefs;
+import seedu.address.model.person.Activity;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -41,7 +45,8 @@ public class AddCommandTest {
 
         assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson)),
                 commandResult.getFeedbackToUser());
-        assertEquals(List.of(validPerson), modelStub.personsAdded);
+        // the added person records when it was created
+        assertEquals(List.of(validPerson.withActivity(new Activity(NOW, null, null))), modelStub.personsAdded);
     }
 
     @Test
@@ -153,6 +158,56 @@ public class AddCommandTest {
         public void setViewedPerson(Person person) {
             throw new AssertionError("This method should not be called.");
         }
+
+        @Override
+        public Clock getClock() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void editPerson(Person target, Person editedPerson) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void viewPerson(Person person) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public Snapshot createSnapshot() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void restore(Snapshot snapshot) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void recordSuccessfulMutation(Snapshot before) {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean canUndo() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void undo() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public boolean canRedo() {
+            throw new AssertionError("This method should not be called.");
+        }
+
+        @Override
+        public void redo() {
+            throw new AssertionError("This method should not be called.");
+        }
     }
 
     /**
@@ -194,6 +249,11 @@ public class AddCommandTest {
         @Override
         public ReadOnlyAddressBook getAddressBook() {
             return new AddressBook();
+        }
+
+        @Override
+        public Clock getClock() {
+            return FIXED_CLOCK;
         }
     }
 

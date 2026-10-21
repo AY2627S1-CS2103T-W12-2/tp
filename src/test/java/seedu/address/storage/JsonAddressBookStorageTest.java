@@ -2,6 +2,7 @@ package seedu.address.storage;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.HOON;
@@ -11,6 +12,7 @@ import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.Instant;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -18,6 +20,9 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.commons.exceptions.DataLoadingException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ReadOnlyAddressBook;
+import seedu.address.model.person.Activity;
+import seedu.address.model.person.Person;
+import seedu.address.testutil.PersonBuilder;
 
 public class JsonAddressBookStorageTest {
     private static final Path TEST_DATA_FOLDER = Paths.get("src", "test", "data", "JsonAddressBookStorageTest");
@@ -58,6 +63,69 @@ public class JsonAddressBookStorageTest {
     @Test
     public void readAddressBook_invalidAndValidPersonAddressBook_throwDataLoadingException() {
         assertThrows(DataLoadingException.class, () -> readAddressBook("invalidAndValidPersonAddressBook.json"));
+    }
+
+    @Test
+    public void readAddressBook_invalidActivityTime_throwDataLoadingException() {
+        assertThrows(DataLoadingException.class, () -> readAddressBook("invalidActivityAddressBook.json"));
+    }
+
+    @Test
+    public void readAddressBook_invalidNote_throwDataLoadingException() {
+        assertThrows(DataLoadingException.class, () -> readAddressBook("invalidNoteAddressBook.json"));
+    }
+
+    @Test
+    public void readAddressBook_v13FileWithoutNote_loadsWithEmptyNote() throws Exception {
+        ReadOnlyAddressBook addressBook = readAddressBook("v13NoActivityAddressBook.json").get();
+
+        assertTrue(addressBook.getPersonList().get(0).getNote().isEmpty());
+    }
+
+    @Test
+    public void readAndSaveAddressBook_withNote_noteSurvivesReload() throws Exception {
+        Path filePath = testFolder.resolve("TempNoteAddressBook.json");
+        Person withNote = new PersonBuilder(ALICE).withNote("Met at booth 4, wants a React teammate").build();
+        Person withoutNote = new PersonBuilder(HOON).build();
+        AddressBook original = new AddressBook();
+        original.addPerson(withNote);
+        original.addPerson(withoutNote);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        storage.saveAddressBook(original, filePath);
+        AddressBook readBack = new AddressBook(storage.readAddressBook(filePath).get());
+
+        assertEquals(original, readBack);
+        assertEquals(withNote.getNote(), readBack.getPersonList().get(0).getNote());
+        assertTrue(readBack.getPersonList().get(1).getNote().isEmpty());
+    }
+
+    @Test
+    public void readAddressBook_v13FileWithoutActivity_loadsWithEmptyActivity() throws Exception {
+        ReadOnlyAddressBook addressBook = readAddressBook("v13NoActivityAddressBook.json").get();
+
+        assertEquals(1, addressBook.getPersonList().size());
+        assertEquals(Activity.EMPTY, addressBook.getPersonList().get(0).getActivity());
+    }
+
+    @Test
+    public void readAndSaveAddressBook_withActivity_activitySurvivesReload() throws Exception {
+        Path filePath = testFolder.resolve("TempActivityAddressBook.json");
+        Person withAll = new PersonBuilder(ALICE).withActivity(new Activity(Instant.parse("2026-10-17T04:12:33Z"),
+                Instant.parse("2026-10-18T09:00:00Z"), Instant.parse("2026-10-19T10:30:15Z"))).build();
+        Person createdOnly = new PersonBuilder(HOON).withActivity(
+                new Activity(Instant.parse("2026-10-17T04:12:33Z"), null, null)).build();
+        AddressBook original = new AddressBook();
+        original.addPerson(withAll);
+        original.addPerson(createdOnly);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        storage.saveAddressBook(original, filePath);
+        AddressBook readBack = new AddressBook(storage.readAddressBook(filePath).get());
+
+        assertEquals(original, readBack);
+        assertEquals(withAll.getActivity(), readBack.getPersonList().get(0).getActivity());
+        assertEquals(createdOnly.getActivity(), readBack.getPersonList().get(1).getActivity());
     }
 
     @Test
