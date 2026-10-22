@@ -737,10 +737,18 @@ non-string value reaches `parseFollowUpDate` and gets the field-specific error r
 `PersonCard` takes `today` as a parameter in a package-private constructor, so tests do not depend on the real
 date; the public constructor uses `LocalDate.now(Model.DISPLAY_ZONE)`.
 
-The `due` command (#126, second part) will reuse `isFollowUpDueOn` and the shared sort pipeline owned by #128.
 The sequence diagram below shows `followup 1 d/2026-10-25`, including the no-op and failed-save paths.
 
 ![Interactions for the `followup 1 d/2026-10-25` Command](images/FollowUpSequenceDiagram.png)
+
+`DueCommand` uses the existing visible-list pipeline and adds no second list. When it runs it reads today from
+`Model.getClock()` (Asia/Singapore), calls `updateFilteredPersonList(new FollowUpDuePredicate(today))`, then
+`sortFilteredPersonList(SortCriterion.DUE)`. It sets the sort after the filter so `due` wins over any sort that
+was active. `FollowUpDuePredicate` calls `Person.isFollowUpDueOn`, the same rule as the overdue cue. `SortCriterion`
+now holds a comparator per constant: `DUE` orders by follow-up date, earliest first with no date last, and
+`ModelManager.setSortCriterion` adds original-list order as the tie-breaker. `SortCommandParser` has no `due` case,
+so `sort due` is rejected. The predicate keeps the date it was built with, so the list does not change at midnight
+until `due` is run again.
 
 Tests cover leap and invalid dates, set, replace, clear and no-op paths, out-of-range indexes, field
 preservation, old and malformed JSON with round trips, the due and overdue boundaries, and the card and detail UI.

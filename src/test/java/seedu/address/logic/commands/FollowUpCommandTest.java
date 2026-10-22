@@ -114,8 +114,54 @@ public class FollowUpCommandTest {
     }
 
     @Test
+    public void execute_editedViewedContactStillShown_keepsSelection() throws Exception {
+        Person target = model.getFilteredPersonList().get(0);
+        model.setViewedPerson(target);
+
+        new FollowUpCommand(INDEX_FIRST_PERSON, DATE).execute(model);
+
+        assertEquals(Optional.of(DATE), model.getViewedPerson().get().getFollowUpDate());
+        assertEquals(target.getName(), model.getViewedPerson().get().getName());
+    }
+
+    @Test
+    public void execute_otherContactViewed_keepsThatSelection() throws Exception {
+        Person other = model.getFilteredPersonList().get(1);
+        model.setViewedPerson(other);
+
+        new FollowUpCommand(INDEX_FIRST_PERSON, DATE).execute(model);
+
+        assertEquals(other, model.getViewedPerson().get());
+    }
+
+    @Test
+    public void execute_clearDateOfViewedContactInDueView_clearsSelection() throws Exception {
+        // in the due view, clearing the date makes the contact leave the visible list
+        LocalDate today = LocalDate.now(FIXED_CLOCK);
+        Person due = ALICE.toBuilder().withFollowUpDate(today).build();
+        Model dueModel = modelWith(ALICE, due);
+        new DueCommand().execute(dueModel);
+        dueModel.setViewedPerson(dueModel.getFilteredPersonList().get(0));
+
+        new FollowUpCommand(INDEX_FIRST_PERSON, null).execute(dueModel);
+
+        assertEquals(0, dueModel.getFilteredPersonList().size());
+        org.junit.jupiter.api.Assertions.assertNull(dueModel.getViewedPerson().get());
+    }
+
+    @Test
+    public void toString_containsIndexAndDate() {
+        String text = new FollowUpCommand(INDEX_FIRST_PERSON, DATE).toString();
+
+        assertTrue(text.contains("2026-10-25"));
+        assertTrue(text.contains("index"));
+    }
+
+    @Test
     public void equals() {
         FollowUpCommand set = new FollowUpCommand(INDEX_FIRST_PERSON, DATE);
+
+        assertEquals(set, set);
 
         assertEquals(set, new FollowUpCommand(INDEX_FIRST_PERSON, DATE));
         assertNotEquals(set, new FollowUpCommand(INDEX_SECOND_PERSON, DATE));
