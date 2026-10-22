@@ -77,3 +77,25 @@ Here are the steps to create a new release.
 1. Generate a fat JAR file using Gradle (i.e., `./gradlew shadowJar`).
 1. Tag the repo with the version number. e.g. `v0.1`
 1. [Create a new release in the project repository](https://github.com/AY2627S1-CS2103T-W12-2/tp/releases/new). Upload the JAR file you created.
+
+## v1.4 documentation and release approval
+
+The v1.4 release is already public. Documentation revisions are prepared separately for review;
+do not replace its JAR, change its tag, republish it, or close the milestone until the release owner approves.
+
+Before that approval, prepare the documentation PR, check the packaged-JAR examples, and record:
+
+| Item | Required evidence |
+| --- | --- |
+| Release scope | Shipped commands in UG/DG and release notes; the approved #128 deferral remains explicit. |
+| Documentation #113 | Command examples, working links, feature-owner content, and screenshots that describe the tested artifact. Simulated scaling must be labeled. |
+| Planning/postmortem #103 | Owner confirms the shared notes and team contributions are complete. Release publication alone does not complete this issue. |
+| Candidate artifact | Commit, Java version, smoke results, SHA-256, and hosted CI. Documentation-only edits do not change the app behavior. |
+| Existing release | Retain a local copy of the current JAR and checksum before any approved asset replacement. |
+
+After approval, merge the reviewed documentation, confirm the deployed guide matches the intended release,
+verify any replacement JAR and its download checksum, and update the release notes and smoke evidence.
+Close #113 and #103 only when their acceptance criteria are met; otherwise leave them open and resolve
+their remaining work before closing milestone v1.4. Do not silently close unfinished tasks or retag a release.
+
+Use the [v1.4 testing walkthrough](releases/v1.4-testing.html) for teammate feedback.

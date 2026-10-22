@@ -9,7 +9,7 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+LarperBoard is based on SE-EDU AddressBook-Level3. It uses JavaFX, Jackson, JUnit, and PlantUML; see the project README for library links.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -19,6 +19,20 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 --------------------------------------------------------------------------------------------------------------------
 
+## v1.4 integration and release scope
+
+The shipped commands and defaults are documented in the [User Guide](UserGuide.html).
+[Release notes](releases/v1.4.html) record the team-approved deferral of #128:
+separate filters replace one another and only the three activity sorts are available.
+Typed terms within a single `find` still use OR within fields and AND across fields.
+Use the [packaged-JAR testing guide](releases/v1.4-testing.html) for cross-feature validation.
+
+`MainApp` opens `data/addressbook.json` and `preferences.json` relative to the process working
+folder. `PhotoStorage.forApplication()` roots photos at the packaged JAR's parent folder
+(or the working folder in development). Run the JAR from its own folder to keep these locations together.
+Contact fields are human-editable JSON; photos are binary PNG/JPEG assets under `photos/`.
+Keep the complete folder when testing upgrade/transfer and close the app before editing JSON.
+
 ## **Design**
 
 <div markdown="span" class="alert alert-primary">
@@ -27,6 +41,12 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 [_PlantUML Tutorial_ at se-edu/guides](https://se-education.org/guides/tutorials/plantUml.html) to learn how to create
 and edit diagrams.
 </div>
+
+Keep diagrams as PlantUML source. The Pages workflow renders the four undo/redo diagrams to SVG
+before building the site, so their SVG files need not be committed. Other diagrams, including the delete,
+meeting, and photo sequence diagrams, are embedded as generated images under `docs/images`;
+when changing one of those sources, regenerate and commit its image too. Committing a source alone
+does not regenerate every diagram. These images are rendered from PlantUML rather than screenshots.
 
 ### Architecture
 
@@ -38,7 +58,7 @@ The following provides a quick overview of the main components and their interac
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-W12-2/tp/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-W12-2/tp/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
 * At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
@@ -70,13 +90,13 @@ The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103T-W12-2/tp/tree/master/src/main/java/seedu/address/ui/Ui.java)
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, `PersonDetailPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-W12-2/tp/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-W12-2/tp/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
 `PersonCard` and `PersonDetailPanel` use `ContactPhoto` to display bounded images from validated
 `PhotoStorage` bytes. A single background worker performs file validation and image decoding,
@@ -97,7 +117,7 @@ The `UI` component,
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-W12-2/tp/tree/master/src/main/java/seedu/address/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
@@ -129,7 +149,7 @@ How the parsing works:
 
 ### Model component
 
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-W12-2/tp/tree/master/src/main/java/seedu/address/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="800" />
 
@@ -152,7 +172,7 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-W12-2/tp/tree/master/src/main/java/seedu/address/storage/Storage.java)
 
 <img src="images/StorageClassDiagram.png" width="550" />
 
