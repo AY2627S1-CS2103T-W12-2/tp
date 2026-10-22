@@ -380,25 +380,25 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
     Use case resumes at step 3.
 
-**Use case: Find a person by name**
+**Use case: Find contacts**
 
 **MSS**
 
-1. User requests to find persons using one or more name keywords.
-2. LarperBoard searches for persons whose names contain at least one of the keywords, ignoring letter case.
+1. User requests to find contacts using plain name keywords or typed search terms.
+2. LarperBoard performs a case-insensitive search. Plain name keywords use OR; repeated typed terms within one field use OR and terms across fields use AND.
 3. LarperBoard displays the matching persons.
 
    Use case ends.
 
 **Extensions**
 
-* 1a. The user does not provide any name keywords.
+* 1a. The user does not provide any search terms, mixes plain and typed input, or supplies a malformed prefix.
   * 1a1. LarperBoard displays an error message.
 
     Use case resumes at step 1.
 
-* 2a. No persons match the provided keywords.
-  * 2a1. LarperBoard informs the user that no matching persons were found.
+* 2a. No contacts match the provided terms.
+  * 2a1. LarperBoard shows an empty valid result list.
 
     Use case ends.
 

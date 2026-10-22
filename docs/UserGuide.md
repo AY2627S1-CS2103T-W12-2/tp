@@ -190,21 +190,28 @@ A note of more than 1000 characters | `Note must be at most 1000 characters.`
 `note 0 nt/text`, `note abc clear`, or an index larger than the number of contacts shown | `The person index provided is invalid.`
 A valid `note` command when the displayed list is empty | `The person list is empty.`
 
-### Locating contacts by name: `find`
+### Locating contacts: `find`
 
-Finds contacts whose names contain any of the given keywords.
+Use plain name keywords or typed field prefixes. A valid search may return zero contacts.
 
-Format: `find KEYWORD [MORE_KEYWORDS]…​`
+Plain format: `find KEYWORD [MORE_KEYWORDS]…​`
 
-* The search is case-insensitive; for example, `hans` matches `Hans`.
-* Keyword order does not matter; for example, `Hans Bo` matches `Bo Hans`.
-* The search considers only names.
-* Only full words match; for example, `Han` does not match `Hans`.
-* Contacts matching at least one keyword are returned (an `OR` search); for example, `find Hans Bo` returns `Hans Gruber` and `Bo Yang`.
+* Plain search is case-insensitive and considers only names.
+* Plain keywords use full-word matching and OR semantics; for example, `find Hans Bo` finds `Hans Gruber` or `Bo Yang`, while `Han` does not match `Hans`.
+
+Typed format: `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`
+
+* `n/` searches names, `t/` searches tags, `nt/` searches note text, and `ev/` searches meeting event names.
+* Typed terms match partial text and ignore case.
+* Repeated terms in one field use OR. Different fields use AND. For example, `find n/Alex n/Sam t/hackathon` finds an Alex or Sam contact that also has a `hackathon` tag.
+* Do not mix plain keywords and typed prefixes. The message is `Use either plain keywords or field prefixes in one find command.`
+* Empty terms and malformed prefixes show the standard format-and-usage error.
+* Indexes always refer to the contacts currently displayed. Use `list` or `reset` to return to the full list.
 
 Examples:
-* `find Aisha` returns the `Aisha Rahman` contact added in the quick start.
-* `find Aisha Ben` returns contacts named `Aisha Rahman` or `Ben Tan` when both have been added.
+* `find Aisha Ben` finds contacts named `Aisha Rahman` or `Ben Tan` when both have been added.
+* `find t/react nt/teammate` finds contacts tagged `react` whose note contains `teammate`.
+* `find ev/hack singapore` finds contacts whose event name contains `hack singapore`.
 
 ### Grouping contacts by tag: `group`
 
@@ -541,6 +548,7 @@ Action | Format, Examples
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Exit** | `exit`
 **Filter** | `filter starred` or `filter starred off`
+**Find** | `find KEYWORD [MORE_KEYWORDS]…​` or `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`<br> e.g., `find n/James t/react`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…​`<br> e.g., `find James Jake`
 **Follow-up** | `followup INDEX d/YYYY-MM-DD` or `followup INDEX clear`<br> e.g., `followup 1 d/2026-10-25`
 **Group** | `group t/TAG`<br> e.g., `group t/react`
