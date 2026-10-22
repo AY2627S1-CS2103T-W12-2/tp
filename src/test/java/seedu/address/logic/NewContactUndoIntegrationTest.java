@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalPersons.ALICE;
@@ -12,6 +13,9 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Clock;
+import java.time.Instant;
+import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import javax.imageio.ImageIO;
 
@@ -38,6 +42,7 @@ public class NewContactUndoIntegrationTest {
     private ModelManager model;
     private LogicManager logic;
     private JsonAddressBookStorage storage;
+    private MutableClock clock;
     private boolean failSave;
 
     @BeforeEach
@@ -45,7 +50,8 @@ public class NewContactUndoIntegrationTest {
         AddressBook book = new AddressBook();
         book.addPerson(ALICE);
         book.addPerson(BENSON);
-        model = new ModelManager(book, new UserPrefs(), FIXED_CLOCK);
+        clock = new MutableClock(FIXED_CLOCK.instant(), FIXED_CLOCK.getZone());
+        model = new ModelManager(book, new UserPrefs(), clock);
         storage = new JsonAddressBookStorage(folder.resolve("contacts.json")) {
             @Override
             public void saveAddressBook(ReadOnlyAddressBook book) throws IOException {
@@ -161,8 +167,27 @@ public class NewContactUndoIntegrationTest {
     }
 
     @Test
+    public void execute_deletePhotographedContact_undoRestoresReferenceAndRetainedFile() throws Exception {
+        logic.execute("photo 1 f/first.png");
+        logic.execute("view 1");
+        Person photographed = current();
+        String reference = photographed.getPhotoPath();
+
+        logic.execute("delete 1");
+        assertEquals(BENSON, current());
+        assertTrue(Files.exists(folder.resolve(reference)));
+
+        logic.execute("undo");
+        assertEquals(photographed, current());
+        assertEquals(photographed, model.getViewedPerson().get());
+        assertEquals(photographed, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+        assertTrue(Files.exists(folder.resolve(reference)));
+    }
+
+    @Test
     public void execute_mixedCommandsAndClear_undoRestoresMetadataSelectionFilterAndJson() throws Exception {
         logic.execute("view 1");
+        logic.execute("note 2 nt/Benson follow-up");
         logic.execute("find Alice");
         Person original = current();
         logic.execute("note 1 nt/Teammate");
@@ -177,9 +202,13 @@ public class NewContactUndoIntegrationTest {
         Person followedUp = current();
         logic.execute("edit 1 e/new@example.com");
         Person edited = current();
+        AddressBook beforeClear = new AddressBook(model.getAddressBook());
         logic.execute("clear");
 
         assertRestoredAfterUndo(edited);
+        assertEquals(beforeClear, model.getAddressBook());
+        assertEquals(beforeClear, storage.readAddressBook().orElseThrow());
+        assertEquals(2, model.getAddressBook().getPersonList().size());
         assertEquals(1, model.getFilteredPersonList().size());
         assertEquals(edited, model.getViewedPerson().get());
         assertRestoredAfterUndo(followedUp);
@@ -239,40 +268,54 @@ public class NewContactUndoIntegrationTest {
 
         ModelManager reloaded = new ModelManager(storage.readAddressBook().orElseThrow(),
                 new UserPrefs(), FIXED_CLOCK);
+        Person reloadedFirst = reloaded.getFilteredPersonList().getFirst();
 
-        assertEquals(current(), reloaded.getFilteredPersonList().getFirst());
-        assertEquals("Teammate", reloaded.getFilteredPersonList().getFirst().getNote().value);
-        assertTrue(reloaded.getFilteredPersonList().getFirst().isStarred());
-        assertTrue(reloaded.getFilteredPersonList().getFirst().getFollowUpDate().isPresent());
-        assertTrue(reloaded.getFilteredPersonList().getFirst().getPhotoPath().isEmpty());
-        assertTrue(reloaded.getFilteredPersonList().getFirst().getMeeting().isEmpty());
+        assertEquals(current(), reloadedFirst);
+        assertEquals("Teammate", reloadedFirst.getNote().value);
+        assertTrue(reloadedFirst.isStarred());
+        assertTrue(reloadedFirst.getFollowUpDate().isPresent());
+        assertTrue(reloadedFirst.getPhotoPath().isEmpty());
+        assertTrue(reloadedFirst.getMeeting().isEmpty());
         assertFalse(reloaded.canUndo());
         assertFalse(reloaded.canRedo());
     }
 
     @Test
     public void execute_newFieldNoOpsAndNonMutationCommands_doNotDisplaceEarlierUndo() throws Exception {
+        Person original = current();
+        clock.advanceSeconds(60);
         logic.execute("note 1 nt/Teammate");
+        Person noted = current();
         logic.execute("note 1 nt/Teammate");
+        clock.advanceSeconds(60);
         logic.execute("star 1");
+        Person starred = current();
         logic.execute("star 1");
+        clock.advanceSeconds(60);
         logic.execute("followup 1 d/2026-10-25");
+        Person followedUp = current();
         logic.execute("followup 1 d/2026-10-25");
+        clock.advanceSeconds(60);
         logic.execute("meeting 1 ev/Hack");
+        Person meeting = current();
         logic.execute("meeting 1 ev/Hack");
+        clock.advanceSeconds(60);
         logic.execute("photo 1 f/first.png");
         logic.execute("photo 1 f/first.png");
+        clock.advanceSeconds(60);
         logic.execute("view 1");
+        Instant viewedAt = current().getActivity().getLastViewedAt().orElseThrow();
         logic.execute("list");
 
+        assertNotEquals(noted.getActivity().getLastEditedAt(), starred.getActivity().getLastEditedAt());
+        assertNotEquals(starred.getActivity().getLastEditedAt(), followedUp.getActivity().getLastEditedAt());
         assertTrue(model.canUndo());
-        assertRestoredAfterUndo(model.getViewedPerson().get().toBuilder().withPhotoPath("").build());
+        assertRestoredAfterUndo(withViewAt(meeting, viewedAt));
         assertTrue(current().getPhotoPath().isEmpty());
-        assertRestoredAfterUndo(current().toBuilder().withMeeting(ALICE.getMeeting()).build());
-        assertRestoredAfterUndo(current().toBuilder().withFollowUpDate(null).build());
-        assertRestoredAfterUndo(current().toBuilder().withStarred(false).build());
-        assertRestoredAfterUndo(ALICE.withActivity(ALICE.getActivity()
-                .withLastViewedAt(FIXED_CLOCK.instant().truncatedTo(ChronoUnit.SECONDS))));
+        assertRestoredAfterUndo(withViewAt(followedUp, viewedAt));
+        assertRestoredAfterUndo(withViewAt(starred, viewedAt));
+        assertRestoredAfterUndo(withViewAt(noted, viewedAt));
+        assertRestoredAfterUndo(withViewAt(original, viewedAt));
         assertFalse(model.canUndo());
     }
 
@@ -321,5 +364,38 @@ public class NewContactUndoIntegrationTest {
         logic.execute("undo");
         assertEquals(expected, current());
         assertEquals(expected, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+    }
+
+    private static Person withViewAt(Person person, Instant viewedAt) {
+        return person.withActivity(person.getActivity().withLastViewedAt(viewedAt));
+    }
+
+    private static class MutableClock extends Clock {
+        private Instant instant;
+        private final ZoneId zone;
+
+        MutableClock(Instant instant, ZoneId zone) {
+            this.instant = instant;
+            this.zone = zone;
+        }
+
+        void advanceSeconds(long seconds) {
+            instant = instant.plusSeconds(seconds);
+        }
+
+        @Override
+        public ZoneId getZone() {
+            return zone;
+        }
+
+        @Override
+        public Clock withZone(ZoneId zone) {
+            return new MutableClock(instant, zone);
+        }
+
+        @Override
+        public Instant instant() {
+            return instant;
+        }
     }
 }
