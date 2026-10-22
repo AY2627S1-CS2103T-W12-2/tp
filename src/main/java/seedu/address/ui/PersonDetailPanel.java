@@ -4,6 +4,7 @@ import java.time.Instant;
 import java.time.format.DateTimeFormatter;
 import java.util.Comparator;
 import java.util.Optional;
+import java.util.OptionalDouble;
 import java.util.logging.Logger;
 
 import javafx.beans.value.ObservableValue;
@@ -11,6 +12,7 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.Region;
 import javafx.scene.layout.VBox;
@@ -76,8 +78,41 @@ public class PersonDetailPanel extends UiPart<Region> {
      */
     public PersonDetailPanel(ObservableValue<Person> viewedPerson) {
         super(FXML);
+        scrollPane.addEventFilter(ScrollEvent.SCROLL, this::handleScroll);
         showPerson(viewedPerson.getValue());
         viewedPerson.addListener((observable, oldPerson, newPerson) -> showPerson(newPerson));
+    }
+
+    /**
+     * Scrolls the panel by the number of pixels in {@code event}. JavaFX's own handling moves the content by that
+     * amount as a fraction of the whole content height, not of the part that can scroll, so it feels far too slow.
+     */
+    private void handleScroll(ScrollEvent event) {
+        // the layout bounds are what ScrollPane itself uses to size its scroll range, so an effect or transform
+        // on the content does not change the result
+        OptionalDouble newVvalue = scrolledVvalue(scrollPane.getVvalue(), event.getDeltaY(),
+                content.getLayoutBounds().getHeight(), scrollPane.getViewportBounds().getHeight(),
+                scrollPane.getVmin(), scrollPane.getVmax());
+        if (newVvalue.isPresent()) {
+            scrollPane.setVvalue(newVvalue.getAsDouble());
+            event.consume();
+        }
+    }
+
+    /**
+     * Returns the vertical scroll position after scrolling up by {@code deltaY} pixels (down if it is negative),
+     * between {@code vmin} (top) and {@code vmax} (bottom), the range of the scroll pane's {@code vvalue}.
+     * Returns an empty {@code OptionalDouble} if nothing should change: when {@code deltaY} is zero, or when the
+     * content is not taller than the viewport so there is nothing to scroll.
+     */
+    static OptionalDouble scrolledVvalue(double vvalue, double deltaY, double contentHeight,
+            double viewportHeight, double vmin, double vmax) {
+        double scrollableHeight = contentHeight - viewportHeight;
+        if (scrollableHeight <= 0 || deltaY == 0) {
+            return OptionalDouble.empty();
+        }
+        double scrolled = vvalue - deltaY / scrollableHeight * (vmax - vmin);
+        return OptionalDouble.of(Math.min(vmax, Math.max(vmin, scrolled)));
     }
 
     /**
