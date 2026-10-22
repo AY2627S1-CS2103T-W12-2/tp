@@ -19,7 +19,7 @@ java -jar larperboard.jar
 
 Try `list`, then `add n/Aisha Rahman p/98765432 e/aisha@example.com l/aisha-rahman t/frontend`. See the [User Guide](docs/UserGuide.md#quick-start) for the full setup and command instructions.
 
-## Run LarperBoard v1.3
+## Run LarperBoard v1.4
 
 With Java 25 installed, build the JAR from the project root using `./gradlew shadowJar`, then run `java -jar build/libs/larperboard.jar`.
 The Help menu opens the [online User Guide](https://ay2627s1-cs2103t-w12-2.github.io/tp/UserGuide.html).
