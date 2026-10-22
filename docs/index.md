@@ -13,6 +13,7 @@ title: LarperBoard
 Add notes, star important contacts, record follow-up dates and meeting context, and attach a local photo. Search names, tags, notes, or event names, sort by activity time, and undo or redo saved contact changes. Recall recent commands with the Up and Down arrow keys in the command field.
 
 * To get started, download the JAR from the [team releases page](https://github.com/AY2627S1-CS2103T-W12-2/tp/releases) and follow the [**User Guide quick start**](UserGuide.html#quick-start).
+* For this version, see the [**v1.4 release notes**](releases/v1.4.html) and [**teammate testing guide**](releases/v1.4-testing.html).
 * To contribute, see the [**Developer Guide**](DeveloperGuide.html).
 
 

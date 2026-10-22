@@ -12,6 +12,9 @@ LarperBoard is a desktop app for keeping track of people you meet at hackathons.
 
 ## Quick start
 
+For the release summary and a teammate test walkthrough, see [v1.4 release notes](releases/v1.4.html)
+and [Testing v1.4](releases/v1.4-testing.html).
+
 1. Ensure that Java `25` or later is installed on your computer.<br>
    **Mac users:** Ensure you have the precise JDK version prescribed [here](https://se-education.org/guides/tutorials/javaInstallationMac.html).
 
@@ -103,6 +106,7 @@ Shows all contacts in their original order. It also clears any active time sort.
 Format: `list`
 
 * Use `list` or `reset` to return to the full, original-order list after `find` or `group`.
+
 ### Resetting the displayed list: `reset`
 
 Clears the active filters and sort, then shows all contacts in their original order.
@@ -514,7 +518,14 @@ LarperBoard automatically saves data after every successful command. You do not 
 
 ### Editing the data file
 
-LarperBoard data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+When you follow the quick start and run the app from the JAR folder, contacts are saved in
+`data/addressbook.json` and window preferences in `preferences.json` beside the JAR.
+These two paths are relative to the terminal's **working folder**. Running the same JAR from a different
+folder therefore opens a different data file. Imported photos always live in `photos/` beside the JAR.
+For a consistent setup, `cd` into the JAR folder before starting the app.
+
+Close LarperBoard before editing its JSON file; otherwise a later command can overwrite your edits.
+The file contains readable contact details, including notes. It is not encrypted.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, LarperBoard starts with an empty contact list at the next run. The invalid file remains on disk until you run a successful command. We recommend backing up the file before editing it.<br>
@@ -535,16 +546,16 @@ Each contact can also have an optional `starred` field, which is `true` or `fals
 
 LarperBoard fills the time fields in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid, and LarperBoard reports `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem). Times are shown in Singapore time (Asia/Singapore).
 
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous LarperBoard home folder.
+**A**: Close LarperBoard on both computers. Copy `data/addressbook.json` and the entire `photos/`
+folder into the new JAR folder, preserving the relative photo paths. Start the app from that folder.
+If you previously launched from a different working folder, take the JSON file from that folder instead.
+`preferences.json` contains window settings and is optional to transfer. Undo/redo and command recall
+are session-only and cannot be transferred.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -576,7 +587,7 @@ Action | Format, Examples
 **Note** | `note INDEX nt/NOTE` or `note INDEX clear`<br> e.g., `note 1 nt/Met at the AI track`
 **Redo** | `redo`
 **Reset** | `reset`
-**Sort** | `sort added|edited|viewed`<br> e.g., `sort viewed`
+**Sort** | `sort added`, `sort edited`, or `sort viewed`
 **Star** | `star INDEX`<br> e.g., `star 1`
 **Tag** | `tag INDEX t/TAG [t/TAG]…​`<br> e.g., `tag 1 t/frontend t/react`
 **Undo** | `undo`
