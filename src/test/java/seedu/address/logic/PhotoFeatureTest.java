@@ -74,6 +74,68 @@ public class PhotoFeatureTest {
     }
 
     @Test
+    public void execute_attachReplaceClearUndoRedo_restoresReferencesAndRetainsAssets() throws Exception {
+        ImageIO.write(new BufferedImage(10, 10, BufferedImage.TYPE_INT_RGB),
+                "png", folder.resolve("replacement.png").toFile());
+        logic.execute("view 1");
+        logic.execute("photo 1 f/source.png");
+        var attached = model.getFilteredPersonList().getFirst();
+        logic.execute("photo 1 f/replacement.png");
+        var replaced = model.getFilteredPersonList().getFirst();
+        logic.execute("photo 1 clear");
+        var cleared = model.getFilteredPersonList().getFirst();
+
+        logic.execute("undo");
+        logic.execute("undo");
+        logic.execute("undo");
+        assertTrue(model.getFilteredPersonList().getFirst().getPhotoPath().isEmpty());
+
+        logic.execute("redo");
+        assertEquals(attached, model.getFilteredPersonList().getFirst());
+        logic.execute("redo");
+        assertEquals(replaced, model.getFilteredPersonList().getFirst());
+        logic.execute("redo");
+        assertEquals(cleared, model.getFilteredPersonList().getFirst());
+        assertEquals(cleared, model.getViewedPerson().get());
+        assertEquals(cleared, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+        assertTrue(Files.exists(folder.resolve(attached.getPhotoPath())));
+        assertTrue(Files.exists(folder.resolve(replaced.getPhotoPath())));
+        assertFalse(model.canRedo());
+    }
+
+    @Test
+    public void execute_photoNoOpAndFailedSave_preserveRedoUntilSuccessfulMutation() throws Exception {
+        logic.execute("photo 1 f/source.png");
+        String path = model.getFilteredPersonList().getFirst().getPhotoPath();
+        logic.execute("undo");
+        logic.execute("photo 1 clear");
+        failSave = true;
+        assertThrows(CommandException.class, () -> logic.execute("photo 2 f/source.png"));
+        failSave = false;
+        assertTrue(model.canRedo());
+        logic.execute("redo");
+        assertEquals(path, model.getFilteredPersonList().getFirst().getPhotoPath());
+        logic.execute("undo");
+        logic.execute("photo 2 f/source.png");
+        assertFalse(model.canRedo());
+        assertTrue(Files.exists(folder.resolve(path)));
+    }
+
+    @Test
+    public void execute_redoWithMissingManagedImage_preservesSavedReference() throws Exception {
+        logic.execute("photo 1 f/source.png");
+        String path = model.getFilteredPersonList().getFirst().getPhotoPath();
+        logic.execute("undo");
+        Files.delete(folder.resolve(path));
+
+        logic.execute("redo");
+
+        assertEquals(path, model.getFilteredPersonList().getFirst().getPhotoPath());
+        assertEquals(path, storage.readAddressBook().orElseThrow().getPersonList().getFirst().getPhotoPath());
+        assertFalse(Files.exists(folder.resolve(path)));
+    }
+
+    @Test
     public void execute_duplicateAndEmptyClear_doNotEnterHistory() throws Exception {
         logic.execute("photo 1 clear");
         assertFalse(model.canUndo());

@@ -25,6 +25,7 @@ import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.MeetingCommand;
 import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.commands.PhotoCommand;
+import seedu.address.logic.commands.RedoCommand;
 import seedu.address.logic.commands.ResetCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.StarCommand;
@@ -102,6 +103,12 @@ public class AddressBookParser {
                     throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, UndoCommand.MESSAGE_USAGE));
                 }
                 yield new UndoCommand();
+            }
+            case RedoCommand.COMMAND_WORD -> {
+                if (!arguments.isBlank()) {
+                    throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, RedoCommand.MESSAGE_USAGE));
+                }
+                yield new RedoCommand();
             }
             case ViewCommand.COMMAND_WORD -> new ViewCommandParser().parse(arguments);
             case ExitCommand.COMMAND_WORD -> new ExitCommand();

@@ -17,40 +17,35 @@ participant ":Storage" as Storage STORAGE_COLOR
 end box
 
 [-> LogicManager : execute("undo")
-activate LogicManager
 LogicManager -> Parser : parseCommand("undo")
-activate Parser
+create UndoCommand
+Parser -> UndoCommand : new UndoCommand()
 Parser --> LogicManager : u
-deactivate Parser
 LogicManager -> Model : createSnapshot()
-activate Model
 Model --> LogicManager : before
-deactivate Model
 LogicManager -> UndoCommand : execute(m)
-activate UndoCommand
 UndoCommand -> Model : canUndo()
-activate Model
-Model --> UndoCommand : true
-deactivate Model
-UndoCommand -> Model : undo()
-activate Model
-Model --> UndoCommand
-deactivate Model
-UndoCommand --> LogicManager : result
-deactivate UndoCommand
-LogicManager -> Storage : saveAddressBook(m.getAddressBook())
-activate Storage
-alt save succeeds
-    Storage --> LogicManager
-    LogicManager -->] : result
-else save fails
-    Storage --> LogicManager : IOException
-    LogicManager -> Model : restore(before)
-    activate Model
-    Model --> LogicManager
-    deactivate Model
+
+alt undo history is empty
+    Model --> UndoCommand : false
+    UndoCommand --> LogicManager : throws CommandException("Nothing to undo.")
     LogicManager -->] : CommandException
+else an earlier state is available
+    Model --> UndoCommand : true
+    UndoCommand -> Model : undo()
+    UndoCommand --> LogicManager : result
+    LogicManager -> Model : getAddressBook()
+    Model --> LogicManager : book
+    LogicManager -> Storage : saveAddressBook(book)
+    alt save succeeds
+        Storage --> LogicManager : saved
+        LogicManager -->] : result
+    else save fails
+        Storage --> LogicManager : throws IOException
+        LogicManager -> Model : restore(before)
+        note right of Model : Restore contacts and both history stacks.
+        LogicManager -->] : CommandException
+    end
 end
-deactivate Storage
-deactivate LogicManager
+
 @enduml

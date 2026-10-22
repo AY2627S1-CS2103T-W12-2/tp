@@ -237,11 +237,23 @@ The following sequence shows the `undo` command, including rollback if saving th
 
 ![Undo through Logic and Storage](images/UndoSequenceDiagram-Logic.png)
 
-`UndoCommand` checks `Model#canUndo()` and reports `Nothing to undo.` when the stack is empty. Otherwise, `ModelManager#undo()` moves the current state to the redo stack and restores the latest undo state. Restoration reinstates contact data, timestamps, the visible-list predicate, sort order, and the detail selection without stamping the current time. A later explicit view of a surviving contact is preserved; a deleted contact comes back with its pre-deletion view time.
+The corresponding redo sequence shows the empty-history response and how a failed save restores
+the contact data and both history stacks:
+
+![Redo through Logic and Storage](images/RedoSequenceDiagram-Logic.png)
+
+`UndoCommand` checks `Model#canUndo()` and reports `Nothing to undo.` when the stack is empty. Otherwise, `ModelManager#undo()` moves the current state to the redo stack and restores the latest undo state. `RedoCommand` checks `Model#canRedo()` and reports `Nothing to redo.` when its stack is empty. Otherwise, `ModelManager#redo()` moves the current state to the undo stack and restores the latest redo state. Neither command records a new mutation; each restored state is saved by `LogicManager`. A failed save restores both stacks and the contact data from the pre-command snapshot.
+
+Restoration reinstates contact data, timestamps, the visible-list predicate, sort order, and the detail selection without stamping the current time. A later explicit view of a surviving contact is preserved; a deleted contact comes back with its pre-deletion view time. A new successfully saved real contact mutation clears redo, while failed, read-only, and no-op commands do not.
 
 ![Undo within the Model](images/UndoSequenceDiagram-Model.png)
 
-The saved state copies the full address book, including note text, star flags, follow-up dates, meeting context, photo references, and activity timestamps. This keeps undo independent of individual command implementations and lets it restore fields added by later features. The trade-off is memory proportional to the number and size of saved address books, bounded by the 50-entry history limit. Photo binaries are not copied into history: imported files are retained under `photos/` after replacement, clearing, deletion, and failed saves. Undo restores their references; if a file is missing or invalid, the UI displays a placeholder and the rest of the address book remains usable. `ModelManager` also maintains a redo stack, but the `redo` CLI command is tracked separately in #132.
+The following state diagram shows how undo, redo, and a new saved mutation move the current contact
+state between the two history stacks. Read-only and no-op commands leave redo available:
+
+![Undo and redo history transitions](images/UndoRedoHistoryStateDiagram.png)
+
+The saved state copies the full address book, including note text, star flags, follow-up dates, meeting context, photo references, and activity timestamps. This keeps undo and redo independent of individual command implementations and lets them restore fields added by later features. The trade-off is memory proportional to the number and size of saved address books, bounded by the 50-entry history limit. Photo binaries are not copied into history: imported files are retained under `photos/` after replacement, clearing, deletion, and failed saves. Undo and redo restore their references; if a file is missing or invalid, the UI displays a placeholder and the rest of the address book remains usable.
 
 ### Command history
 
