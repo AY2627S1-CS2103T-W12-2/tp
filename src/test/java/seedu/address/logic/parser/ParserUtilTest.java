@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INDEX_TOO_LARGE;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -50,6 +51,21 @@ public class ParserUtilTest {
             -> ParserUtil.parseIndex(Long.toString((long) Integer.MAX_VALUE + 1)));
         assertThrows(ParseException.class, MESSAGE_INDEX_TOO_LARGE, ()
             -> ParserUtil.parseIndex("999999999999999999999999999999999999"));
+    }
+
+    @Test
+    public void parseDisplayedIndex_invalidOrOutOfRangeInput_throwsDisplayedIndexMessage() {
+        String[] invalidInputs = {"abc", "0", "-1", Long.toString((long) Integer.MAX_VALUE + 1)};
+
+        for (String input : invalidInputs) {
+            assertThrows(ParseException.class, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, ()
+                -> ParserUtil.parseDisplayedIndex(input));
+        }
+    }
+
+    @Test
+    public void parseDisplayedIndex_validInput_success() throws Exception {
+        assertEquals(INDEX_FIRST_PERSON, ParserUtil.parseDisplayedIndex(" 1 "));
     }
 
     @Test

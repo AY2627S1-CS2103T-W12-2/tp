@@ -1,7 +1,7 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
+import static seedu.address.logic.Messages.MESSAGE_MULTIPLE_INDEXES;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.ViewCommand;
@@ -11,9 +11,6 @@ import seedu.address.logic.parser.exceptions.ParseException;
  * Parses arguments for a {@code view} command.
  */
 public class ViewCommandParser implements Parser<ViewCommand> {
-
-    /** Message shown when a view command contains more than one index. */
-    public static final String MESSAGE_MULTIPLE_INDEXES = "Only one index parameter is accepted.";
 
     /**
      * Parses a single displayed-list index into a {@code ViewCommand}.
@@ -42,11 +39,7 @@ public class ViewCommandParser implements Parser<ViewCommand> {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewCommand.MESSAGE_USAGE));
         }
 
-        try {
-            return ParserUtil.parseIndex(args);
-        } catch (ParseException pe) {
-            throw new ParseException(MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, pe);
-        }
+        return ParserUtil.parseDisplayedIndex(args);
     }
 
 }

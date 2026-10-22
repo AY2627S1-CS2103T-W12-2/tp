@@ -2,6 +2,7 @@ package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
+import static seedu.address.logic.Messages.MESSAGE_MULTIPLE_INDEXES;
 
 import seedu.address.commons.core.index.Index;
 import seedu.address.logic.commands.DeleteCommand;
@@ -11,9 +12,6 @@ import seedu.address.logic.parser.exceptions.ParseException;
  * Parses arguments for a {@code delete} command.
  */
 public class DeleteCommandParser implements Parser<DeleteCommand> {
-
-    /** Message shown when a delete command contains more than one index. */
-    public static final String MESSAGE_MULTIPLE_INDEXES = "Only one index parameter is accepted.";
 
     /**
      * Parses a single displayed-list index into a {@code DeleteCommand}.

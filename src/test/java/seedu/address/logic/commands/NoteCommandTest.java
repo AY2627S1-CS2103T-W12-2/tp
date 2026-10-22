@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
+import static seedu.address.logic.commands.CommandTestUtil.copyOf;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
@@ -200,10 +201,6 @@ public class NoteCommandTest {
         assertEquals(expected, command.toString());
         // the text of the note is personal and must not reach the log through toString
         assertFalse(command.toString().contains(NOTE.value));
-    }
-
-    private static Model copyOf(Model source) {
-        return new ModelManager(new AddressBook(source.getAddressBook()), new UserPrefs(), FIXED_CLOCK);
     }
 
     /** Returns a model like the typical one, but with {@code target} replaced by {@code replacement}. */

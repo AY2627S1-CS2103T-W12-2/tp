@@ -2,7 +2,6 @@ package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
-import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.parser.CliSyntax.PREFIX_NOTE;
 
 import seedu.address.commons.core.index.Index;
@@ -41,17 +40,9 @@ public class NoteCommandParser implements Parser<NoteCommand> {
         }
 
         // the index comes first in both forms, and is checked before the note
-        Index index = parseIndex(words[0]);
+        Index index = ParserUtil.parseDisplayedIndex(words[0]);
         Note note = isSetForm ? ParserUtil.parseNote(argMultimap.getValue(PREFIX_NOTE).get()) : Note.EMPTY;
         return new NoteCommand(index, note);
-    }
-
-    private static Index parseIndex(String index) throws ParseException {
-        try {
-            return ParserUtil.parseIndex(index);
-        } catch (ParseException pe) {
-            throw new ParseException(MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, pe);
-        }
     }
 
 }
