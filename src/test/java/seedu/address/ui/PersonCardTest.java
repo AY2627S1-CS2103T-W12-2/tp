@@ -7,6 +7,7 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_LINKEDIN_AMY;
 
 import java.awt.GraphicsEnvironment;
+import java.time.LocalDate;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
@@ -49,6 +50,29 @@ public class PersonCardTest {
 
         assertFalse(linkedIn.isVisible());
         assertFalse(linkedIn.isManaged());
+    }
+
+    @Test
+    public void constructor_followUpDate_showsDateAndOverdueCueOnlyWhenBeforeToday() {
+        LocalDate today = LocalDate.of(2026, 10, 21);
+        Label none = followUp(new PersonCard(new PersonBuilder().build(), 1, today));
+        Label future = followUp(new PersonCard(
+                new PersonBuilder().withFollowUpDate(LocalDate.of(2026, 10, 22)).build(), 1, today));
+        Label dueToday = followUp(new PersonCard(new PersonBuilder().withFollowUpDate(today).build(), 1, today));
+        Label past = followUp(new PersonCard(
+                new PersonBuilder().withFollowUpDate(LocalDate.of(2026, 10, 20)).build(), 1, today));
+
+        assertFalse(none.isVisible());
+        assertFalse(none.isManaged());
+        assertEquals("Follow up: 2026-10-22", future.getText());
+        assertEquals("Follow up: 2026-10-21", dueToday.getText());
+        assertFalse(dueToday.getStyleClass().contains("overdue"));
+        assertEquals("Follow up: 2026-10-20 (Overdue)", past.getText());
+        assertTrue(past.getStyleClass().contains("overdue"));
+    }
+
+    private Label followUp(PersonCard card) {
+        return (Label) card.getRoot().lookup("#followUp");
     }
 
     @Test

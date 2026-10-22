@@ -1,5 +1,6 @@
 package seedu.address.testutil;
 
+import java.time.LocalDate;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -34,6 +35,7 @@ public class PersonBuilder {
     private Meeting meeting;
     private String photoPath;
     private boolean starred;
+    private LocalDate followUpDate;
 
     /**
      * Creates a {@code PersonBuilder} with the default details.
@@ -65,6 +67,7 @@ public class PersonBuilder {
         meeting = personToCopy.getMeeting();
         photoPath = personToCopy.getPhotoPath();
         starred = personToCopy.isStarred();
+        followUpDate = personToCopy.getFollowUpDate().orElse(null);
     }
 
     /**
@@ -134,7 +137,16 @@ public class PersonBuilder {
     /** Builds a contact while retaining all copied fields. */
     public Person build() {
         return new Person(name, phone, email, linkedIn, tags, activity, note)
-                .toBuilder().withMeeting(meeting).withPhotoPath(photoPath).withStarred(starred).build();
+                .toBuilder().withMeeting(meeting).withPhotoPath(photoPath).withStarred(starred)
+                .withFollowUpDate(followUpDate).build();
+    }
+
+    /**
+     * Sets the follow-up date of the {@code Person} that we are building. A null date means no follow-up.
+     */
+    public PersonBuilder withFollowUpDate(LocalDate followUpDate) {
+        this.followUpDate = followUpDate;
+        return this;
     }
 
 }

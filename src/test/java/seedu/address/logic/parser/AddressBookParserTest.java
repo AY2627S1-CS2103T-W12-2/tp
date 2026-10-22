@@ -168,6 +168,15 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_followUp() throws Exception {
+        assertEquals(new seedu.address.logic.commands.FollowUpCommand(INDEX_FIRST_PERSON,
+                        java.time.LocalDate.of(2026, 10, 25)),
+                parser.parseCommand("followup " + INDEX_FIRST_PERSON.getOneBased() + " d/2026-10-25"));
+        assertEquals(new seedu.address.logic.commands.FollowUpCommand(INDEX_FIRST_PERSON, null),
+                parser.parseCommand("followup " + INDEX_FIRST_PERSON.getOneBased() + " clear"));
+    }
+
+    @Test
     public void parseCommand_note() throws Exception {
         NoteCommand setCommand = (NoteCommand) parser.parseCommand(
                 NoteCommand.COMMAND_WORD + " " + INDEX_FIRST_PERSON.getOneBased() + " nt/Met at booth 4");

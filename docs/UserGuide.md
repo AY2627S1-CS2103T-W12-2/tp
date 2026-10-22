@@ -380,6 +380,36 @@ Malformed present values reject loading with `Invalid contact data: 'meeting.<fi
 a non-object context names `meeting`. Back up JSON before editing it manually.
 Successful real changes update last-edited time and are saved before entering session undo history.
 
+### Setting a follow-up date: `followup`
+
+Use `followup INDEX d/YYYY-MM-DD` to set or replace the date by which you want to follow up with a
+contact, for example after a hackathon. Use `followup INDEX clear` to remove it.
+
+Examples:
+```
+followup 1 d/2026-10-25
+followup 1 clear
+```
+
+`INDEX` is the number shown in the current list. The date must be a real calendar date in exactly
+YYYY-MM-DD format (leap days such as 2028-02-29 are accepted; 2027-02-29 is not).
+
+Invalid dates report `Date must be a real date in YYYY-MM-DD format.` and an invalid index reports
+`The person index provided is invalid.` Failures leave the contact unchanged. Setting the date a contact
+already has, or clearing a date that is not set, only reports `Follow-up date unchanged.`: it does not change
+the last-edited time or add an undo step. A real change can be reversed with `undo`.
+
+The contact card shows `Follow up: DATE`, followed by `(Overdue)` in red once the date is before today
+(Singapore time). A date that is today is not overdue. The card is drawn when the list is shown, so it does
+not change at midnight until the list is next refreshed. `view INDEX` shows the full date.
+
+The date is saved in the optional JSON field `followUpDate`, for example `"followUpDate": "2026-10-25"`.
+A missing or null value means no follow-up. A malformed value stops the file loading with
+`Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` Back up the file before
+editing it by hand.
+
+The `due` command that lists contacts to follow up with is **coming soon**.
+
 ### Contact photos: `photo`
 
 ![Photo feature at 1280×720](images/photo-feature.png)
@@ -487,6 +517,7 @@ Action | Format, Examples
 **Exit** | `exit`
 **Filter** | `filter starred` or `filter starred off`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…​`<br> e.g., `find James Jake`
+**Follow-up** | `followup INDEX d/YYYY-MM-DD` or `followup INDEX clear`<br> e.g., `followup 1 d/2026-10-25`
 **Group** | `group t/TAG`<br> e.g., `group t/react`
 **Help** | `help`
 **List** | `list`

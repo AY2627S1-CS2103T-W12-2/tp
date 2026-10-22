@@ -15,5 +15,6 @@ public class CliSyntax {
     public static final Prefix PREFIX_TAG = new Prefix("t/");
     public static final Prefix PREFIX_LINKEDIN = new Prefix("l/");
     public static final Prefix PREFIX_NOTE = new Prefix("nt/");
+    public static final Prefix PREFIX_FOLLOW_UP_DATE = new Prefix("d/");
 
 }
