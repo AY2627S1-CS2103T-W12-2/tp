@@ -23,7 +23,9 @@ Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
 <div markdown="span" class="alert alert-primary">
 
-:bulb: **Tip:** The `.puml` files used to create diagrams are in `docs/diagrams`. Refer to the [_PlantUML Tutorial_ at se-edu/guides](https://se-education.org/guides/tutorials/plantUml.html) to learn how to create and edit diagrams.
+:bulb: **Tip:** The `.puml` files used to create diagrams are in `docs/diagrams`. Refer to the
+[_PlantUML Tutorial_ at se-edu/guides](https://se-education.org/guides/tutorials/plantUml.html) to learn how to create
+and edit diagrams.
 </div>
 
 ### Architecture
@@ -235,13 +237,35 @@ The sequence diagram below shows what happens when the user executes `star 1`. `
 
 The following sequence shows the `undo` command, including rollback if saving the restored state fails:
 
-![Undo through Logic and Storage](images/UndoSequenceDiagram-Logic.png)
+![Undo through Logic and Storage](images/UndoSequenceDiagram-Logic.svg)
 
-`UndoCommand` checks `Model#canUndo()` and reports `Nothing to undo.` when the stack is empty. Otherwise, `ModelManager#undo()` moves the current state to the redo stack and restores the latest undo state. Restoration reinstates contact data, timestamps, the visible-list predicate, sort order, and the detail selection without stamping the current time. A later explicit view of a surviving contact is preserved; a deleted contact comes back with its pre-deletion view time.
+[Undo sequence PlantUML source](diagrams/UndoSequenceDiagram-Logic.puml)
 
-![Undo within the Model](images/UndoSequenceDiagram-Model.png)
+The corresponding redo sequence shows the empty-history response and how a failed save restores the contact data and
+both history stacks:
 
-The saved state copies the full address book, including note text, star flags, follow-up dates, meeting context, photo references, and activity timestamps. This keeps undo independent of individual command implementations and lets it restore fields added by later features. The trade-off is memory proportional to the number and size of saved address books, bounded by the 50-entry history limit. Photo binaries are not copied into history: imported files are retained under `photos/` after replacement, clearing, deletion, and failed saves. Undo restores their references; if a file is missing or invalid, the UI displays a placeholder and the rest of the address book remains usable. `ModelManager` also maintains a redo stack, but the `redo` CLI command is tracked separately in #132.
+![Redo through Logic and Storage](images/RedoSequenceDiagram-Logic.svg)
+
+[Redo sequence PlantUML source](diagrams/RedoSequenceDiagram-Logic.puml)
+
+`UndoCommand` checks `Model#canUndo()` and reports `Nothing to undo.` when the stack is empty. Otherwise, `ModelManager#undo()` moves the current state to the redo stack and restores the latest undo state. `RedoCommand` checks `Model#canRedo()` and reports `Nothing to redo.` when its stack is empty. Otherwise, `ModelManager#redo()` moves the current state to the undo stack and restores the latest redo state. Neither command records a new mutation; each restored state is saved by `LogicManager`. A failed save restores both stacks and the contact data from the pre-command snapshot.
+
+Restoration reinstates contact data, timestamps, the visible-list predicate, sort order, and the detail selection without stamping the current time. A later explicit view of a surviving contact is preserved; a deleted contact comes back with its pre-deletion view time. A new successfully saved real contact mutation clears redo, while failed, read-only, and no-op commands do not.
+
+The following sequence shows how the two history stacks change during undo:
+
+![Undo within the Model](images/UndoSequenceDiagram-Model.svg)
+
+[Undo model sequence PlantUML source](diagrams/UndoSequenceDiagram-Model.puml)
+
+The following state diagram shows how undo, redo, and a new saved mutation move the current contact state between the
+two history stacks. Read-only and no-op commands leave redo available:
+
+![Undo and redo history transitions](images/UndoRedoHistoryStateDiagram.svg)
+
+[Undo and redo state PlantUML source](diagrams/UndoRedoHistoryStateDiagram.puml)
+
+The saved state copies the full address book, including note text, star flags, follow-up dates, meeting context, photo references, and activity timestamps. This keeps undo and redo independent of individual command implementations and lets them restore fields added by later features. The trade-off is memory proportional to the number and size of saved address books, bounded by the 50-entry history limit. Photo binaries are not copied into history: imported files are retained under `photos/` after replacement, clearing, deletion, and failed saves. Undo and redo restore their references; if a file is missing or invalid, the UI displays a placeholder and the rest of the address book remains usable.
 
 ### Command history
 

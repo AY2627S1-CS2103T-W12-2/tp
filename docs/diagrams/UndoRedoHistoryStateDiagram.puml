@@ -1,0 +1,34 @@
+@startuml
+!include style.puml
+left to right direction
+
+title Undo and redo history after saved contact changes
+
+skinparam State {
+    BackgroundColor MODEL_COLOR_T1
+    BorderColor MODEL_COLOR
+    FontColor #000000
+}
+
+state "After two changes\ncurrent = C\nundo = [A, B]\nredo = []" as Latest
+state "After undo\ncurrent = B\nundo = [A]\nredo = [C]" as Undone
+state "After branching change\ncurrent = D\nundo = [A, B]\nredo = []" as Branched
+
+Latest --> Undone : undo()\nrestore B and save
+Undone --> Latest : redo()\nrestore C and save
+Undone --> Branched : new real contact change\nsave succeeds
+Undone --> Undone : read-only or no-op command;\nfailed command or save
+
+note bottom of Undone
+  The rightmost entry is the top of each stack.
+  A, B, and C are saved contact states with
+  selection, filter, sort, and activity times.
+  A failed redo save also returns to this state.
+end note
+
+note bottom of Branched
+  The new mutation clears redo history.
+  The discarded C state cannot be redone.
+end note
+
+@enduml

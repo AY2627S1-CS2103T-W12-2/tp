@@ -59,7 +59,7 @@ LarperBoard is a desktop app for keeping track of people you meet at hackathons.
 * Put a required `INDEX` first; prefixed parameters can then be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
 
-* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored. The `undo` command rejects arguments.<br>
+* Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored. The `undo` and `redo` commands reject arguments.<br>
   For example, `help 123` is interpreted as `help`.
 
 * If you are using a PDF version of this document, be careful when copying and pasting commands that span multiple lines as space characters surrounding line-breaks may be omitted when copied over to the application.
@@ -330,6 +330,20 @@ view time is kept for a contact that survives the undo; restoring a deleted cont
 as a new view. The history is not saved: after closing and reopening LarperBoard, restored contact
 data remains in the JSON file, but no earlier undo steps are available.
 
+### Redoing an undone contact change: `redo`
+
+Reapplies the most recently undone contact change in the current app session and saves the restored
+contacts to the data file. Format: `redo`. If there is no undone change, LarperBoard reports
+`Nothing to redo.` You can redo several changes in reverse undo order, up to the 50-step history
+limit. `redo` restores contact details, activity times, the displayed list and sort, and the viewed
+contact without marking the contacts as edited again. Later explicit views of surviving contacts
+are kept.
+
+A new successful contact change after `undo` clears the redo steps. Failed commands, failed saves,
+changes that leave contacts unchanged, and view or list commands keep them. Photo redo restores the
+saved photo reference; imported image files are retained. Redo history is not available after the
+app is closed and reopened, although the redone contacts remain in the data file.
+
 ### Exiting the program: `exit`
 
 Exits the program.
@@ -558,6 +572,7 @@ Action | Format, Examples
 
 **Photo** | `photo INDEX f/RELATIVE_PATH` or `photo INDEX clear`
 **Note** | `note INDEX nt/NOTE` or `note INDEX clear`<br> e.g., `note 1 nt/Met at the AI track`
+**Redo** | `redo`
 **Reset** | `reset`
 **Sort** | `sort added|edited|viewed`<br> e.g., `sort viewed`
 **Star** | `star INDEX`<br> e.g., `star 1`

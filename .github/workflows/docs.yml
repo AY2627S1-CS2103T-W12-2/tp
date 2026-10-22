@@ -1,0 +1,95 @@
+name: Documentation
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - docs/**
+      - .github/workflows/docs.yml
+  pull_request:
+    paths:
+      - docs/**
+      - .github/workflows/docs.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+
+      - name: Set up Java
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Download PlantUML
+        shell: bash
+        run: |
+          set -euo pipefail
+          curl --fail --location --retry 3 \
+            --output "$RUNNER_TEMP/plantuml.jar" \
+            https://github.com/plantuml/plantuml/releases/download/v1.2026.8/plantuml-1.2026.8.jar
+          echo "5e1ecfa8ecd32c90b03bbf3b1eb6f020943f98ab0fcf4032be31a0002ee2c462  $RUNNER_TEMP/plantuml.jar" \
+            | sha256sum --check
+
+      - name: Render undo and redo diagrams
+        shell: bash
+        run: |
+          set -euo pipefail
+          diagrams=(
+            UndoSequenceDiagram-Logic
+            RedoSequenceDiagram-Logic
+            UndoSequenceDiagram-Model
+            UndoRedoHistoryStateDiagram
+          )
+          sources=()
+          for diagram in "${diagrams[@]}"; do
+            sources+=("docs/diagrams/$diagram.puml")
+          done
+          java -jar "$RUNNER_TEMP/plantuml.jar" -checkonly "${sources[@]}"
+          java -jar "$RUNNER_TEMP/plantuml.jar" -tsvg -o ../images "${sources[@]}"
+          for diagram in "${diagrams[@]}"; do
+            test -s "docs/images/$diagram.svg"
+          done
+
+      - name: Configure Pages
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/configure-pages@v5
+
+      - name: Build Jekyll site
+        uses: actions/jekyll-build-pages@v1
+        with:
+          source: ./docs
+          destination: ./docs/_site
+
+      - name: Upload Pages artifact
+        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        uses: actions/upload-pages-artifact@v4
+        with:
+          path: ./docs/_site
+
+  deploy:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

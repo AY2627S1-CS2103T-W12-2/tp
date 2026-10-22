@@ -25,6 +25,7 @@ import seedu.address.logic.commands.GroupCommand;
 import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.NoteCommand;
+import seedu.address.logic.commands.RedoCommand;
 import seedu.address.logic.commands.ResetCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.StarCommand;
@@ -154,6 +155,19 @@ public class AddressBookParserTest {
         String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, UndoCommand.MESSAGE_USAGE);
         assertThrows(ParseException.class, expectedMessage, () ->
                 parser.parseCommand(UndoCommand.COMMAND_WORD + " 1"));
+    }
+
+    @Test
+    public void parseCommand_redoWithoutArguments_returnsRedoCommand() throws Exception {
+        assertTrue(parser.parseCommand(RedoCommand.COMMAND_WORD) instanceof RedoCommand);
+        assertTrue(parser.parseCommand(RedoCommand.COMMAND_WORD + "   ") instanceof RedoCommand);
+    }
+
+    @Test
+    public void parseCommand_redoWithArguments_throwsParseException() {
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, RedoCommand.MESSAGE_USAGE);
+        assertThrows(ParseException.class, expectedMessage, () ->
+                parser.parseCommand(RedoCommand.COMMAND_WORD + " 1"));
     }
 
     @Test

@@ -23,6 +23,10 @@ src/test/data/sandbox/
 # MacOS custom attributes files created by Finder
 .DS_Store
 docs/_site/
+/docs/images/UndoSequenceDiagram-Logic.svg
+/docs/images/RedoSequenceDiagram-Logic.svg
+/docs/images/UndoSequenceDiagram-Model.svg
+/docs/images/UndoRedoHistoryStateDiagram.svg
 
 # AI Agents
 AGENTS.md
