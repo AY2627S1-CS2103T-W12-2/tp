@@ -23,6 +23,10 @@ title: Documentation guide
 **Diagrams:**
 
 * See the [_[se-edu/guides] **Using PlantUML**_](https://se-education.org/guides/tutorials/plantUml.html)
+* The undo and redo diagrams in the Developer Guide are rendered from `docs/diagrams/*.puml` to SVG during the
+  documentation workflow. Edit the PlantUML sources; the generated SVGs are not committed.
+* Publish the guide with the repository's Pages source set to **GitHub Actions**. The branch-based Pages build does not
+  run the diagram-rendering step.
 
 **Converting a document to the PDF format:**
 

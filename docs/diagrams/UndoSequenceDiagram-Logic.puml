@@ -39,6 +39,7 @@ else an earlier state is available
     LogicManager -> Storage : saveAddressBook(book)
     alt save succeeds
         Storage --> LogicManager : saved
+        note right of LogicManager : Undo does not record a new mutation.
         LogicManager -->] : result
     else save fails
         Storage --> LogicManager : throws IOException
