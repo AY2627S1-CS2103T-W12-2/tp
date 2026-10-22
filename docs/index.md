@@ -10,6 +10,8 @@ title: LarperBoard
 
 **LarperBoard is a desktop app for keeping track of people you meet at hackathons.** Add contact details, LinkedIn handles, and role or tech-stack tags with short commands, then find people by name when it is time to reconnect. The graphical interface keeps your contact list and details visible.
 
+Add notes, star important contacts, record follow-up dates and meeting context, and attach a local photo. Search names, tags, notes, or event names, sort by activity time, and undo or redo saved contact changes. Recall recent commands with the Up and Down arrow keys in the command field.
+
 * To get started, download the JAR from the [team releases page](https://github.com/AY2627S1-CS2103T-W12-2/tp/releases) and follow the [**User Guide quick start**](UserGuide.html#quick-start).
 * To contribute, see the [**Developer Guide**](DeveloperGuide.html).
 
