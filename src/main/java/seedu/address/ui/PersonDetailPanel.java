@@ -60,6 +60,8 @@ public class PersonDetailPanel extends UiPart<Region> {
     @FXML
     private Label role;
     @FXML
+    private Label followUp;
+    @FXML
     private ImageView photo;
     @FXML
     private Label photoPlaceholder;
@@ -140,6 +142,7 @@ public class PersonDetailPanel extends UiPart<Region> {
         event.setText(person.getMeeting().getEventName().orElse(EMPTY_FIELD_TEXT));
         meetingDate.setText(person.getMeeting().getDate().map(Object::toString).orElse(EMPTY_FIELD_TEXT));
         role.setText(person.getMeeting().getRole().orElse(EMPTY_FIELD_TEXT));
+        followUp.setText(person.getFollowUpDate().map(Object::toString).orElse(EMPTY_FIELD_TEXT));
         createdAt.setText(formatTime(person.getActivity().getCreatedAt()));
         lastEditedAt.setText(formatTime(person.getActivity().getLastEditedAt()));
         lastViewedAt.setText(formatTime(person.getActivity().getLastViewedAt()));

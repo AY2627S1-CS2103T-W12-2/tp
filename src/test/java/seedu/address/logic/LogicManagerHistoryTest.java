@@ -17,7 +17,10 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.time.Clock;
 import java.time.Instant;
+import java.time.LocalDate;
 import java.time.ZoneId;
+import java.time.temporal.ChronoUnit;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
@@ -267,6 +270,38 @@ public class LogicManagerHistoryTest {
         assertEquals(original, afterEditUndo);
         assertEquals(afterEditUndo, model.getViewedPerson().get());
         assertEquals(afterEditUndo, addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0));
+    }
+
+    @Test
+    public void execute_followUpThenUndo_restoresDateAndLastEdited() throws Exception {
+        logic.execute(addAmy());
+        Person original = model.getFilteredPersonList().get(0);
+
+        clock.advanceSeconds(60);
+        logic.execute("followup 1 d/2026-10-25");
+        Person withDate = model.getFilteredPersonList().get(0);
+        assertEquals(Optional.of(LocalDate.of(2026, 10, 25)), withDate.getFollowUpDate());
+        assertEquals(Optional.of(clock.instant().truncatedTo(ChronoUnit.SECONDS)),
+                withDate.getActivity().getLastEditedAt());
+
+        logic.execute("undo");
+        Person restored = model.getFilteredPersonList().get(0);
+        assertEquals(original, restored);
+        assertEquals(Optional.empty(), restored.getFollowUpDate());
+        assertEquals(original.getActivity().getLastEditedAt(), restored.getActivity().getLastEditedAt());
+        assertEquals(restored, addressBookStorage.readAddressBook().orElseThrow().getPersonList().get(0));
+    }
+
+    @Test
+    public void execute_followUpSameDate_doesNotEnterHistory() throws Exception {
+        logic.execute(addAmy());
+        logic.execute("followup 1 d/2026-10-25");
+        logic.execute("followup 1 d/2026-10-25");
+
+        logic.execute("undo");
+        assertEquals(Optional.empty(), model.getFilteredPersonList().get(0).getFollowUpDate());
+        logic.execute("undo");
+        assertTrue(model.getFilteredPersonList().isEmpty());
     }
 
     @Test

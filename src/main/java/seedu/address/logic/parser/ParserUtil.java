@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static java.util.Objects.requireNonNull;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -37,6 +38,22 @@ public class ParserUtil {
         String trimmedIndex = oneBasedIndex.trim();
         validateIndexCharacters(trimmedIndex);
         return Index.fromOneBased(parsePositiveIntegerIndex(trimmedIndex));
+    }
+
+    /**
+     * Parses an index that refers to the displayed person list, reporting any problem with it as
+     * {@code MESSAGE_INVALID_PERSON_DISPLAYED_INDEX}.
+     *
+     * @param oneBasedIndex textual index to parse
+     * @return the parsed index
+     * @throws ParseException if the index is not a positive integer that fits in an {@code int}
+     */
+    public static Index parseDisplayedIndex(String oneBasedIndex) throws ParseException {
+        try {
+            return parseIndex(oneBasedIndex);
+        } catch (ParseException pe) {
+            throw new ParseException(MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, pe);
+        }
     }
 
     /** Ensures that an index contains only decimal digits. */

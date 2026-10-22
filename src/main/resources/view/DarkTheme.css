@@ -397,3 +397,8 @@
 .list-cell .label.star {
     -fx-text-fill: #f5c542;
 }
+
+.cell_small_label.overdue {
+    -fx-text-fill: #ff6b6b;
+    -fx-font-weight: bold;
+}

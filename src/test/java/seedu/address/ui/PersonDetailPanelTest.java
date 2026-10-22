@@ -259,6 +259,15 @@ public class PersonDetailPanelTest {
         assertFalse(((ScrollPane) panel.getRoot().lookup(".scroll-pane")).isFitToHeight());
     }
 
+    @Test
+    public void constructor_followUpDate_showsFullDateOrPlaceholder() {
+        Person with = new PersonBuilder().withFollowUpDate(java.time.LocalDate.of(2026, 10, 25)).build();
+
+        assertEquals("2026-10-25", text(new PersonDetailPanel(new SimpleObjectProperty<>(with)), "#followUp"));
+        assertEquals("-", text(new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build())),
+                "#followUp"));
+    }
+
     /** Returns a panel showing a contact with a very long note, in a small window so that the panel scrolls. */
     private PersonDetailPanel longNotePanelInScene() {
         String longNote = ("word ".repeat(180)).strip();
