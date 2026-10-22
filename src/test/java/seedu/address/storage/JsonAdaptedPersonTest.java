@@ -8,8 +8,10 @@ import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.Test;
@@ -296,6 +298,41 @@ public class JsonAdaptedPersonTest {
 
         assertTrue(withNote.contains("\"note\" : \"hi\""));
         assertTrue(withoutNote.contains("\"note\" : null"));
+    }
+
+    @Test
+    public void toModelType_followUpDateRoundTrip_preservesDate() throws Exception {
+        Person person = new PersonBuilder(BENSON).withFollowUpDate(LocalDate.of(2028, 2, 29)).build();
+
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(person));
+        assertTrue(json.contains("\"followUpDate\" : \"2028-02-29\""));
+        Person loaded = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+        assertEquals(Optional.of(LocalDate.of(2028, 2, 29)), loaded.getFollowUpDate());
+        assertEquals(person, loaded);
+    }
+
+    @Test
+    public void toModelType_missingOrNullFollowUpDate_meansNoFollowUp() throws Exception {
+        String missing = "{\"name\":\"Amy Bee\",\"phone\":\"85355255\",\"email\":\"amy@gmail.com\"}";
+        String explicitNull = "{\"name\":\"Amy Bee\",\"phone\":\"85355255\",\"email\":\"amy@gmail.com\","
+                + "\"followUpDate\":null}";
+
+        assertEquals(Optional.empty(),
+                JsonUtil.fromJsonString(missing, JsonAdaptedPerson.class).toModelType().getFollowUpDate());
+        assertEquals(Optional.empty(),
+                JsonUtil.fromJsonString(explicitNull, JsonAdaptedPerson.class).toModelType().getFollowUpDate());
+        assertTrue(JsonUtil.toJsonString(new JsonAdaptedPerson(BENSON)).contains("\"followUpDate\" : null"));
+    }
+
+    @Test
+    public void toModelType_malformedFollowUpDate_throwsFieldSpecificMessage() throws Exception {
+        String expected = "Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.";
+        for (String value : new String[] {"\"2027-02-29\"", "\"25-10-2026\"", "\"\"", "\"tomorrow\"", "20261025"}) {
+            String json = "{\"name\":\"Amy Bee\",\"phone\":\"85355255\",\"email\":\"amy@gmail.com\","
+                    + "\"followUpDate\":" + value + "}";
+            JsonAdaptedPerson adapted = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
+            assertThrows(IllegalValueException.class, expected, adapted::toModelType);
+        }
     }
 
     /*

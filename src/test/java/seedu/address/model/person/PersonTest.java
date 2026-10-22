@@ -14,7 +14,9 @@ import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BOB;
 
 import java.time.Instant;
+import java.time.LocalDate;
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import org.junit.jupiter.api.Test;
@@ -32,6 +34,32 @@ public class PersonTest {
     public void asObservableList_modifyList_throwsUnsupportedOperationException() {
         Person person = new PersonBuilder().build();
         assertThrows(UnsupportedOperationException.class, () -> person.getTags().remove(0));
+    }
+
+    @Test
+    public void followUpDate_dueAndOverdueBoundaries() {
+        LocalDate today = LocalDate.of(2026, 10, 21);
+        Person none = new PersonBuilder().build();
+        Person yesterday = new PersonBuilder().withFollowUpDate(today.minusDays(1)).build();
+        Person dueToday = new PersonBuilder().withFollowUpDate(today).build();
+        Person tomorrow = new PersonBuilder().withFollowUpDate(today.plusDays(1)).build();
+
+        assertFalse(none.isFollowUpDueOn(today));
+        assertFalse(none.isFollowUpOverdueOn(today));
+        assertTrue(yesterday.isFollowUpDueOn(today));
+        assertTrue(yesterday.isFollowUpOverdueOn(today));
+        assertTrue(dueToday.isFollowUpDueOn(today));
+        assertFalse(dueToday.isFollowUpOverdueOn(today));
+        assertFalse(tomorrow.isFollowUpDueOn(today));
+    }
+
+    @Test
+    public void toBuilder_keepsFollowUpDateAndEqualityUsesIt() {
+        Person withDate = new PersonBuilder().withFollowUpDate(LocalDate.of(2026, 10, 25)).build();
+
+        assertEquals(withDate, withDate.toBuilder().build());
+        assertNotEquals(withDate, withDate.toBuilder().withFollowUpDate(null).build());
+        assertEquals(Optional.of(LocalDate.of(2026, 10, 25)), withDate.getFollowUpDate());
     }
 
     @Test
@@ -166,7 +194,7 @@ public class PersonTest {
                 + ", email=" + ALICE.getEmail()
                 + ", linkedIn=" + ALICE.getLinkedIn() + ", tags=" + ALICE.getTags()
                 + ", note=none, activity=" + ALICE.getActivity() + ", meeting=" + ALICE.getMeeting().toLogString()
-                + ", photoPath=" + ALICE.getPhotoPath() + ", starred=false}";
+                + ", photoPath=" + ALICE.getPhotoPath() + ", starred=false, followUpDate=null}";
         assertEquals(expected, ALICE.toString());
     }
 

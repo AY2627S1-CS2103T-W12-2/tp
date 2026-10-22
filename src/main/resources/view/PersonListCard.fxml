@@ -32,6 +32,7 @@
       </HBox>
       <FlowPane fx:id="tags" />
       <Label fx:id="event" styleClass="cell_small_label" />
+      <Label fx:id="followUp" styleClass="cell_small_label" />
       <Label fx:id="phone" styleClass="cell_small_label" text="\$phone" />
       <Label fx:id="email" styleClass="cell_small_label" text="\$email" />
       <Label fx:id="linkedIn" styleClass="cell_small_label" text="\$linkedIn" />

@@ -320,13 +320,37 @@ Restores the contact list, displayed results, and viewed contact from before the
 
 Format: `undo`
 
-Up to 50 contact changes are available during the current app session. Adding, editing, tagging, deleting, and clearing contacts can enter this history. Failed commands, commands that leave contacts unchanged, and `view`, `find`, and `list` do not. A later explicit view time is kept for a contact that survives the undo; restoring a deleted contact does not count as a new view.
+Up to 50 contact changes are available during the current app session. Adding, editing, tagging,
+deleting, clearing, setting or clearing notes, starring or unstarring, changing follow-up dates,
+changing meeting context, and attaching, replacing, or clearing photos can enter this history.
+Each `undo` reverses one successful change. Failed commands, commands that leave contacts unchanged,
+and commands such as `view`, `find`, and `list` do not add a step. Undo restores saved
+contact details and their last-edited times without marking them as edited again. A later explicit
+view time is kept for a contact that survives the undo; restoring a deleted contact does not count
+as a new view. The history is not saved: after closing and reopening LarperBoard, restored contact
+data remains in the JSON file, but no earlier undo steps are available.
 
 ### Exiting the program: `exit`
 
 Exits the program.
 
 Format: `exit`
+
+### Recalling previous commands: Up and Down arrows
+
+Brings back commands that you submitted earlier in the same session, so that you can run or fix them without typing them again.
+
+* While the command box is selected, press the **Up** arrow to bring back the previous command, and press it again to go further back.
+* Press the **Down** arrow to move forward again. After the newest command, the command box shows the text that you had typed before you started browsing.
+* Every command you submit is remembered, including commands that fail, such as an unknown command or an invalid index. A command that is the same as the one just before it is remembered only once.
+* LarperBoard remembers the latest 50 commands. The history is cleared when you close the app and is not saved in the data file.
+* You can edit a recalled command before you submit it. Editing does not change the remembered command.
+* The arrow keys only work in the command box, and only when no other key such as `Shift` or `Ctrl` is held down.
+* Commands such as `list`, `clear` and `reset` do not clear the history. They are remembered like any other command.
+
+Examples:
+* Submit `find Aisha` and then `view 1`. Press **Up** once to bring back `view 1`, and press **Up** again to bring back `find Aisha`.
+* Type `tag 1 t/` without submitting it, press **Up** to bring back an earlier command, then press **Down** to get `tag 1 t/` back.
 
 ### Recording meeting context: `meeting`
 
@@ -370,6 +394,52 @@ Missing/null context and fields mean absent values. Clearing the final field omi
 Malformed present values reject loading with `Invalid contact data: 'meeting.<field>' <reason>.`;
 a non-object context names `meeting`. Back up JSON before editing it manually.
 Successful real changes update last-edited time and are saved before entering session undo history.
+
+### Setting a follow-up date: `followup`
+
+Use `followup INDEX d/YYYY-MM-DD` to set or replace the date by which you want to follow up with a
+contact, for example after a hackathon. Use `followup INDEX clear` to remove it.
+
+Examples:
+```
+followup 1 d/2026-10-25
+followup 1 clear
+```
+
+`INDEX` is the number shown in the current list. The date must be a real calendar date in exactly
+YYYY-MM-DD format (leap days such as 2028-02-29 are accepted; 2027-02-29 is not).
+
+Invalid dates report `Date must be a real date in YYYY-MM-DD format.` and an invalid index reports
+`The person index provided is invalid.` Failures leave the contact unchanged. Setting the date a contact
+already has, or clearing a date that is not set, only reports `Follow-up date unchanged.`: it does not change
+the last-edited time or add an undo step. A real change can be reversed with `undo`.
+
+The contact card shows `Follow up: DATE`, followed by `(Overdue)` in red once the date is before today
+(Singapore time). A date that is today is not overdue. The card is drawn when the list is shown, so it does
+not change at midnight until the list is next refreshed. `view INDEX` shows the full date.
+
+The date is saved in the optional JSON field `followUpDate`, for example `"followUpDate": "2026-10-25"`.
+A missing or null value means no follow-up. A malformed value stops the file loading with
+`Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` Back up the file before
+editing it by hand.
+
+### Showing contacts due for follow-up: `due`
+
+Format: `due`
+
+Shows every contact whose follow-up date is today or earlier, with the earliest date first. Contacts with
+the same date stay in their original list order. Contacts with no follow-up date, or a date after today, are
+left out. "Today" is the Singapore date when you run the command; nothing runs in the background, so run `due`
+again to refresh the list.
+
+* `due` replaces any search, group or sort that was active. A later `sort added|edited|viewed` can reorder
+  the contacts it shows.
+* No contact being due is a normal result: the list is empty and the message says `0 contact(s) listed!`.
+* Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date
+  from the due list removes that contact from it.
+* `list` or `reset` shows all contacts again in their original order.
+
+Example: `followup 2 d/2026-10-18` then `due` lists the second contact first if its date is the earliest.
 
 ### Contact photos: `photo`
 
@@ -418,6 +488,7 @@ An identical current image and clearing an absent photo are no-ops. Only real su
 update last-edited time and enter undo history; failed saves restore the contact and history.
 Keep the `photos/` folder when transferring contacts to another installation. Do not delete images
 that may still be referenced by a contact or session history.
+
 
 ### Saving the data
 
@@ -473,10 +544,13 @@ Action | Format, Examples
 **Add** | `add n/NAME [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `add n/James Ho p/22224444 e/jamesho@example.com l/james-ho t/friend t/colleague`
 **Clear** | `clear`
 **Delete** | `delete INDEX`<br> e.g., `delete 3`
+**Due** | `due`
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Exit** | `exit`
 **Filter** | `filter starred` or `filter starred off`
 **Find** | `find KEYWORD [MORE_KEYWORDS]…​` or `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`<br> e.g., `find n/James t/react`
+**Find** | `find KEYWORD [MORE_KEYWORDS]…​`<br> e.g., `find James Jake`
+**Follow-up** | `followup INDEX d/YYYY-MM-DD` or `followup INDEX clear`<br> e.g., `followup 1 d/2026-10-25`
 **Group** | `group t/TAG`<br> e.g., `group t/react`
 **Help** | `help`
 **List** | `list`
@@ -491,3 +565,4 @@ Action | Format, Examples
 **Undo** | `undo`
 **Unstar** | `unstar INDEX`<br> e.g., `unstar 1`
 **View** | `view INDEX`<br> e.g., `view 1`
+**Recall previous command** | Press **Up** or **Down** in the command box. See [Recalling previous commands](#recalling-previous-commands-up-and-down-arrows)

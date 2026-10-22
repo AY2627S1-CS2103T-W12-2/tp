@@ -3,9 +3,11 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.CollectionUtil.requireAllNonNull;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import seedu.address.commons.util.ToStringBuilder;
@@ -31,6 +33,7 @@ public class Person {
     private final Activity activity;
     private final Meeting meeting;
     private final String photoPath;
+    private final LocalDate followUpDate;
     private final boolean starred;
 
     /**
@@ -57,12 +60,12 @@ public class Person {
      */
     public Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity,
             Note note) {
-        this(name, phone, email, linkedIn, tags, activity, note, Meeting.EMPTY, "", false);
+        this(name, phone, email, linkedIn, tags, activity, note, Meeting.EMPTY, "", false, null);
     }
 
     /** Creates a complete contact with optional meeting context. */
     private Person(Name name, Phone phone, Email email, LinkedIn linkedIn, Set<Tag> tags, Activity activity,
-            Note note, Meeting meeting, String photoPath, boolean starred) {
+            Note note, Meeting meeting, String photoPath, boolean starred, LocalDate followUpDate) {
         requireAllNonNull(name, phone, email, linkedIn, tags, activity, note, meeting, photoPath);
         this.name = name;
         this.phone = phone;
@@ -74,6 +77,7 @@ public class Person {
         this.meeting = meeting;
         this.photoPath = photoPath;
         this.starred = starred;
+        this.followUpDate = followUpDate;
     }
 
     public Name getName() {
@@ -111,6 +115,21 @@ public class Person {
     /** Returns the application-relative photo reference, validated by storage before opening. */
     public String getPhotoPath() {
         return photoPath;
+    }
+
+    /** Returns the date to follow up with this contact, or empty if there is none. */
+    public Optional<LocalDate> getFollowUpDate() {
+        return Optional.ofNullable(followUpDate);
+    }
+
+    /** Returns true if there is a follow-up date on or before {@code today}. */
+    public boolean isFollowUpDueOn(LocalDate today) {
+        return followUpDate != null && !followUpDate.isAfter(today);
+    }
+
+    /** Returns true if there is a follow-up date strictly before {@code today}. */
+    public boolean isFollowUpOverdueOn(LocalDate today) {
+        return followUpDate != null && followUpDate.isBefore(today);
     }
 
     /** Returns true if the user has starred this contact as important. */
@@ -184,13 +203,15 @@ public class Person {
                 && activity.equals(otherPerson.activity)
                 && meeting.equals(otherPerson.meeting)
                 && photoPath.equals(otherPerson.photoPath)
-                && starred == otherPerson.starred;
+                && starred == otherPerson.starred
+                && Objects.equals(followUpDate, otherPerson.followUpDate);
     }
 
     @Override
     public int hashCode() {
         // use this method for custom fields hashing instead of implementing your own
-        return Objects.hash(name, phone, email, linkedIn, tags, note, activity, meeting, photoPath, starred);
+        return Objects.hash(name, phone, email, linkedIn, tags, note, activity, meeting, photoPath, starred,
+                followUpDate);
     }
 
     @Override
@@ -207,6 +228,7 @@ public class Person {
                 .add("meeting", meeting.toLogString())
                 .add("photoPath", photoPath)
                 .add("starred", starred)
+                .add("followUpDate", followUpDate)
                 .toString();
     }
 
@@ -226,6 +248,7 @@ public class Person {
         private Meeting meeting;
         private String photoPath;
         private boolean starred;
+        private LocalDate followUpDate;
 
         private Builder(Person source) {
             name = source.name;
@@ -238,6 +261,7 @@ public class Person {
             meeting = source.meeting;
             photoPath = source.photoPath;
             starred = source.starred;
+            followUpDate = source.followUpDate;
         }
 
         /**
@@ -315,6 +339,12 @@ public class Person {
             return this;
         }
 
+        /** Replaces the follow-up date. A null date removes it. */
+        public Builder withFollowUpDate(LocalDate followUpDate) {
+            this.followUpDate = followUpDate;
+            return this;
+        }
+
         /** Replaces only the starred flag, retaining all other fields. */
         public Builder withStarred(boolean starred) {
             this.starred = starred;
@@ -325,7 +355,8 @@ public class Person {
          * Returns a new {@code Person} with the fields set so far.
          */
         public Person build() {
-            return new Person(name, phone, email, linkedIn, tags, activity, note, meeting, photoPath, starred);
+            return new Person(name, phone, email, linkedIn, tags, activity, note, meeting, photoPath, starred,
+                    followUpDate);
         }
     }
 

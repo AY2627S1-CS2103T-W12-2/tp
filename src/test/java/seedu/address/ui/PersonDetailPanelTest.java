@@ -15,12 +15,14 @@ import org.junit.jupiter.api.Test;
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
+import javafx.event.Event;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.FlowPane;
 import seedu.address.model.person.Activity;
 import seedu.address.model.person.Note;
@@ -188,14 +190,7 @@ public class PersonDetailPanelTest {
 
     @Test
     public void constructor_veryLongNote_wrapsAndScrollsVerticallyOnly() {
-        String longNote = ("word ".repeat(180)).strip();
-        String unbrokenNote = "x".repeat(Note.MAX_LENGTH - longNote.length() - 1);
-        Person person = new PersonBuilder().withNote(longNote + " " + unbrokenNote).build();
-        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
-        Parent root = (Parent) panel.getRoot();
-        new Scene(root, 480, 320);
-        root.applyCss();
-        root.layout();
+        Parent root = (Parent) longNotePanelInScene().getRoot();
 
         ScrollPane scrollPane = (ScrollPane) root.lookup("#scrollPane");
         Label note = (Label) root.lookup("#note");
@@ -207,6 +202,46 @@ public class PersonDetailPanelTest {
         assertTrue(note.getBoundsInParent().getMaxX() <= scrollPane.getViewportBounds().getWidth() + 1);
         // and the panel itself scrolls up and down to reach the end of the note
         assertTrue(verticalBar.isVisible());
+    }
+
+    @Test
+    public void scroll_longContent_movesByThePixelsOfTheEvent() {
+        Parent root = (Parent) longNotePanelInScene().getRoot();
+        ScrollPane scrollPane = (ScrollPane) root.lookup("#scrollPane");
+        double scrollableHeight = root.lookup("#content").getLayoutBounds().getHeight()
+                - scrollPane.getViewportBounds().getHeight();
+        assertTrue(scrollableHeight > 0);
+
+        // an event that the panel handles itself does not bubble up to the parent any more
+        boolean[] reachedParent = {false};
+        root.addEventHandler(ScrollEvent.SCROLL, event -> reachedParent[0] = true);
+
+        Event.fireEvent(scrollPane, scrollEvent(-40));
+
+        assertEquals(40 / scrollableHeight, scrollPane.getVvalue(), 1e-6);
+        assertFalse(reachedParent[0]);
+
+        Event.fireEvent(scrollPane, scrollEvent(40));
+        assertEquals(0, scrollPane.getVvalue(), 1e-6);
+    }
+
+    @Test
+    public void scroll_contentThatFits_doesNotMovePanel() {
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build()));
+        Parent root = (Parent) panel.getRoot();
+        new Scene(root, 480, 2000);
+        root.applyCss();
+        root.layout();
+        ScrollPane scrollPane = (ScrollPane) root.lookup("#scrollPane");
+
+        // the panel leaves the event alone, so it keeps bubbling up to the parent
+        boolean[] reachedParent = {false};
+        root.addEventHandler(ScrollEvent.SCROLL, event -> reachedParent[0] = true);
+
+        Event.fireEvent(scrollPane, scrollEvent(-40));
+
+        assertEquals(0, scrollPane.getVvalue(), 1e-6);
+        assertTrue(reachedParent[0]);
     }
 
     @Test
@@ -222,6 +257,35 @@ public class PersonDetailPanelTest {
         PersonCard card = new PersonCard(person, 1);
         assertEquals(32, ((Label) card.getRoot().lookup("#event")).getText().length());
         assertFalse(((ScrollPane) panel.getRoot().lookup(".scroll-pane")).isFitToHeight());
+    }
+
+    @Test
+    public void constructor_followUpDate_showsFullDateOrPlaceholder() {
+        Person with = new PersonBuilder().withFollowUpDate(java.time.LocalDate.of(2026, 10, 25)).build();
+
+        assertEquals("2026-10-25", text(new PersonDetailPanel(new SimpleObjectProperty<>(with)), "#followUp"));
+        assertEquals("-", text(new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build())),
+                "#followUp"));
+    }
+
+    /** Returns a panel showing a contact with a very long note, in a small window so that the panel scrolls. */
+    private PersonDetailPanel longNotePanelInScene() {
+        String longNote = ("word ".repeat(180)).strip();
+        String unbrokenNote = "x".repeat(Note.MAX_LENGTH - longNote.length() - 1);
+        Person person = new PersonBuilder().withNote(longNote + " " + unbrokenNote).build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
+        Parent root = (Parent) panel.getRoot();
+        new Scene(root, 480, 320);
+        root.applyCss();
+        root.layout();
+        return panel;
+    }
+
+    /** Returns a vertical scroll event of {@code deltaY} pixels (negative scrolls down), like one wheel notch. */
+    private static ScrollEvent scrollEvent(double deltaY) {
+        return new ScrollEvent(ScrollEvent.SCROLL, 10, 10, 10, 10, false, false, false, false, false, false,
+                0, deltaY, 0, deltaY, ScrollEvent.HorizontalTextScrollUnits.NONE, 0,
+                ScrollEvent.VerticalTextScrollUnits.NONE, 0, 0, null);
     }
 
     private Node lookup(PersonDetailPanel panel, String selector) {

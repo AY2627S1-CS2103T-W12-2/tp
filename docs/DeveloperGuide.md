@@ -183,7 +183,7 @@ Each `Person` carries an `Activity` with its created, last edited and last viewe
 * **Created:** `AddCommand` adds the new person with `created` set to `Model#now()`. A command that fails (for example, a duplicate) records nothing.
 * **Last edited:** `Model#editPerson(target, edited)` is the rule that every command changing a contact must use instead of `Model#setPerson`. If `edited.hasSameDetails(target)` it does nothing. Otherwise it stores `edited` with the activity of `target` and `lastEditedAt` set to now. The activity of `edited` is ignored, so a copy built without activity cannot wipe the other times. `EditCommand` and `TagCommand` use it, and new commands (notes, star, follow-up, photo) should too.
 * **Last viewed:** `Model#viewPerson(person)` sets `lastViewedAt` to now and makes the stored person the viewed person. `ViewCommand` uses it. Viewing is not part of undo history, so undoing a change does not restore an earlier last-viewed time.
-* **A failed save changes nothing.** `LogicManager` takes `Model#createSnapshot()` before it runs a command. If saving the data file then fails, it calls `Model#restore(snapshot)` and shows the error, so the contacts, the viewed contact, the visible-list filter and sort, and the undo and redo stacks are as they were. No created, edited or viewed time is kept. The snapshot is opaque (`Model.Snapshot`) and covers in-memory command changes, not user preferences.
+* **A failed save changes nothing.** `LogicManager` takes `Model#createSnapshot()` before it runs a command. If saving the data file then fails, it calls `Model#restore(snapshot)` and shows the error, so the contacts, the viewed contact, the visible-list filter and sort, and the undo and redo stacks are as they were. No created, edited or viewed time is kept. The snapshot is opaque (`Model.Snapshot`) and covers in-memory command changes, not user preferences. `JsonAddressBookStorage` serializes to a temporary file beside the data file, then uses an atomic replacement. It rejects an existing read-only data file and preserves existing POSIX permissions. A failed write or replacement leaves the previous JSON file intact and removes the temporary file. If the process exits during a save, a stray `addressBook-*.tmp` file may remain beside the data file; it can be deleted safely. If the file system cannot perform an atomic move, saving fails without falling back to an in-place write. An existing symbolic link at the data-file path is replaced by a regular file, leaving its former target unchanged.
 * **Display:** the detail panel shows the three times as `yyyy-MM-dd HH:mm` in `Model.DISPLAY_ZONE` (Asia/Singapore), or an em dash (`—`) when a time is not known. The block sits at the bottom of `PersonDetailPanel.fxml`.
 
 <img src="images/EditActivitySequenceDiagram.png" width="600" />
@@ -231,7 +231,7 @@ The sequence diagram below shows what happens when the user executes `star 1`. `
 
 `ModelManager` keeps up to 50 contact states in a session-only undo stack. Each state copies the address book, the viewed contact, the active visible-list predicate, and the sort criterion. Its `ModelSnapshot` also captures both history stacks so a failed save can restore them. History is not written to JSON; the restored contacts are.
 
-`LogicManager` takes a snapshot before running each command. After the command succeeds, it saves the address book. Only after a successful save does `Model#recordSuccessfulMutation(before)` compare the contact data and add the previous state to history. The comparison ignores `lastViewedAt`, so `view` is not an undoable contact change. Failed commands, failed saves, and changes that leave contacts unchanged add no entry. A new saved mutation clears redo history.
+`LogicManager` takes a snapshot before running each command. After the command succeeds, it saves the address book. Only after a successful save does `Model#recordSuccessfulMutation(before)` compare the contact data and add the previous state to history. The comparison ignores `lastViewedAt`, so `view` is not an undoable contact change. Failed commands, failed saves, and changes that leave contacts unchanged add no entry. A new saved mutation clears redo history. The same path covers add, edit, tag, delete, clear, note, star, follow-up, meeting, and photo mutations; these commands do not maintain separate history entries.
 
 The following sequence shows the `undo` command, including rollback if saving the restored state fails:
 
@@ -241,7 +241,16 @@ The following sequence shows the `undo` command, including rollback if saving th
 
 ![Undo within the Model](images/UndoSequenceDiagram-Model.png)
 
-The saved state copies the full address book. This keeps undo independent of individual command implementations and lets it restore fields added by later features. The trade-off is memory proportional to the number and size of saved address books, bounded by the 50-entry history limit. `ModelManager` also maintains a redo stack, but the `redo` CLI command is tracked separately in #132.
+The saved state copies the full address book, including note text, star flags, follow-up dates, meeting context, photo references, and activity timestamps. This keeps undo independent of individual command implementations and lets it restore fields added by later features. The trade-off is memory proportional to the number and size of saved address books, bounded by the 50-entry history limit. Photo binaries are not copied into history: imported files are retained under `photos/` after replacement, clearing, deletion, and failed saves. Undo restores their references; if a file is missing or invalid, the UI displays a placeholder and the rest of the address book remains usable. `ModelManager` also maintains a redo stack, but the `redo` CLI command is tracked separately in #132.
+
+### Command history
+
+Pressing **Up** or **Down** in the command box brings back commands that were submitted earlier in the session. The logic is split in two classes so that it can be tested without the JavaFX toolkit:
+
+* `CommandHistory` is a plain Java class that holds the remembered commands and the browsing state. `record(commandText)` stores a command (blank text is ignored, a command equal to the newest entry is not stored twice, and the oldest entry is dropped once there are more than `CommandHistory#MAX_ENTRIES`, which is 50). `older(currentText)` and `newer()` move through the entries. When browsing starts, `older` keeps `currentText` as a draft, and `newer` returns that draft after the newest entry so the user gets back what they were typing.
+* `CommandBox` owns one `CommandHistory`. It records the text of every submitted command *before* running it, so commands that fail (an unknown command, an invalid index) are remembered too. It also adds a `KEY_PRESSED` event filter to its text field, which reacts only to a plain Up or Down key and consumes only those events. Key presses with Shift, Ctrl, Alt or Meta held down, and key presses in other controls, are left alone, so text selection with Shift+Up still works.
+
+The history lives in memory only and is not saved to the data file, so it starts empty each time the app is launched. `CommandHistory` does not depend on `Model` or `Logic`. Running `list`, `clear` or `undo` does not clear the history; those commands are remembered like any other.
 
 ### \[Proposed\] Data archiving
 
@@ -698,7 +707,8 @@ snapshot/history behavior from #108 and #131/#132, rather than functionality imp
 text bounds, and explicit clear grammar. `MeetingCommand` merges only supplied fields, then calls
 `Model.editPerson` using a complete copy. Same-value updates return without mutation. Logic saves
 before recording history, restoring its snapshot on failed saves. Existing snapshots therefore retain
-meeting fields without a separate history mechanism. History integration remains owned by #131/#132.
+meeting fields without a separate history mechanism. Setting, replacing, and clearing individual or
+all meeting fields each create one undo step when they change the contact.
 
 `JsonAdaptedPerson` accepts absent/null meeting fields for older data, validates present JSON types
 without coercion, and reports the exact offending meeting field. Empty context is omitted on save.
@@ -708,6 +718,41 @@ The card bounds its event cue to 32 displayed characters, and the detail panel s
 
 Tests cover strict/leap dates, 80/81-character bounds, partial updates and individual/all clears,
 old/malformed JSON and round trips, filtered targeting, no-ops, event search, UI, and rollback/undo.
+
+### Follow-up date implementation
+
+`Person` holds an optional `LocalDate followUpDate`, exposed as `Optional<LocalDate> getFollowUpDate()` and
+copied by `Person.toBuilder()` (`withFollowUpDate(null)` removes it). It takes part in `equals`, `hashCode` and
+`toString`. `isFollowUpDueOn(today)` (on or before today) and `isFollowUpOverdueOn(today)` (strictly before
+today) are the single definition of the boundary, so the card cue and the later `due` command cannot disagree.
+
+`FollowUpCommandParser` checks the displayed index, duplicate `d/`, and either `clear` or a date, then reuses
+`Meeting.parseDate`, so follow-up dates follow the same strict rules and message as `md/`. `FollowUpCommand`
+compares the new value with the current one. If they are equal it returns `Follow-up date unchanged.` without
+touching the model. Otherwise it calls `Model.editPerson` with `target.toBuilder().withFollowUpDate(date).build()`,
+which stamps last-edited time and keeps the viewed contact in step, as `MeetingCommand` does. `LogicManager` then
+saves and records the undo entry, and restores its snapshot if saving fails, so no separate history code exists.
+
+`JsonAdaptedPerson` writes `followUpDate` as an ISO string or null. It reads the field as an `Object` so that a
+non-string value reaches `parseFollowUpDate` and gets the field-specific error rather than a Jackson error.
+`PersonCard` takes `today` as a parameter in a package-private constructor, so tests do not depend on the real
+date; the public constructor uses `LocalDate.now(Model.DISPLAY_ZONE)`.
+
+The sequence diagram below shows `followup 1 d/2026-10-25`, including the no-op and failed-save paths.
+
+![Interactions for the `followup 1 d/2026-10-25` Command](images/FollowUpSequenceDiagram.png)
+
+`DueCommand` uses the existing visible-list pipeline and adds no second list. When it runs it reads today from
+`Model.getClock()` (Asia/Singapore), calls `updateFilteredPersonList(new FollowUpDuePredicate(today))`, then
+`sortFilteredPersonList(SortCriterion.DUE)`. It sets the sort after the filter so `due` wins over any sort that
+was active. `FollowUpDuePredicate` calls `Person.isFollowUpDueOn`, the same rule as the overdue cue. `SortCriterion`
+now holds a comparator per constant: `DUE` orders by follow-up date, earliest first with no date last, and
+`ModelManager.setSortCriterion` adds original-list order as the tie-breaker. `SortCommandParser` has no `due` case,
+so `sort due` is rejected. The predicate keeps the date it was built with, so the list does not change at midnight
+until `due` is run again.
+
+Tests cover leap and invalid dates, set, replace, clear and no-op paths, out-of-range indexes, field
+preservation, old and malformed JSON with round trips, the due and overdue boundaries, and the card and detail UI.
 
 ### Contact photo implementation
 
@@ -719,7 +764,8 @@ The sequence below shows photo validation/import, the identical-image no-op, and
 comparison preserve it. `PhotoCommandParser` validates syntax; `PhotoCommand` validates the displayed
 index before any import, retains all fields via `toBuilder()`, and delegates real changes to
 `Model.editPerson`. Existing LogicManager save/snapshot handling supplies rollback and history.
-#131/#132 own shared undo/redo integration; imported assets remain available for restoration.
+Each successful attach, replace, or clear creates one undo step. Imported assets remain available
+for restoration; undo and redo change references without recreating or deleting image files.
 
 `PhotoStorage` derives its root from the running JAR's code location (working folder during Gradle
 development); tests inject a temporary root. It rejects absolute paths, parent components and real-path

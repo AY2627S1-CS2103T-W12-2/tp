@@ -1,0 +1,50 @@
+@startuml
+!include style.puml
+skinparam ArrowFontStyle plain
+
+participant ":LogicManager" as Logic LOGIC_COLOR
+participant ":AddressBookParser" as Parser LOGIC_COLOR
+participant ":FollowUpCommand" as Command LOGIC_COLOR
+participant ":ModelManager" as Model MODEL_COLOR
+participant "target:Person" as Target MODEL_COLOR
+participant ":StorageManager" as Storage STORAGE_COLOR
+
+[-> Logic : execute("followup 1 d/2026-10-25")
+Logic -> Parser : parseCommand(commandText)
+note right of Parser
+  FollowUpCommandParser validates the index,
+  duplicate d/ and the date. Failures stop here.
+end note
+Parser --> Logic : command
+Logic -> Model : createSnapshot()
+Model --> Logic : before
+Logic -> Command : execute(model)
+Command -> Model : getFilteredPersonList()
+Model --> Command : displayed contacts
+alt index outside displayed list
+    Command --> Logic : throws CommandException
+    [<-- Logic : error; no save or history change
+else valid displayed index
+    Command -> Target : getFollowUpDate()
+    Target --> Command : current date
+    alt same date as requested
+        Command --> Logic : "Follow-up date unchanged."
+        note right of Command : No model edit, timestamp or history entry.
+    else real change
+        Command -> Target : toBuilder().withFollowUpDate(date).build()
+        Target --> Command : edited person (all other fields kept)
+        Command -> Model : editPerson(target, edited)
+        Command --> Logic : CommandResult
+        Logic -> Storage : saveAddressBook(model.getAddressBook())
+        alt save succeeds
+            Storage --> Logic : saved
+            Logic -> Model : recordSuccessfulMutation(before)
+            [<-- Logic : CommandResult
+        else save throws IOException
+            Storage --> Logic : IOException
+            Logic -> Model : restore(before)
+            [<-- Logic : CommandException
+        end
+    end
+end
+@enduml

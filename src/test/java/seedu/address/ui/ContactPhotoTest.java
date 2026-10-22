@@ -80,6 +80,22 @@ public class ContactPhotoTest {
     }
 
     @Test
+    public void show_missingReferencedFile_keepsPlaceholder() throws Exception {
+        ImageView image = onFx(ImageView::new);
+        Label placeholder = onFx(Label::new);
+
+        onFx(() -> ContactPhoto.show("photos/missing.png", image, placeholder, new PhotoStorage(folder)))
+                .get(10, TimeUnit.SECONDS);
+
+        onFx(() -> {
+            assertNull(image.getImage());
+            assertFalse(image.isVisible());
+            assertTrue(placeholder.isVisible());
+            return null;
+        });
+    }
+
+    @Test
     public void show_slowPhoto_keepsUiResponsiveAndDiscardsStaleResult() throws Exception {
         ImageIO.write(new BufferedImage(20, 10, BufferedImage.TYPE_INT_RGB),
                 "png", folder.resolve("face.png").toFile());
