@@ -10,6 +10,7 @@ import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
@@ -152,6 +153,40 @@ public class JsonAddressBookStorageTest {
         readBack = jsonAddressBookStorage.readAddressBook().get(); // file path not specified
         assertEquals(original, new AddressBook(readBack));
 
+    }
+
+    @Test
+    public void saveAddressBook_replacesFileWithoutChangingPriorContents() throws Exception {
+        Path filePath = testFolder.resolve("addressBook.json");
+        Path previousVersion = testFolder.resolve("previousVersion.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+        AddressBook original = new AddressBook();
+        original.addPerson(ALICE);
+        storage.saveAddressBook(original);
+        Files.createLink(previousVersion, filePath);
+
+        AddressBook updated = new AddressBook(original);
+        updated.addPerson(HOON);
+        storage.saveAddressBook(updated);
+
+        assertEquals(original, storage.readAddressBook(previousVersion).orElseThrow());
+        assertEquals(updated, storage.readAddressBook(filePath).orElseThrow());
+    }
+
+    @Test
+    public void saveAddressBook_failedReplacement_leavesTargetAndCleansStagedFile() throws Exception {
+        Path target = testFolder.resolve("addressBook.json");
+        Files.createDirectory(target);
+        Path sentinel = target.resolve("sentinel.txt");
+        Files.writeString(sentinel, "keep");
+
+        assertThrows(IOException.class, () -> new JsonAddressBookStorage(target)
+                .saveAddressBook(getTypicalAddressBook()));
+
+        assertEquals("keep", Files.readString(sentinel));
+        try (var entries = Files.list(testFolder)) {
+            assertEquals(1, entries.count());
+        }
     }
 
     @Test

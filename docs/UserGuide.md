@@ -313,7 +313,15 @@ Restores the contact list, displayed results, and viewed contact from before the
 
 Format: `undo`
 
-Up to 50 contact changes are available during the current app session. Adding, editing, tagging, deleting, and clearing contacts can enter this history. Failed commands, commands that leave contacts unchanged, and `view`, `find`, and `list` do not. A later explicit view time is kept for a contact that survives the undo; restoring a deleted contact does not count as a new view.
+Up to 50 contact changes are available during the current app session. Adding, editing, tagging,
+deleting, clearing, setting or clearing notes, starring or unstarring, changing follow-up dates,
+changing meeting context, and attaching, replacing, or clearing photos can enter this history.
+Each `undo` reverses one successful change. Failed commands, commands that leave contacts unchanged,
+and commands such as `view`, `find`, and `list` do not add a step. Undo restores saved
+contact details and their last-edited times without marking them as edited again. A later explicit
+view time is kept for a contact that survives the undo; restoring a deleted contact does not count
+as a new view. The history is not saved: after closing and reopening LarperBoard, restored contact
+data remains in the JSON file, but no earlier undo steps are available.
 
 ### Exiting the program: `exit`
 
