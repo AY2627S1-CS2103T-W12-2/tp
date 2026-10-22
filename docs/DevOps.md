@@ -95,7 +95,8 @@ Before that approval, prepare the documentation PR, check the packaged-JAR examp
 
 After approval, merge the reviewed documentation, confirm the deployed guide matches the intended release,
 verify any replacement JAR and its download checksum, and update the release notes and smoke evidence.
-Close #113 and #103 only when their acceptance criteria are met; otherwise leave them open and resolve
-their remaining work before closing milestone v1.4. Do not silently close unfinished tasks or retag a release.
+Before milestone closure, verify that #113 and #103 have evidence meeting their acceptance criteria.
+If they are already closed, review their completion records rather than assuming publication completed them.
+Resolve outstanding work before claiming release completion; do not silently close unfinished tasks or retag a release.
 
 Use the [v1.4 testing walkthrough](releases/v1.4-testing.html) for teammate feedback.
