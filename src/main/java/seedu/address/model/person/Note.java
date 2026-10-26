@@ -35,11 +35,29 @@ public class Note {
 
     /**
      * Returns true if a given string is a valid note: either empty (no note), or not blank and at most
-     * {@value #MAX_LENGTH} characters long once surrounding whitespace is removed.
+     * {@value #MAX_LENGTH} characters long once surrounding whitespace is removed. The length is counted with
+     * {@link #countCharacters(String)}.
      */
     public static boolean isValidNote(String test) {
         requireNonNull(test);
-        return test.isEmpty() || (!test.isBlank() && test.strip().length() <= MAX_LENGTH);
+        return test.isEmpty() || (!test.isBlank() && countCharacters(test.strip()) <= MAX_LENGTH);
+    }
+
+    /**
+     * Returns the number of characters in {@code text}. A character that Java stores as two {@code char}s, such as
+     * an emoji, counts as one, so the limit on the length of a note is what the user sees and not how Java stores it.
+     * An emoji made of several parts, such as a flag or a family, still counts as several characters.
+     */
+    public static int countCharacters(String text) {
+        requireNonNull(text);
+        return text.codePointCount(0, text.length());
+    }
+
+    /**
+     * Returns the number of characters in this note, counted with {@link #countCharacters(String)}.
+     */
+    public int getLength() {
+        return countCharacters(value);
     }
 
     /**
@@ -54,7 +72,7 @@ public class Note {
      * never its text, because a note is personal.
      */
     public String toLogString() {
-        return isEmpty() ? "none" : "[" + value.length() + " characters]";
+        return isEmpty() ? "none" : "[" + getLength() + " characters]";
     }
 
     @Override

@@ -291,6 +291,30 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_noteOfEmoji_countsEachEmojiAsOneCharacter() throws Exception {
+        // U+1F600 is one character, although Java stores it as two chars
+        String emoji = new String(Character.toChars(0x1F600));
+        String halfOfTheLimitPlusOne = emoji.repeat(Note.MAX_LENGTH / 2 + 1);
+        String longest = emoji.repeat(Note.MAX_LENGTH);
+
+        assertEquals(new Note(halfOfTheLimitPlusOne), personWithNote(halfOfTheLimitPlusOne).toModelType().getNote());
+        assertEquals(new Note(longest), personWithNote(longest).toModelType().getNote());
+        assertThrows(IllegalValueException.class, noteError(),
+                personWithNote(emoji.repeat(Note.MAX_LENGTH + 1))::toModelType);
+    }
+
+    @Test
+    public void toModelType_noteOfEmojiRoundTripThroughJson_isKept() throws Exception {
+        String emoji = new String(Character.toChars(0x1F600));
+        Person person = new PersonBuilder(BENSON).withNote(emoji.repeat(Note.MAX_LENGTH)).build();
+
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(person));
+        Person loaded = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+
+        assertEquals(person, loaded);
+    }
+
+    @Test
     public void toJson_noteAndNoNote_writesStringOrNull() throws Exception {
         Person bensonWithNote = new PersonBuilder(BENSON).withNote("hi").build();
         String withNote = JsonUtil.toJsonString(new JsonAdaptedPerson(bensonWithNote));

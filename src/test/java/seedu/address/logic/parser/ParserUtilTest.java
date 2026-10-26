@@ -18,6 +18,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.LinkedIn;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
@@ -61,6 +62,16 @@ public class ParserUtilTest {
             assertThrows(ParseException.class, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, ()
                 -> ParserUtil.parseDisplayedIndex(input));
         }
+    }
+
+    @Test
+    public void parseNote_emoji_countsEachEmojiAsOneCharacter() throws Exception {
+        // U+1F600 is one character, although Java stores it as two chars
+        String emoji = new String(Character.toChars(0x1F600));
+
+        assertEquals(new Note(emoji.repeat(Note.MAX_LENGTH)), ParserUtil.parseNote(emoji.repeat(Note.MAX_LENGTH)));
+        assertThrows(ParseException.class, Note.MESSAGE_TOO_LONG, () ->
+                ParserUtil.parseNote(emoji.repeat(Note.MAX_LENGTH + 1)));
     }
 
     @Test

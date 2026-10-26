@@ -9,6 +9,9 @@ import org.junit.jupiter.api.Test;
 
 public class NoteTest {
 
+    /** U+1F600 (a grinning face): one character, but two Java chars. */
+    private static final String EMOJI = new String(Character.toChars(0x1F600));
+
     @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Note(null));
@@ -50,6 +53,47 @@ public class NoteTest {
         assertTrue(Note.isValidNote("a".repeat(Note.MAX_LENGTH)));
         assertTrue(Note.isValidNote("  " + "a".repeat(Note.MAX_LENGTH) + "  "));
         assertFalse(Note.isValidNote("a".repeat(Note.MAX_LENGTH + 1)));
+    }
+
+    /*
+     * The limit counts characters, not Java chars: an emoji such as U+1F600 is one character, although Java stores
+     * it as two chars (a surrogate pair). Boundary values: MAX_LENGTH and MAX_LENGTH + 1 characters made of emoji,
+     * and of emoji mixed with letters, which are one char each.
+     */
+    @Test
+    public void isValidNote_emoji_countsEachEmojiAsOneCharacter() {
+        assertTrue(Note.isValidNote(EMOJI.repeat(Note.MAX_LENGTH / 2 + 1)));
+        assertTrue(Note.isValidNote(EMOJI.repeat(Note.MAX_LENGTH)));
+        assertTrue(Note.isValidNote("a".repeat(Note.MAX_LENGTH - 1) + EMOJI));
+        assertTrue(Note.isValidNote("  " + EMOJI.repeat(Note.MAX_LENGTH) + "  "));
+        assertTrue(Note.isValidNote("é".repeat(Note.MAX_LENGTH)));
+
+        assertFalse(Note.isValidNote(EMOJI.repeat(Note.MAX_LENGTH + 1)));
+        assertFalse(Note.isValidNote("a".repeat(Note.MAX_LENGTH) + EMOJI));
+    }
+
+    @Test
+    public void countCharacters_countsEachCodePointOnce() {
+        assertEquals(0, Note.countCharacters(""));
+        assertEquals(3, Note.countCharacters("abc"));
+        assertEquals(1, Note.countCharacters(EMOJI));
+        assertEquals(4, Note.countCharacters("ab" + EMOJI + EMOJI));
+        assertEquals(1, Note.countCharacters("é"));
+        assertThrows(NullPointerException.class, () -> Note.countCharacters(null));
+    }
+
+    @Test
+    public void getLengthAndLogString_emoji_useTheSameCount() {
+        Note note = new Note("hi " + EMOJI.repeat(7));
+
+        assertEquals(10, note.getLength());
+        assertEquals("[10 characters]", note.toLogString());
+        assertEquals("none", Note.EMPTY.toLogString());
+    }
+
+    @Test
+    public void constructor_longestNoteOfEmoji_isAccepted() {
+        assertEquals(EMOJI.repeat(Note.MAX_LENGTH), new Note(EMOJI.repeat(Note.MAX_LENGTH)).value);
     }
 
     @Test

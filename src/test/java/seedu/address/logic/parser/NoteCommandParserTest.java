@@ -46,6 +46,18 @@ public class NoteCommandParserTest {
     }
 
     @Test
+    public void parse_noteOfEmoji_countsEachEmojiAsOneCharacter() {
+        // U+1F600 is one character, although Java stores it as two chars
+        String emoji = new String(Character.toChars(0x1F600));
+        String longest = emoji.repeat(Note.MAX_LENGTH);
+
+        assertParseSuccess(parser, "1 nt/" + longest, new NoteCommand(INDEX_FIRST_PERSON, new Note(longest)));
+        assertParseSuccess(parser, "1 nt/" + emoji.repeat(Note.MAX_LENGTH / 2 + 1), new NoteCommand(
+                INDEX_FIRST_PERSON, new Note(emoji.repeat(Note.MAX_LENGTH / 2 + 1))));
+        assertParseFailure(parser, "1 nt/" + longest + emoji, Note.MESSAGE_TOO_LONG);
+    }
+
+    @Test
     public void parse_noteLengthBoundaries() {
         String longest = "a".repeat(Note.MAX_LENGTH);
 
