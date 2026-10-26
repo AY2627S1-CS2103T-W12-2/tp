@@ -84,6 +84,29 @@ public class DueCommandTest {
     }
 
     @Test
+    public void execute_leapDayInSingapore_decidesTodayAcrossFebruaryTwentyNinth() throws Exception {
+        Person dueOnLeapDay = person("Leap", "10000001", LocalDate.of(2028, 2, 29));
+        Person dueNextDay = person("Next", "10000002", LocalDate.of(2028, 3, 1));
+        // 2028-02-28T16:00:00Z is 00:00 on 29 Feb in Singapore, and 2028-02-29T15:59:59Z is still 29 Feb
+        Model startOfLeapDay = modelWith(clockAt("2028-02-28T16:00:00Z"), dueOnLeapDay, dueNextDay);
+        Model endOfLeapDay = modelWith(clockAt("2028-02-29T15:59:59Z"), dueOnLeapDay, dueNextDay);
+        Model afterLeapDay = modelWith(clockAt("2028-02-29T16:00:00Z"), dueOnLeapDay, dueNextDay);
+        Model beforeLeapDay = modelWith(clockAt("2028-02-28T15:59:59Z"), dueOnLeapDay, dueNextDay);
+
+        CommandResult result = new DueCommand().execute(startOfLeapDay);
+        new DueCommand().execute(endOfLeapDay);
+        new DueCommand().execute(afterLeapDay);
+        new DueCommand().execute(beforeLeapDay);
+
+        assertEquals(String.format(DueCommand.MESSAGE_SUCCESS, LocalDate.of(2028, 2, 29), 1),
+                result.getFeedbackToUser());
+        assertEquals(List.of(dueOnLeapDay), startOfLeapDay.getFilteredPersonList());
+        assertEquals(List.of(dueOnLeapDay), endOfLeapDay.getFilteredPersonList());
+        assertEquals(List.of(dueOnLeapDay, dueNextDay), afterLeapDay.getFilteredPersonList());
+        assertTrue(beforeLeapDay.getFilteredPersonList().isEmpty());
+    }
+
+    @Test
     public void execute_overridesActiveSort() throws Exception {
         Person late = person("Late", "10000001", TODAY);
         Person early = person("Early", "10000002", TODAY.minusDays(9));
