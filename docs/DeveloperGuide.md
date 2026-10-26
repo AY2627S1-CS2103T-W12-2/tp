@@ -801,6 +801,148 @@ Given below are instructions to test the app manually.
 1. Run `find NAME`, followed by `sort edited`, then `list` and `reset`.<br>
    Expected: Filtering keeps the active sort; `list` and `reset` restore the full original-order list.
 
+### Contact activity times
+
+1. Created, edited and viewed times
+
+   1. Prerequisites: Start with the sample data. The detail panel of a sample contact shows `—` for all three times.
+
+   1. Test case: `add n/Activity Test`, then `find Activity`, then `view 1`<br>
+      Expected: The detail panel shows `CREATED` as the current Singapore time in `yyyy-MM-dd HH:mm` format, `LAST EDITED` as `—`, and `LAST VIEWED` as the current time.
+
+   1. Test case: `edit 1 p/91234567`, then `view 1`<br>
+      Expected: The status message of `edit` starts with `Edited person:`. The detail panel now shows `LAST EDITED` as the current time. `CREATED` is unchanged.
+
+   1. Test case: `list`, then `view 2` where the 2nd contact is a sample contact<br>
+      Expected: The status message starts with `Now viewing:`. `LAST VIEWED` shows the current time. `CREATED` and `LAST EDITED` stay `—`.
+
+1. Commands that change nothing do not change any time
+
+   1. Prerequisites: Complete the test cases above. Run `find Activity`, then `view 1`, and note the three times. Wait at least one minute.
+
+   1. Test case: `edit 1 p/91234567` (the phone number the contact already has)<br>
+      Expected: The status message starts with `Person unchanged:`. Run `view 1`: `CREATED` and `LAST EDITED` are the same as before. Only `LAST VIEWED` moves, because of the `view`.
+
+   1. Test case: `edit 1`<br>
+      Expected: `At least one field to edit must be provided.` No time changes.
+
+   1. Test case: `add n/Activity Test p/91234567` (the same name and phone as the existing contact)<br>
+      Expected: `This person already exists in the address book.` No contact is added and no time changes.
+
+   1. Test case: `view 99` (larger than the list size)<br>
+      Expected: `The person index provided is invalid.` The `LAST VIEWED` time of every contact is unchanged.
+
+1. Old data file with no time fields
+
+   1. Prerequisites: Close the app and back up `data/addressbook.json`. Open it and delete every `createdAt`, `lastEditedAt` and `lastViewedAt` line (a file from before the activity feature has none of them). Start the app.
+
+   1. Test case: `view 1`<br>
+      Expected: The contact loads without any error. `CREATED` and `LAST EDITED` show `—`. `LAST VIEWED` shows the current time.
+
+   1. Test case: `sort added`, then `sort viewed`<br>
+      Expected: Contacts with an unknown time are listed after contacts with a known time, in their original order.
+
+1. A save that fails changes no time
+
+   1. Prerequisites: Close the app and back up `data/addressbook.json`. Start the app. Make the data file read-only: `chmod u-w data/addressbook.json` on macOS or Linux, or `attrib +R data\addressbook.json` in PowerShell.
+
+   1. Test case: `view 1`<br>
+      Expected: `Could not save data to file ` followed by the file path and ` due to insufficient permissions to write to the file or the folder.` The detail panel does not show a new `LAST VIEWED` time.
+
+   1. Test case: `edit 1 p/90000000`<br>
+      Expected: The same error message. The phone number and the times of the contact are unchanged.
+
+   1. Restore the file with `chmod u+w data/addressbook.json` or `attrib -R data\addressbook.json`.
+
+### Follow-up dates and the due list
+
+1. Setting, replacing and clearing a follow-up date
+
+   1. Prerequisites: Run `list`, with multiple contacts in the list. None of them has a follow-up date.
+
+   1. Test case: `followup 1 d/2099-12-31`<br>
+      Expected: `Follow-up date for NAME set to 2099-12-31.` where `NAME` is the name of the 1st contact. The card shows `Follow up: 2099-12-31` with no `(Overdue)`. `view 1` shows the date under `FOLLOW UP` and a new `LAST EDITED` time.
+
+   1. Test case: `followup 1 d/2020-01-01`<br>
+      Expected: `Follow-up date for NAME set to 2020-01-01.` The card shows `Follow up: 2020-01-01 (Overdue)`, with the overdue part in red.
+
+   1. Test case: `followup 1 d/2020-01-01` again<br>
+      Expected: `Follow-up date unchanged.` The `LAST EDITED` time does not change and no undo step is added.
+
+   1. Test case: `followup 1 clear`<br>
+      Expected: `Follow-up date cleared for NAME.` The card no longer shows a follow-up line.
+
+   1. Test case: `followup 1 clear` again<br>
+      Expected: `Follow-up date unchanged.`
+
+   1. Test case: `followup 1 d/2020-01-01`, then `undo`<br>
+      Expected: `Undid the last contact change.` The follow-up date is gone again.
+
+1. Invalid follow-up commands
+
+   1. Prerequisites: Run `list`, with multiple contacts in the list.
+
+   1. Test case: `followup 1 d/2026-02-30`<br>
+      Expected: `Date must be a real date in YYYY-MM-DD format.` No contact is changed. Other dates to try: `d/2027-02-29`, `d/2026-1-5`, `d/26-01-05`, `d/` (empty).<br>
+      Expected: The same message.
+
+   1. Test case: `followup 1 d/2028-02-29`<br>
+      Expected: The date is accepted (2028 is a leap year).
+
+   1. Test case: `followup 0 d/2099-12-31`<br>
+      Expected: `The person index provided is invalid.` Other invalid indexes to try: `followup 99 d/2099-12-31` (larger than the list size), `followup abc d/2099-12-31`, `followup -1 clear`.<br>
+      Expected: The same message.
+
+   1. Test case: `followup 1`<br>
+      Expected: `Invalid command format!` followed by the usage on separate lines: `followup INDEX d/YYYY-MM-DD`, `followup INDEX clear` and `Example: followup 1 d/2026-10-25`. Other commands to try: `followup`, `followup 1 clear d/2099-12-31`, `followup 1 2 d/2099-12-31`.<br>
+      Expected: The same message.
+
+   1. Test case: `followup 1 d/2099-12-31 d/2099-12-30`<br>
+      Expected: `Multiple values specified for the following single-valued field(s): d/`
+
+1. Listing contacts that are due
+
+   1. Prerequisites: Run `list`. Using `followup`, give the 1st, 2nd and 3rd contacts the dates `2020-03-01`, `2020-01-01` and `2099-12-31` in that order. Leave the other contacts without a date.
+
+   1. Test case: `due`<br>
+      Expected: The status message is `Due for follow-up on or before TODAY.` followed by a new line and `2 contact(s) listed!`, where `TODAY` is today's Singapore date in `YYYY-MM-DD` format. The contact dated `2020-01-01` is first and the one dated `2020-03-01` is second. The contact dated `2099-12-31` and the contacts without a date are not shown.
+
+   1. Test case: `list`, then `followup 4 d/TODAY` (replace `TODAY` with today's date), then `due`<br>
+      Expected: `3 contact(s) listed!` The contact dated `TODAY` is last in the list, and its card shows `Follow up: TODAY` without `(Overdue)`. A date that is today counts as due but not as overdue.
+
+   1. Test case: `sort edited`, then `due`<br>
+      Expected: The list is ordered by follow-up date again, not by edited time. `sort due` is rejected with `Invalid command format!` followed by the `sort` usage.
+
+   1. Test case: `due`, then `followup 1 clear`<br>
+      Expected: The contact disappears from the due list. `list` shows all contacts again in their original order.
+
+   1. Test case: `list`, then `followup N clear` for every contact that still has a date (replace `N` with its index), then `due`<br>
+      Expected: The list is empty and the status message ends with `0 contact(s) listed!`. No error is shown.
+
+### Malformed activity and follow-up data
+
+1. A malformed `followUpDate` or time in the data file
+
+   1. Prerequisites: Close the app and back up `data/addressbook.json`. Run the app from a terminal so that the log is printed, or open `addressbook.log` in the folder you ran it from afterwards.
+
+   1. Test case: add `"followUpDate" : "2026-02-30"` to a contact and start the app<br>
+      Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` The data file on disk is not changed until you run a successful command.
+
+   1. Test case: change the value to `2026-1-5`, `""` or `20261005`, or to a non-string such as `5`, `true` or `{}`, and start the app<br>
+      Expected: The same behaviour and the same log message.
+
+   1. Test case: change the value to `null`, or remove the field, and start the app<br>
+      Expected: The app starts normally. The contact has no follow-up date.
+
+   1. Test case: add `"createdAt" : "2026-10-17T04:12:33.5Z"` to a contact and start the app<br>
+      Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` Other values to try: `2026-10-17T12:12:33+08:00`, `" 2026-10-17T04:12:33Z"`, `2026-10-17`, `2026-02-30T04:12:33Z`, `1760674353`.<br>
+      Expected: The same behaviour. The field name in the message is `lastEditedAt` or `lastViewedAt` when that field is the bad one.
+
+   1. Test case: use `"createdAt" : "2026-10-17T04:12:33Z"` and start the app<br>
+      Expected: The app starts normally. `view` shows `CREATED` as `2026-10-17 12:12` (Singapore time is 8 hours ahead of UTC).
+
+   1. Restore the backup of the data file.
+
 ### Deleting a person
 
 1. Deleting a person while all persons are being shown
