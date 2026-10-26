@@ -81,7 +81,9 @@ The `UI` component uses the JavaFX UI framework. The layouts of these UI parts a
 `PersonDetailPanel` uses `ContactPhoto` to display a bounded image from validated `PhotoStorage` bytes. The photo
 is shown only in the detail panel, to the right of the name, in a fixed 160×120 frame (`#photoFrame` in
 `PersonDetailPanel.fxml`); the image is scaled to fit inside it, and the "No photo" placeholder fills the same
-frame, so the layout does not change with the shape of the photo. `PersonCard` shows no photo. A single
+frame, so the layout does not change with the shape of the photo. The name and the frame are in a `GridPane`
+(`#header`); when the header is narrower than 400 pixels (`PersonDetailPanel#isNarrowHeader`), the panel moves
+the frame below the name so that a long name is not squeezed into a narrow column. `PersonCard` shows no photo. A single
 background worker performs file validation and image decoding, so showing a contact does not block the JavaFX
 thread on photo reads. A placeholder is shown until loading finishes. Replaced requests cancel queued photo work;
 an already-running decode can finish, but its stale result is never displayed.
