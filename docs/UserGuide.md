@@ -425,7 +425,7 @@ Format: `followup INDEX d/YYYY-MM-DD` or `followup INDEX clear`
 * A successful command reports `Follow-up date for NAME set to DATE.` or `Follow-up date cleared for NAME.`
 * Setting the date a contact already has, or clearing a date that is not set, only reports `Follow-up date unchanged.` It does not change the last-edited time or add an undo step.
 * A real change counts as an edit of the contact and sets its last-edited time. You can reverse it with `undo`.
-* The contact card shows `Follow up: DATE`, followed by `(Overdue)` in red once the date is before today (Singapore time). A date that is today is not overdue. The card is drawn when the list is shown, so it does not change at midnight until the list is next refreshed. `view INDEX` shows the full date.
+* The contact card shows `Follow up: DATE`, once the date is before today (Singapore time), the whole line turns red and bold and ends with `(Overdue)`. A date that is today is not overdue. The card is drawn when the list is shown, so it does not change at midnight until the list is next refreshed. `view INDEX` shows the full date.
 
 Examples:
 * `followup 1 d/2026-10-25` sets the follow-up date of the 1st displayed contact.
@@ -444,7 +444,7 @@ Input or situation | Message
 The data file cannot be saved because it or its folder is not writable | `Could not save data to file FILE_PATH due to insufficient permissions to write to the file or the folder.`
 The data file cannot be saved for another reason | `Could not save data due to the following error: REASON`
 
-The date is saved in the optional JSON field `followUpDate`, for example `"followUpDate": "2026-10-25"`. A missing or `null` value means no follow-up. A malformed value makes the data file invalid, so LarperBoard starts with an empty contact list and writes `Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` to its log. Back up the file before editing it by hand. See [Editing the data file](#editing-the-data-file).
+The date is saved in the optional JSON field `followUpDate`, for example `"followUpDate": "2026-10-25"`. A missing or `null` value means no follow-up. A malformed value makes the data file invalid, so LarperBoard starts with an empty contact list and writes `Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` to its log. The next command you run, of any kind (even `help` or `list`), saves the empty list over the file and the contacts in it are lost, so back up the file before editing it by hand. See [Editing the data file](#editing-the-data-file).
 
 ### Showing contacts due for follow-up: `due`
 
@@ -456,6 +456,7 @@ Format: `due`
 * "Today" is the Singapore date when you run the command. Nothing runs in the background, so run `due` again to refresh the list.
 * A successful command reports `Due for follow-up on or before TODAY.` and then `N contact(s) listed!` on the next line, where `TODAY` is the date in `YYYY-MM-DD` format.
 * `due` replaces any search, group, filter or sort that was active. A later `sort added|edited|viewed` can reorder the contacts it shows. `sort due` is not a valid sort.
+* The due-date order stays active for later `find`, `group` and `filter` commands, and the line above the list says `Sorted by due`, until you run `sort ...`, `list` or `reset`.
 * No contact being due is a normal result: the list is empty and the message ends with `0 contact(s) listed!`.
 * Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date from the due list removes that contact from it.
 * `list` or `reset` shows all contacts again in their original order.
@@ -539,9 +540,9 @@ Each contact can also have an optional `note` field: a string of at most 1000 ch
 
 Each contact can also have an optional `starred` field, which is `true` or `false`. A missing or `null` field means the contact is not starred. Any other value makes the data file invalid, and LarperBoard reports `Invalid contact data: 'starred' must be true or false.`
 
-LarperBoard fills the time fields in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid. LarperBoard then starts with an empty contact list and writes `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem) to its log. Times are shown in Singapore time (Asia/Singapore).
+LarperBoard fills the time fields in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid. LarperBoard then starts with an empty contact list and writes `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem) to its log. The next command you run, of any kind (even `help` or `list`), saves the empty list over the file and the contacts in it are lost, so back up the file before editing it. Times are shown in Singapore time (Asia/Singapore).
 
-Each contact can also have an optional `followUpDate` field, a date written like `"2026-10-25"`. A missing or `null` field means the contact has no follow-up date. A value that is not a real date in `YYYY-MM-DD` format makes the data file invalid. See [Setting a follow-up date](#setting-a-follow-up-date-followup).
+Each contact can also have an optional `followUpDate` field, a date written like `"2026-10-25"`. A missing or `null` field means the contact has no follow-up date. A value that is not a real date in `YYYY-MM-DD` format makes the data file invalid, with the same effect as above. See [Setting a follow-up date](#setting-a-follow-up-date-followup).
 
 ### Archiving data files `[coming in v2.0]`
 
