@@ -711,6 +711,19 @@ Given below are instructions to test the app manually.
 
 1. _{ more test cases …​ }_
 
+### Unknown commands
+
+1. Entering a command word that does not exist
+
+   1. Test case: `strar 1`<br>
+      Expected: No contact is changed. The result box shows `Unknown command.` followed by `Available commands:` and every command word in alphabetical order. The message wraps onto several lines of the result box, with no horizontal scroll bar.
+
+   1. Other unknown commands to try: `foo`, `STAR 1` (command words are case-sensitive)<br>
+      Expected: Similar to previous.
+
+   1. Test case: `help`<br>
+      Expected: The help window opens, as before.
+
 ### Saving data
 
 1. Dealing with missing/corrupted data files

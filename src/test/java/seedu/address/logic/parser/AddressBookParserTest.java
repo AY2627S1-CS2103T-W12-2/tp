@@ -194,6 +194,7 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_unknownCommand_messageListsTheAvailableCommands() {
+        // fully qualified because seedu.address.testutil.Assert.assertThrows, which returns nothing, is imported
         ParseException exception = org.junit.jupiter.api.Assertions.assertThrows(ParseException.class, () ->
                 parser.parseCommand("strar 1"));
 
@@ -212,7 +213,7 @@ public class AddressBookParserTest {
 
     @Test
     public void commandWords_includeEveryCommandWordDeclaredByTheCommandClasses() throws Exception {
-        Set<String> declared = commandWordsDeclaredByTheCommandClasses();
+        Set<String> declared = getCommandWordsDeclaredByTheCommandClasses();
 
         // a scan that finds nothing would make this test pass for the wrong reason
         assertFalse(declared.isEmpty());
@@ -236,7 +237,7 @@ public class AddressBookParserTest {
     }
 
     /** Returns the values of all {@code *COMMAND_WORD} constants declared by the classes in the commands package. */
-    private static Set<String> commandWordsDeclaredByTheCommandClasses() throws Exception {
+    private static Set<String> getCommandWordsDeclaredByTheCommandClasses() throws Exception {
         Path commandsDirectory = Path.of(Command.class.getResource("Command.class").toURI()).getParent();
         List<String> classNames;
         try (Stream<Path> files = Files.list(commandsDirectory)) {

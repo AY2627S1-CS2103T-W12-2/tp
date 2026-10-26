@@ -75,7 +75,7 @@ Opens the help window with a link to this guide. The result message is `Opened h
 
 Format: `help`
 
-If you type a command that LarperBoard does not know, for example a typo such as `strar 1`, the result message is `Unknown command.` followed by the list of commands you can use, for example `Unknown command. Available commands: add, clear, delete, due, edit, exit, filter, find, followup, group, help, list, meeting, note, photo, redo, reset, sort, star, tag, undo, unstar, view.` Use `help` to open this guide.
+If you type a command that LarperBoard does not know, for example a typo such as `strar 1`, the result message is `Unknown command.` followed by the list of every command you can use, in alphabetical order, for example `Unknown command. Available commands: add, clear, delete, …`. Use `help` to open this guide.
 
 
 ### Adding a contact: `add`
