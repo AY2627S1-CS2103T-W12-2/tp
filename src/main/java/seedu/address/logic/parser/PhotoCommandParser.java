@@ -24,7 +24,7 @@ public class PhotoCommandParser implements Parser<PhotoCommand> {
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(args, PREFIX_FILE);
         fields.verifyNoDuplicatePrefixesFor(PREFIX_FILE);
         String[] preamble = fields.getPreamble().split("\\s+");
-        if (preamble[0].isEmpty()) {
+        if (preamble[0].isEmpty() || ParserUtil.isClearKeyword(preamble[0])) {
             throw usage();
         }
         Index index;

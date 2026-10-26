@@ -21,6 +21,24 @@ public class FollowUpCommandParserTest {
 
     private final FollowUpCommandParser parser = new FollowUpCommandParser();
 
+    /*
+     * The word clear comes after the index. A command that starts with it has no index, or has the words in the
+     * wrong order, so it reports the usage and not an invalid index.
+     */
+    @Test
+    public void parse_clearInPlaceOfTheIndex_throwsUsageAndNotInvalidIndex() {
+        assertParseFailure(parser, " clear", INVALID_FORMAT);
+        assertParseFailure(parser, " CLEAR", INVALID_FORMAT);
+        assertParseFailure(parser, " clear 1", INVALID_FORMAT);
+        assertParseFailure(parser, " Clear 1 d/2026-10-25", INVALID_FORMAT);
+    }
+
+    @Test
+    public void parse_wrongIndexBeforeClear_stillThrowsInvalidIndex() {
+        assertParseFailure(parser, " 0 clear", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+        assertParseFailure(parser, " abc clear", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
     @Test
     public void parse_setDate_success() {
         assertParseSuccess(parser, " 2 d/2026-10-25",

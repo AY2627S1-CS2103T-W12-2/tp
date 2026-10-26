@@ -21,7 +21,7 @@ public class MeetingCommandParser implements Parser<MeetingCommand> {
         requireNonNull(args);
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(args, PREFIX_EVENT, PREFIX_MEETING_DATE, PREFIX_ROLE);
         String[] preamble = fields.getPreamble().split("\\s+");
-        if (preamble[0].isEmpty()) {
+        if (preamble[0].isEmpty() || ParserUtil.isClearKeyword(preamble[0])) {
             throw usage();
         }
         Index index;

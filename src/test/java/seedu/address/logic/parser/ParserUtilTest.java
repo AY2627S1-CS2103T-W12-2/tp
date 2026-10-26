@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INDEX_TOO_LARGE;
@@ -61,6 +62,22 @@ public class ParserUtilTest {
             assertThrows(ParseException.class, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, ()
                 -> ParserUtil.parseDisplayedIndex(input));
         }
+    }
+
+    @Test
+    public void isClearKeyword_clearInAnyLetterCase_returnsTrue() {
+        assertTrue(ParserUtil.isClearKeyword("clear"));
+        assertTrue(ParserUtil.isClearKeyword("CLEAR"));
+        assertTrue(ParserUtil.isClearKeyword("Clear"));
+    }
+
+    @Test
+    public void isClearKeyword_anythingElse_returnsFalse() {
+        assertFalse(ParserUtil.isClearKeyword(""));
+        assertFalse(ParserUtil.isClearKeyword("1"));
+        assertFalse(ParserUtil.isClearKeyword("clear "));
+        assertFalse(ParserUtil.isClearKeyword("cleared"));
+        assertFalse(ParserUtil.isClearKeyword("event"));
     }
 
     @Test

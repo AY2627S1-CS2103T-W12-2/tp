@@ -19,7 +19,7 @@ public class FollowUpCommandParser implements Parser<FollowUpCommand> {
         requireNonNull(args);
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(args, PREFIX_FOLLOW_UP_DATE);
         String[] preamble = fields.getPreamble().split("\\s+");
-        if (preamble[0].isEmpty()) {
+        if (preamble[0].isEmpty() || ParserUtil.isClearKeyword(preamble[0])) {
             throw usage();
         }
         Index index;
