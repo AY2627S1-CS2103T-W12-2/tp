@@ -7,6 +7,7 @@
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.FlowPane?>
 <?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.layout.VBox?>
 
@@ -17,9 +18,19 @@
       <padding>
         <Insets top="15" right="20" bottom="15" left="20" />
       </padding>
-      <ImageView fx:id="photo" fitWidth="240" fitHeight="180" preserveRatio="true" />
-      <Label fx:id="photoPlaceholder" text="No photo" />
-      <Label fx:id="name" styleClass="detail-name" wrapText="true" />
+      <HBox spacing="15" alignment="TOP_LEFT">
+        <padding>
+          <!-- leaves room for the star in the top right corner of the panel -->
+          <Insets right="34" />
+        </padding>
+        <Label fx:id="name" styleClass="detail-name" wrapText="true" maxWidth="Infinity" HBox.hgrow="ALWAYS" />
+        <!-- a fixed 4:3 frame, so photos of different shapes and the placeholder take the same space -->
+        <StackPane fx:id="photoFrame" styleClass="photo-frame" minWidth="160" prefWidth="160" maxWidth="160"
+            minHeight="120" prefHeight="120" maxHeight="120">
+          <ImageView fx:id="photo" fitWidth="160" fitHeight="120" preserveRatio="true" />
+          <Label fx:id="photoPlaceholder" text="No photo" />
+        </StackPane>
+      </HBox>
       <GridPane hgap="20" vgap="10">
         <columnConstraints>
           <ColumnConstraints minWidth="80" prefWidth="80" />

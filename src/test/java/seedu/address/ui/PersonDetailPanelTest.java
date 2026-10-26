@@ -205,6 +205,33 @@ public class PersonDetailPanelTest {
     }
 
     @Test
+    public void photo_isBesideTheNameInAFixedFrameWhetherOrNotThereIsAPhoto() {
+        ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>(new PersonBuilder().build());
+        PersonDetailPanel panel = new PersonDetailPanel(viewedPerson);
+        Parent root = (Parent) panel.getRoot();
+        new Scene(root, 700, 600);
+        root.applyCss();
+        root.layout();
+
+        Node name = root.lookup("#name");
+        Node frame = root.lookup("#photoFrame");
+        assertEquals(160, frame.getLayoutBounds().getWidth(), 0.5);
+        assertEquals(120, frame.getLayoutBounds().getHeight(), 0.5);
+        // to the right of the name, and level with the top of it, not above or below it
+        assertTrue(frame.localToScene(frame.getBoundsInLocal()).getMinX()
+                >= name.localToScene(name.getBoundsInLocal()).getMaxX() - 1);
+        assertEquals(name.localToScene(name.getBoundsInLocal()).getMinY(),
+                frame.localToScene(frame.getBoundsInLocal()).getMinY(), 1);
+
+        // a contact with a very long name (the most the app allows is 50 characters) keeps the frame the same size
+        viewedPerson.set(new PersonBuilder().withName("Alexandria Montgomery Wolfeschlegelstein Jr").build());
+        root.applyCss();
+        root.layout();
+        assertEquals(160, frame.getLayoutBounds().getWidth(), 0.5);
+        assertEquals(120, frame.getLayoutBounds().getHeight(), 0.5);
+    }
+
+    @Test
     public void scroll_longContent_movesByThePixelsOfTheEvent() {
         Parent root = (Parent) longNotePanelInScene().getRoot();
         ScrollPane scrollPane = (ScrollPane) root.lookup("#scrollPane");

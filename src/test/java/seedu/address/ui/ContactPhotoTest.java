@@ -48,13 +48,14 @@ public class ContactPhotoTest {
     }
 
     @Test
-    public void show_cardUsesBoundedThumbnailAndPlaceholder() throws Exception {
-        var card = onFx(() -> new PersonCard(new PersonBuilder().build(), 1));
-        ImageView image = (ImageView) card.getRoot().lookup("#photo");
-        Label placeholder = (Label) card.getRoot().lookup("#photoPlaceholder");
+    public void show_detailPhotoUsesBoundedFrameAndPlaceholder() throws Exception {
+        var panel = onFx(() -> new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build())));
+        var scroll = onFx(() -> (ScrollPane) panel.getRoot().lookup(".scroll-pane"));
+        ImageView image = onFx(() -> (ImageView) scroll.getContent().lookup("#photo"));
+        Label placeholder = onFx(() -> (Label) scroll.getContent().lookup("#photoPlaceholder"));
         onFx(() -> {
-            assertEquals(48, image.getFitWidth());
-            assertEquals(48, image.getFitHeight());
+            assertEquals(160, image.getFitWidth());
+            assertEquals(120, image.getFitHeight());
             assertTrue(image.isPreserveRatio());
             assertTrue(placeholder.isVisible());
             return null;
@@ -66,8 +67,8 @@ public class ContactPhotoTest {
         onFx(() -> {
             assertNotNull(image.getImage());
             assertTrue(image.isVisible());
-            assertTrue(image.getImage().getWidth() <= 48);
-            assertTrue(image.getImage().getHeight() <= 48);
+            assertTrue(image.getImage().getWidth() <= 160);
+            assertTrue(image.getImage().getHeight() <= 120);
             return null;
         });
         onFx(() -> ContactPhoto.show("../unsafe.png", image, placeholder, new PhotoStorage(folder)))
@@ -120,8 +121,8 @@ public class ContactPhotoTest {
         };
         ImageView image = onFx(() -> {
             ImageView view = new ImageView();
-            view.setFitWidth(48);
-            view.setFitHeight(48);
+            view.setFitWidth(160);
+            view.setFitHeight(120);
             return view;
         });
         Label placeholder = onFx(Label::new);
@@ -216,8 +217,8 @@ public class ContactPhotoTest {
             var panel = new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build()));
             var scroll = (ScrollPane) panel.getRoot().lookup(".scroll-pane");
             ImageView image = (ImageView) scroll.getContent().lookup("#photo");
-            assertEquals(240, image.getFitWidth());
-            assertEquals(180, image.getFitHeight());
+            assertEquals(160, image.getFitWidth());
+            assertEquals(120, image.getFitHeight());
             assertTrue(image.isPreserveRatio());
             assertTrue(scroll.isFitToWidth());
             return null;
