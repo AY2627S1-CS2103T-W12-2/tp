@@ -232,6 +232,18 @@ until `due` is run again.
 Tests cover leap and invalid dates, set, replace, clear and no-op paths, out-of-range indexes, field
 preservation, old and malformed JSON with round trips, the due and overdue boundaries, and the card and detail UI.
 
+Design considerations:
+
+* **One definition of "due".** `Person#isFollowUpDueOn` and `isFollowUpOverdueOn` hold the boundary, and both the
+  card cue and `FollowUpDuePredicate` call them. A separate check in each place could disagree on whether today is
+  due. The trade-off is that `Person` knows about "today", so callers pass it in and tests inject the date.
+* **`due` is a filter plus a sort on the existing visible list.** It adds no second list, so displayed indexes stay
+  correct for every index command and the list follows the one pipeline that `find`, `group` and `sort` use. The
+  trade-off is that the due-date sort stays active after `due`, so later `find`, `group` and `filter` results keep
+  that order until `sort`, `list` or `reset`.
+* **The predicate keeps the date it was built with.** `due` reads today once, which keeps the result stable while you
+  work and easy to test. The trade-off is that the list does not refresh at midnight; run `due` again.
+
 ### Activity-time sorting
 
 `SortCommand` passes a `SortCriterion` (`ADDED`, `EDITED`, or `VIEWED`) to `ModelManager`. The model keeps one
@@ -715,8 +727,6 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 
     Use case ends.
 
-**Implementation note:** `due` replaces the active search, group and sort of the existing filtered person list; it stores nothing. Index-based commands continue to use the displayed list.
-
 ### Non-functional requirements
 
 1. **Environment**: Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
@@ -854,7 +864,7 @@ Given below are instructions to test the app manually.
 
    1. Restore the file with `chmod u+w data/addressbook.json` or `attrib -R data\addressbook.json`.
 
-### Follow-up dates and the due list
+### Testing follow-up dates and the due list
 
 1. Setting, replacing and clearing a follow-up date
 
@@ -864,7 +874,7 @@ Given below are instructions to test the app manually.
       Expected: `Follow-up date for NAME set to 2099-12-31.` where `NAME` is the name of the 1st contact. The card shows `Follow up: 2099-12-31` with no `(Overdue)`. `view 1` shows the date under `FOLLOW UP` and a new `LAST EDITED` time.
 
    1. Test case: `followup 1 d/2020-01-01`<br>
-      Expected: `Follow-up date for NAME set to 2020-01-01.` The card shows `Follow up: 2020-01-01 (Overdue)`, with the overdue part in red.
+      Expected: `Follow-up date for NAME set to 2020-01-01.` The card shows `Follow up: 2020-01-01 (Overdue)`, with the whole follow-up line in red.
 
    1. Test case: `followup 1 d/2020-01-01` again<br>
       Expected: `Follow-up date unchanged.` The `LAST EDITED` time does not change and no undo step is added.
@@ -926,7 +936,7 @@ Given below are instructions to test the app manually.
    1. Prerequisites: Close the app and back up `data/addressbook.json`. Run the app from a terminal so that the log is printed, or open `addressbook.log` in the folder you ran it from afterwards.
 
    1. Test case: add `"followUpDate" : "2026-02-30"` to a contact and start the app<br>
-      Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` The data file on disk is not changed until you run a successful command.
+      Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` The data file on disk is not changed until you run any command, even `help` or `list`; that command saves the empty list over it.
 
    1. Test case: change the value to `2026-1-5`, `""` or `20261005`, or to a non-string such as `5`, `true` or `{}`, and start the app<br>
       Expected: The same behaviour and the same log message.
