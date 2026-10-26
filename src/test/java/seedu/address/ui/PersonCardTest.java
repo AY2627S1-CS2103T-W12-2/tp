@@ -109,6 +109,14 @@ public class PersonCardTest {
         assertEquals("+" + (7 - shown.size()), overflowLabel(card).getText());
         assertTrue(overflowLabel(card).isVisible());
         assertEquals(1, shownTagLabelsAndOverflow(card).stream().map(Label::getLayoutY).distinct().count());
+
+        Pane tags = (Pane) card.getRoot().lookup("#tags");
+        List<Label> shownTags = shownTagLabelsAndOverflow(card).stream()
+                .filter(label -> !label.getStyleClass().contains(TagRow.OVERFLOW_STYLE_CLASS))
+                .collect(Collectors.toList());
+        assertTrue(shownTags.size() > 0);
+        Label last = shownTags.get(shownTags.size() - 1);
+        assertTrue(last.getBoundsInParent().getMaxX() <= tags.getWidth());
     }
 
     @Test
@@ -135,7 +143,6 @@ public class PersonCardTest {
                 600);
         assertEquals(4, shownTagNames(card).size());
 
-
         resize(card, 120);
 
         assertTrue(shownTagNames(card).size() < 4);
@@ -145,15 +152,18 @@ public class PersonCardTest {
     private PersonCard laidOutCard(Person person, double width) {
         PersonCard card = new PersonCard(person, 1);
         Scene scene = new Scene(card.getRoot(), width, 200);
-        scene.getRoot().applyCss();
-        scene.getRoot().layout();
-        scene.getRoot().layout();
+        layOut(scene);
         return card;
     }
 
     private void resize(PersonCard card, double width) {
         Scene scene = card.getRoot().getScene();
         card.getRoot().resize(width, 200);
+        layOut(scene);
+    }
+
+    /** Applies CSS and lays out twice: the second pass lays out the tags refitted by the first. */
+    private void layOut(Scene scene) {
         scene.getRoot().applyCss();
         scene.getRoot().layout();
         scene.getRoot().layout();
@@ -167,12 +177,12 @@ public class PersonCardTest {
 
     private List<String> shownTagNames(PersonCard card) {
         return shownTagLabelsAndOverflow(card).stream()
-                .filter(label -> !label.getStyleClass().contains("tag-overflow"))
+                .filter(label -> !label.getStyleClass().contains(TagRow.OVERFLOW_STYLE_CLASS))
                 .map(Label::getText).collect(Collectors.toList());
     }
 
     private Label overflowLabel(PersonCard card) {
-        return (Label) card.getRoot().lookup(".tag-overflow");
+        return (Label) card.getRoot().lookup("." + TagRow.OVERFLOW_STYLE_CLASS);
     }
 
     private Label getStarLabel(PersonCard personCard) {
