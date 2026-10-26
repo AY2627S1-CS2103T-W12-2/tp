@@ -86,6 +86,7 @@ Format: `add n/NAME [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`
 A contact can have any number of tags, including zero.
 </div>
 
+* In the contact list, a card shows its tags on a single row. If they do not all fit, the row ends with `+N`, where `N` is the number of tags left out. Use `view INDEX` to see all of a contact's tags.
 * `LINKEDIN_HANDLE` is the last part of the contact's LinkedIn profile link (e.g. `john-doe` in `linkedin.com/in/john-doe`). It may contain only letters, digits and hyphens, and must be 3 to 50 characters long.
 * `NAME` must contain 1 to 50 alphanumeric characters and spaces and cannot be blank. Leading and trailing spaces are removed, and repeated whitespace is collapsed.
 * `PHONE` is optional and must contain 3 to 20 digits when supplied.
