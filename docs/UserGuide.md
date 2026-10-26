@@ -495,8 +495,10 @@ wrong types, or undecodable content; `Photo must be at most 5 MiB and 4096×4096
 size/dimension limits; and `Photo file could not be read.` for file-access failures.
 An invalid displayed index reports `The person index provided is invalid.`
 
-The list uses a 48×48 thumbnail and the scrolling detail panel fits the image within 240×180,
-preserving its aspect ratio. Absent, missing, malformed, or unreadable references show a placeholder;
+The photo is shown only in the detail panel (`view INDEX`), to the right of the contact's name, and not in
+the contact list. It is scaled to fit inside a fixed 160×120 frame, preserving its aspect ratio, so photos of
+different shapes never change the layout. Absent, missing, malformed, or unreadable references show a
+"No photo" placeholder of the same size;
 unavailable images also produce a log warning and do not prevent other contacts loading.
 Unsafe saved paths are never opened. Old JSON without `photoPath` loads with no photo.
 
