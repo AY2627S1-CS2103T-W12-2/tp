@@ -8,7 +8,7 @@ import seedu.address.model.tag.Tag;
  */
 final class TagColor {
 
-    private static final int PALETTE_SIZE = 6;
+    static final int PALETTE_SIZE = 6;
 
     private TagColor() {
     }
@@ -20,7 +20,7 @@ final class TagColor {
         return label;
     }
 
-    /** Returns the palette style class for the normalized tag name. */
+    /** Returns the palette style class for the tag name normalized by {@link Tag}. */
     static String styleClassFor(Tag tag) {
         return "tag-color-" + Math.floorMod(tag.tagName.hashCode(), PALETTE_SIZE);
     }

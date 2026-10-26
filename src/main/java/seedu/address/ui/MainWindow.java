@@ -32,6 +32,7 @@ public class MainWindow extends UiPart<Stage> {
     private Stage primaryStage;
     private Logic logic;
     private Path dataFilePath;
+    private String startupWarning;
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
@@ -62,12 +63,18 @@ public class MainWindow extends UiPart<Stage> {
      * and the data file path to show in the status bar.
      */
     public MainWindow(Stage primaryStage, Logic logic, Path dataFilePath) {
+        this(primaryStage, logic, dataFilePath, "");
+    }
+
+    /** Creates a {@code MainWindow} that displays {@code startupWarning} when its contents are filled. */
+    public MainWindow(Stage primaryStage, Logic logic, Path dataFilePath, String startupWarning) {
         super(FXML, primaryStage);
 
         // Set dependencies
         this.primaryStage = primaryStage;
         this.logic = logic;
         this.dataFilePath = dataFilePath;
+        this.startupWarning = startupWarning;
 
         // Configure the UI
         setWindowDefaultSize(logic.getGuiSettings());
@@ -127,6 +134,9 @@ public class MainWindow extends UiPart<Stage> {
 
         resultDisplay = new ResultDisplay();
         resultDisplayPlaceholder.getChildren().add(resultDisplay.getRoot());
+        if (!startupWarning.isEmpty()) {
+            resultDisplay.setFeedbackToUser(startupWarning);
+        }
 
         StatusBarFooter statusBarFooter = new StatusBarFooter(dataFilePath);
         statusbarPlaceholder.getChildren().add(statusBarFooter.getRoot());

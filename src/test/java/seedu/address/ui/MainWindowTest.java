@@ -25,6 +25,7 @@ import org.junit.jupiter.api.io.TempDir;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
@@ -81,6 +82,24 @@ public class MainWindowTest {
             detailPanel.applyCss();
             String viewedName = logic.getFilteredPersonList().get(0).getName().fullName;
             assertEquals(viewedName, ((Label) detailPanel.lookup("#name")).getText());
+        });
+    }
+
+    @Test
+    public void fillInnerParts_startupWarning_showsInResultDisplay() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
+        Logic logic = new LogicManager(new ModelManager(), storage);
+        String warning = "Data could not be loaded. Backup: addressbook.json.bak";
+
+        runOnFxThread(() -> {
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile, warning);
+            mainWindow.fillInnerParts();
+            TextArea resultDisplay = (TextArea) mainWindow.getPrimaryStage().getScene().getRoot()
+                    .lookup("#resultDisplay");
+
+            assertEquals(warning, resultDisplay.getText());
         });
     }
 

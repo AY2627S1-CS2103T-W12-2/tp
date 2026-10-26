@@ -83,8 +83,8 @@ Adds a contact to LarperBoard.
 Format: `add n/NAME [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A contact can have any number of tags, including zero. Tags appear in different colours in the contact list and detail
-panel. A tag's colour is based on its name, so it stays the same wherever the tag appears.
+A contact can have any number of tags, including zero. Each tag is shown in one of several colours, chosen from its
+name, so the same tag always looks the same in the contact list and detail panel.
 </div>
 
 * `LINKEDIN_HANDLE` is the last part of the contact's LinkedIn profile link (e.g. `john-doe` in `linkedin.com/in/john-doe`). It may contain only letters, digits and hyphens, and must be 3 to 50 characters long.
@@ -518,7 +518,15 @@ LarperBoard automatically saves data after every successful command. You do not 
 LarperBoard data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, LarperBoard starts with an empty contact list at the next run. The invalid file remains on disk until you run a successful command. We recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, LarperBoard starts with an empty contact list and shows a warning.
+It preserves a copy of the invalid file beside it, such as `data/addressbook.json.bak`.
+An identical backup is reused; a changed file gets a numbered backup such as `addressbook.json.bak.1`.
+If the backup cannot be made, LarperBoard does not start.<br>
+The next successfully executed command, including `help` or `list`, replaces `addressbook.json` with
+the in-memory list. Close LarperBoard without entering a command.<br>
+To recover, make a copy of the backup named in the warning, correct the invalid field in that copy,
+and replace `addressbook.json` with the corrected copy before reopening. The backup is still invalid
+until corrected. We recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause LarperBoard to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
