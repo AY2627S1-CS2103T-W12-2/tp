@@ -8,12 +8,16 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_LINKEDIN_AMY;
 
 import java.awt.GraphicsEnvironment;
 import java.time.LocalDate;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.Pane;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -91,6 +95,84 @@ public class PersonCardTest {
 
         assertFalse(star.isVisible());
         assertFalse(star.isManaged());
+    }
+
+    @Test
+    public void constructor_manyTagsInNarrowCard_showsOneRowWithOverflowCount() {
+        PersonCard card = laidOutCard(new PersonBuilder().withTags("fullstack-ml-eng-26", "mentor", "backend",
+                "python", "react", "devops", "cloud").build(), 300);
+
+        List<String> shown = shownTagNames(card);
+        assertTrue(shown.size() < 7);
+        assertEquals(List.of("backend", "cloud", "devops", "fullstack-ml-eng-26", "mentor", "python", "react")
+                .subList(0, shown.size()), shown);
+        assertEquals("+" + (7 - shown.size()), overflowLabel(card).getText());
+        assertTrue(overflowLabel(card).isVisible());
+        assertEquals(1, shownTagLabelsAndOverflow(card).stream().map(Label::getLayoutY).distinct().count());
+    }
+
+    @Test
+    public void constructor_fewShortTags_showsAllTagsWithoutOverflow() {
+        PersonCard card = laidOutCard(new PersonBuilder().withTags("mentor", "ai").build(), 300);
+
+        assertEquals(List.of("ai", "mentor"), shownTagNames(card));
+        assertFalse(overflowLabel(card).isVisible());
+        assertFalse(overflowLabel(card).isManaged());
+    }
+
+    @Test
+    public void constructor_manyTags_doesNotGrowCardHeight() {
+        PersonCard one = laidOutCard(new PersonBuilder().withTags("mentor").build(), 300);
+        PersonCard many = laidOutCard(new PersonBuilder().withTags("fullstack-ml-eng-26", "mentor", "backend",
+                "python", "react", "devops", "cloud").build(), 300);
+
+        assertEquals(one.getRoot().prefHeight(300), many.getRoot().prefHeight(300));
+    }
+
+    @Test
+    public void tagRow_cardResized_refitsTags() {
+        PersonCard card = laidOutCard(new PersonBuilder().withTags("backend", "cloud", "devops", "mentor").build(),
+                600);
+        assertEquals(4, shownTagNames(card).size());
+
+
+        resize(card, 120);
+
+        assertTrue(shownTagNames(card).size() < 4);
+        assertTrue(overflowLabel(card).isVisible());
+    }
+
+    private PersonCard laidOutCard(Person person, double width) {
+        PersonCard card = new PersonCard(person, 1);
+        Scene scene = new Scene(card.getRoot(), width, 200);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+        scene.getRoot().layout();
+        return card;
+    }
+
+    private void resize(PersonCard card, double width) {
+        Scene scene = card.getRoot().getScene();
+        card.getRoot().resize(width, 200);
+        scene.getRoot().applyCss();
+        scene.getRoot().layout();
+        scene.getRoot().layout();
+    }
+
+    private List<Label> shownTagLabelsAndOverflow(PersonCard card) {
+        Pane tags = (Pane) card.getRoot().lookup("#tags");
+        return tags.getChildren().stream().map(node -> (Label) node)
+                .filter(label -> label.isVisible() && label.isManaged()).collect(Collectors.toList());
+    }
+
+    private List<String> shownTagNames(PersonCard card) {
+        return shownTagLabelsAndOverflow(card).stream()
+                .filter(label -> !label.getStyleClass().contains("tag-overflow"))
+                .map(Label::getText).collect(Collectors.toList());
+    }
+
+    private Label overflowLabel(PersonCard card) {
+        return (Label) card.getRoot().lookup(".tag-overflow");
     }
 
     private Label getStarLabel(PersonCard personCard) {
