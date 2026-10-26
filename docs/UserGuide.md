@@ -98,16 +98,12 @@ Examples:
 
 ### Listing all contacts: `list`
 
-Shows all contacts in their original order. It also clears any active time sort.
+Clears the active contact filter and sort, then shows all contacts in their original order.
 
 Format: `list`
 
-* Use `list` or `reset` to return to the full, original-order list after `find` or `group`.
-### Resetting the displayed list: `reset`
-
-Clears the active filters and sort, then shows all contacts in their original order.
-
-Format: `reset`
+* Use `list` to return to the full, original-order list after `find`, `group`, `filter starred`, or `due`.
+* `list` does not clear command history.
 
 ### Sorting contacts by activity time: `sort`
 
@@ -122,7 +118,7 @@ Format: `sort added|edited|viewed`
 * Contacts without the chosen recorded time appear last. Contacts with equal times keep their original list order.
 * The displayed indexes follow the order you see, so commands such as `view`, `edit`, `delete`, and `tag` use the
   sorted contact index.
-* Use `list` or `reset` to return to the full, original-order list after `find` or `group`.
+* Use `list` to return to the full, original-order list after `find` or `group`.
 
 Examples:
 
@@ -210,7 +206,7 @@ Typed format: `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`
 * Repeated terms in one field use OR. Different fields use AND. For example, `find n/Alex n/Sam t/hackathon` finds an Alex or Sam contact that also has a `hackathon` tag.
 * Do not mix plain keywords and typed prefixes. The message is `Use either plain keywords or field prefixes in one find command.`
 * Empty terms and malformed prefixes show the standard format-and-usage error.
-* Indexes always refer to the contacts currently displayed. Use `list` or `reset` to return to the full list.
+* Indexes always refer to the contacts currently displayed. Use `list` to return to the full list.
 
 Examples:
 * `find Aisha Ben` finds contacts named `Aisha Rahman` or `Ben Tan` when both have been added.
@@ -364,7 +360,7 @@ Brings back commands that you submitted earlier in the same session, so that you
 * LarperBoard remembers the latest 50 commands. The history is cleared when you close the app and is not saved in the data file.
 * You can edit a recalled command before you submit it. Editing does not change the remembered command.
 * The arrow keys only work in the command box, and only when no other key such as `Shift` or `Ctrl` is held down.
-* Commands such as `list`, `clear` and `reset` do not clear the history. They are remembered like any other command.
+* Commands such as `list` and `clear` do not clear the history. They are remembered like any other command.
 
 Examples:
 * Submit `find Aisha` and then `view 1`. Press **Up** once to bring back `view 1`, and press **Up** again to bring back `find Aisha`.
@@ -455,7 +451,7 @@ again to refresh the list.
 * No contact being due is a normal result: the list is empty and the message says `0 contact(s) listed!`.
 * Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date
   from the due list removes that contact from it.
-* `list` or `reset` shows all contacts again in their original order.
+* `list` shows all contacts again in their original order.
 
 Example: `followup 2 d/2026-10-18` then `due` lists the second contact first if its date is the earliest.
 
@@ -575,7 +571,6 @@ Action | Format, Examples
 **Photo** | `photo INDEX f/RELATIVE_PATH` or `photo INDEX clear`
 **Note** | `note INDEX nt/NOTE` or `note INDEX clear`<br> e.g., `note 1 nt/Met at the AI track`
 **Redo** | `redo`
-**Reset** | `reset`
 **Sort** | `sort added|edited|viewed`<br> e.g., `sort viewed`
 **Star** | `star INDEX`<br> e.g., `star 1`
 **Tag** | `tag INDEX t/TAG [t/TAG]…​`<br> e.g., `tag 1 t/frontend t/react`

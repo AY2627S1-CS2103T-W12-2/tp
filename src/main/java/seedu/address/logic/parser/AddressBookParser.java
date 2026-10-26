@@ -26,7 +26,6 @@ import seedu.address.logic.commands.MeetingCommand;
 import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.commands.PhotoCommand;
 import seedu.address.logic.commands.RedoCommand;
-import seedu.address.logic.commands.ResetCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.StarCommand;
 import seedu.address.logic.commands.TagCommand;
@@ -95,7 +94,6 @@ public class AddressBookParser {
             case StarCommand.COMMAND_WORD -> new StarCommandParser(true).parse(arguments);
             case StarCommand.UNSTAR_COMMAND_WORD -> new StarCommandParser(false).parse(arguments);
             case NoteCommand.COMMAND_WORD -> new NoteCommandParser().parse(arguments);
-            case ResetCommand.COMMAND_WORD -> new ResetCommand();
             case SortCommand.COMMAND_WORD -> new SortCommandParser().parse(arguments);
             case TagCommand.COMMAND_WORD -> new TagCommandParser().parse(arguments);
             case UndoCommand.COMMAND_WORD -> {

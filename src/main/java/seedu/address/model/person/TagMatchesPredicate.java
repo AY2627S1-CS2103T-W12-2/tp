@@ -13,6 +13,9 @@ import seedu.address.model.tag.Tag;
 public class TagMatchesPredicate implements Predicate<Person> {
     private final Tag tag;
 
+    /**
+     * Creates a predicate that matches the given tag using the tag's case-insensitive equality rule.
+     */
     public TagMatchesPredicate(Tag tag) {
         this.tag = requireNonNull(tag);
     }
