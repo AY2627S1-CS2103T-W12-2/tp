@@ -247,7 +247,7 @@ class JsonAdaptedPerson {
         if (value == null) {
             return null;
         }
-        if (!(value instanceof String text) || text.isBlank() || text.length() > 80) {
+        if (!(value instanceof String text) || !Meeting.isValidText(text)) {
             throw new IllegalValueException(String.format(INVALID_FIELD_MESSAGE_FORMAT, "meeting." + field,
                     "must contain 1 to 80 nonblank characters"));
         }

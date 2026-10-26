@@ -55,6 +55,23 @@ public class MeetingFeatureTest {
     }
 
     @Test
+    public void execute_supplementaryText_persistsAndRestoresThroughHistory() throws Exception {
+        String atLimit = "😀".repeat(80);
+        logic.execute("meeting 1 ev/" + atLimit + " r/" + atLimit);
+        var updated = model.getFilteredPersonList().getFirst();
+        assertEquals(atLimit, updated.getMeeting().getEventName().orElseThrow());
+        assertEquals(atLimit, updated.getMeeting().getRole().orElseThrow());
+        assertEquals(updated, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+        assertThrows(ParseException.class, () -> logic.execute("meeting 1 ev/" + atLimit + "a"));
+        assertThrows(ParseException.class, () -> logic.execute("meeting 1 r/" + atLimit + "a"));
+        logic.execute("undo");
+        assertTrue(model.getFilteredPersonList().getFirst().getMeeting().isEmpty());
+        logic.execute("redo");
+        assertEquals(updated, model.getFilteredPersonList().getFirst());
+        assertEquals(updated, storage.readAddressBook().orElseThrow().getPersonList().getFirst());
+    }
+
+    @Test
     public void execute_partialUpdateAndClear_preservesOtherFieldsAndReloads() throws Exception {
         logic.execute("meeting 1 ev/Hack Singapore md/2024-02-29 r/Mentor");
         logic.execute("meeting 1 r/Participant");

@@ -80,7 +80,8 @@ public class PersonCard extends UiPart<Region> {
         linkedIn.setVisible(!person.getLinkedIn().isEmpty());
         linkedIn.setManaged(!person.getLinkedIn().isEmpty());
         String eventName = person.getMeeting().getEventName().orElse("");
-        event.setText(eventName.length() > 32 ? eventName.substring(0, 31) + "…" : eventName);
+        event.setText(eventName.codePointCount(0, eventName.length()) > 32
+                ? eventName.substring(0, eventName.offsetByCodePoints(0, 31)) + "…" : eventName);
         event.setVisible(!eventName.isEmpty());
         event.setManaged(!eventName.isEmpty());
         showFollowUp(person, today);

@@ -176,6 +176,59 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Meeting context implementation
+
+The sequence below shows a partial meeting update, the no-op path, and rollback when saving fails.
+The `createSnapshot`, `restore`, and `recordSuccessfulMutation` calls show shared existing
+snapshot/history behavior from #108 and #131/#132, rather than functionality implemented by #130.
+
+![Meeting context implementation](images/MeetingUpdateSequenceDiagram.png)
+
+`Meeting` is an immutable optional value held by `Person` and copied by `Person.toBuilder()`.
+`MeetingCommandParser` validates the displayed index, duplicate prefixes, strict real dates, nonblank
+text bounds, and explicit clear grammar. `Meeting.isValidText` counts Unicode code points for the
+80-character event/role limit and is shared with JSON validation. `MeetingCommand` merges only supplied fields, then calls
+`Model.editPerson` using a complete copy. Same-value updates return without mutation. Logic saves
+before recording history, restoring its snapshot on failed saves. Existing snapshots therefore retain
+meeting fields without a separate history mechanism. Setting, replacing, and clearing individual or
+all meeting fields each create one undo step when they change the contact.
+
+`JsonAdaptedPerson` accepts absent/null meeting fields for older data, validates present JSON types
+without coercion, and reports the exact offending meeting field. Empty context is omitted on save.
+`EventContainsTermsPredicate` supplies case-insensitive partial OR matching to #127/#128; the base
+parser exposes event-only `find ev/TERM` without implementing other owners' search features.
+The card bounds its event cue to 32 Unicode code points (including the ellipsis when truncated),
+using `offsetByCodePoints` to avoid splitting a surrogate pair. The detail panel scrolls vertically.
+
+Tests cover strict/leap dates, 80/81-character bounds including supplementary Unicode characters,
+partial updates and individual/all clears,
+old/malformed JSON and round trips, filtered targeting, no-ops, event search, UI, and rollback/undo.
+
+### Contact photo implementation
+
+The sequence below shows photo validation/import, the identical-image no-op, and model rollback when saving fails.
+
+![Contact photo implementation](images/PhotoImportSequenceDiagram.png)
+
+`Person.photoPath` is an optional relative reference; complete builder copies, equality and detail
+comparison preserve it. `PhotoCommandParser` validates syntax; `PhotoCommand` validates the displayed
+index before any import, retains all fields via `toBuilder()`, and delegates real changes to
+`Model.editPerson`. Existing LogicManager save/snapshot handling supplies rollback and history.
+Each successful attach, replace, or clear creates one undo step. Imported assets remain available
+for restoration; undo and redo change references without recreating or deleting image files.
+
+`PhotoStorage` derives its root from the running JAR's code location (working folder during Gradle
+development); tests inject a temporary root. It rejects absolute paths, parent components and real-path
+symlink escapes; reads at most 5 MiB plus one byte; checks image type and dimensions before bounded
+decoding; and copies into a confined `photos/` directory with collision-safe generated names.
+No user path or stored URI is passed directly to JavaFX. UI rendering uses validated bytes and a
+placeholder with logging on failure. Missing/malformed optional references do not block contact loading.
+Assets are deliberately retained after mutation or failed saves to avoid breaking history.
+
+Tests cover traversal and symlink escapes (including the managed directory), corrupt/type/size/dimension
+cases, copies and no-ops, filtered indexes, JSON compatibility/round trips, rollback and undo restoration.
+Verify the packaged JAR at 1280×720/150% with attach/replace/clear, reload and retained assets.
+
 ### Contact activity
 
 Each `Person` carries an `Activity` with its created, last edited and last viewed times (see the [Model component](#model-component) and [Storage component](#storage-component) for the data and file format). The model is the only place that decides when these times change, so every feature records them the same way.
@@ -718,31 +771,6 @@ Given below are instructions to test the app manually.
 
 1. _{ more test cases …​ }_
 
-### Meeting context implementation
-
-The sequence below shows a partial meeting update, the no-op path, and rollback when saving fails.
-The `createSnapshot`, `restore`, and `recordSuccessfulMutation` calls show shared existing
-snapshot/history behavior from #108 and #131/#132, rather than functionality implemented by #130.
-
-![Meeting context implementation](images/MeetingUpdateSequenceDiagram.png)
-
-`Meeting` is an immutable optional value held by `Person` and copied by `Person.toBuilder()`.
-`MeetingCommandParser` validates the displayed index, duplicate prefixes, strict real dates, nonblank
-text bounds, and explicit clear grammar. `MeetingCommand` merges only supplied fields, then calls
-`Model.editPerson` using a complete copy. Same-value updates return without mutation. Logic saves
-before recording history, restoring its snapshot on failed saves. Existing snapshots therefore retain
-meeting fields without a separate history mechanism. Setting, replacing, and clearing individual or
-all meeting fields each create one undo step when they change the contact.
-
-`JsonAdaptedPerson` accepts absent/null meeting fields for older data, validates present JSON types
-without coercion, and reports the exact offending meeting field. Empty context is omitted on save.
-`EventContainsTermsPredicate` supplies case-insensitive partial OR matching to #127/#128; the base
-parser exposes event-only `find ev/TERM` without implementing other owners' search features.
-The card bounds its event cue to 32 displayed characters, and the detail panel scrolls vertically.
-
-Tests cover strict/leap dates, 80/81-character bounds, partial updates and individual/all clears,
-old/malformed JSON and round trips, filtered targeting, no-ops, event search, UI, and rollback/undo.
-
 ### Follow-up date implementation
 
 `Person` holds an optional `LocalDate followUpDate`, exposed as `Optional<LocalDate> getFollowUpDate()` and
@@ -778,27 +806,35 @@ until `due` is run again.
 Tests cover leap and invalid dates, set, replace, clear and no-op paths, out-of-range indexes, field
 preservation, old and malformed JSON with round trips, the due and overdue boundaries, and the card and detail UI.
 
-### Contact photo implementation
 
-The sequence below shows photo validation/import, the identical-image no-op, and model rollback when saving fails.
+### Meeting and photo regression checks
 
-![Contact photo implementation](images/PhotoImportSequenceDiagram.png)
+Use Java 25 and a fresh writable folder containing the packaged JAR. Launch from that folder.
+Back up existing data before editing JSON; use disposable contacts and images for these checks.
 
-`Person.photoPath` is an optional relative reference; complete builder copies, equality and detail
-comparison preserve it. `PhotoCommandParser` validates syntax; `PhotoCommand` validates the displayed
-index before any import, retains all fields via `toBuilder()`, and delegates real changes to
-`Model.editPerson`. Existing LogicManager save/snapshot handling supplies rollback and history.
-Each successful attach, replace, or clear creates one undo step. Imported assets remain available
-for restoration; undo and redo change references without recreating or deleting image files.
+1. Add `Maya Tan`, then run `meeting 1 ev/Hack Singapore md/2024-02-29 r/Mentor`.
+   Replace only `r/Participant`: event and date must remain. Clear `date`, then undo/redo;
+   only the date changes. `meeting 1 clear` removes all context and undo restores it.
+2. Reject `md/2026-02-29`, blank event/role, and 81-code-point text without changing data or
+   history. Accept 80 code points, including supplementary characters such as `😀`, in either
+   event or role. Check that a card preview never ends with half a Unicode surrogate pair.
+3. Run `find ev/singapore`, view the result and change its role: the details refresh. Change
+   its event to a nonmatching value: the result becomes empty and the selection clears.
+   Use `list` to restore the displayed indexes.
+4. Put distinct PNG/JPEG files inside the JAR folder. Attach, replace and clear a photo;
+   undo three times and redo three times. Check the saved relative references and retained
+   imported files in `photos/`. A repeated identical image and clearing an absent photo
+   must not add a history entry or update last-edited time.
+5. Reject absolute/traversing paths, escaping symlinks, mismatched extension/content, corrupt
+   files, images over 5 MiB or 4096 pixels in either dimension, and unreadable sources.
+   Check the exact errors in the UG. A failed save must restore model, selection and stacks;
+   an imported unused asset may remain.
+6. Restart with saved JSON, and separately with an old contact containing only a name. The
+   former preserves meeting/photo references; the latter has empty optional fields. A
+   malformed meeting date/text rejects data loading; a malformed or unavailable photo
+   leaves the contacts usable with a placeholder and warning.
+7. At 1280×720, verify the card cue, image bounds, full detail fields and vertical scrolling.
+   Repeat at native 150% display scaling on a supported machine. The UG's simulated 150%
+   snapshots check constrained layout, and do not replace the native platform check.
 
-`PhotoStorage` derives its root from the running JAR's code location (working folder during Gradle
-development); tests inject a temporary root. It rejects absolute paths, parent components and real-path
-symlink escapes; reads at most 5 MiB plus one byte; checks image type and dimensions before bounded
-decoding; and copies into a confined `photos/` directory with collision-safe generated names.
-No user path or stored URI is passed directly to JavaFX. UI rendering uses validated bytes and a
-placeholder with logging on failure. Missing/malformed optional references do not block contact loading.
-Assets are deliberately retained after mutation or failed saves to avoid breaking history.
-
-Tests cover traversal and symlink escapes (including the managed directory), corrupt/type/size/dimension
-cases, copies and no-ops, filtered indexes, JSON compatibility/round trips, rollback and undo restoration.
-Verify the packaged JAR at 1280×720/150% with attach/replace/clear, reload and retained assets.
+Record results and remaining integration in the [v1.5 verification record](validation/v1.5-issue-124.html).

@@ -29,9 +29,14 @@ public final class Meeting {
 
     /** Rejects blank or overlong present text without inventing a value for absent fields. */
     private static void validateText(String value) {
-        if (value != null && (value.isBlank() || value.length() > 80)) {
+        if (value != null && !isValidText(value)) {
             throw new IllegalArgumentException(MESSAGE_TEXT);
         }
+    }
+
+    /** Checks a present event or role using Unicode code points rather than UTF-16 code units. */
+    public static boolean isValidText(String value) {
+        return value != null && !value.isBlank() && value.codePointCount(0, value.length()) <= 80;
     }
 
     /** Parses a real calendar date in strict four-digit-year ISO format. */

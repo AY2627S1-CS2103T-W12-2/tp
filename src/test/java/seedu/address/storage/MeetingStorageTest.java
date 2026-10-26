@@ -12,6 +12,19 @@ import seedu.address.commons.util.JsonUtil;
 
 public class MeetingStorageTest {
     @Test
+    public void toModelType_supplementaryText_usesSameBoundsAsCommands() throws Exception {
+        String atLimit = "😀".repeat(80);
+        var person = read("{\"eventName\":\"" + atLimit + "\",\"role\":\"" + atLimit + "\"}");
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(person));
+        assertEquals(person, JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType());
+        for (String field : new String[]{"eventName", "role"}) {
+            var error = assertThrows(IllegalValueException.class, () ->
+                    read("{\"" + field + "\":\"" + atLimit + "a\"}"));
+            assertTrue(error.getMessage().contains("meeting." + field));
+        }
+    }
+
+    @Test
     public void toModelType_oldJson_defaultsToNoMeeting() throws Exception {
         assertTrue(read("null").getMeeting().isEmpty());
         assertTrue(JsonUtil.fromJsonString("{\"name\":\"Alice\"}", JsonAdaptedPerson.class)

@@ -372,9 +372,9 @@ Examples:
 
 ### Recording meeting context: `meeting`
 
-![Meeting feature at 1280×720](images/meeting-feature.png)
+![Meeting feature at 1280×720](images/meeting-v1.5.png)
 
-[View the simulated 150% layout](images/meeting-feature-150percent.png).
+[View the simulated 150% layout](images/meeting-v1.5-150percent.png).
 
 Use `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]` to set or replace one or more fields.
 Omitted fields keep their existing values. For example:
@@ -389,7 +389,9 @@ find ev/singapore
 
 `meeting INDEX clear` removes all context. Add `event`, `date`, or `role` to clear only that field.
 Indexes refer to the displayed list, including after a search. Event and role each accept 1–80
-characters and cannot be blank. Dates must be real calendar dates in exactly YYYY-MM-DD format
+Unicode code points and cannot be blank. For example, one `😀` counts as one character;
+a combined emoji or an accented letter written with a separate combining mark can use several code points.
+Dates must be real calendar dates in exactly YYYY-MM-DD format
 (years 0001–9999); they are displayed as Singapore calendar dates without time-zone conversion.
 Tags are independent and are never generated from meeting fields.
 
@@ -461,9 +463,9 @@ Example: `followup 2 d/2026-10-18` then `due` lists the second contact first if 
 
 ### Contact photos: `photo`
 
-![Photo feature at 1280×720](images/photo-feature.png)
+![Photo feature at 1280×720](images/photo-v1.5.png)
 
-[View the simulated 150% layout](images/photo-feature-150percent.png).
+[View the simulated 150% layout](images/photo-v1.5-150percent.png).
 
 Use `photo INDEX f/RELATIVE_PATH` to attach or replace one PNG/JPEG, or `photo INDEX clear` to
 remove its reference. INDEX always refers to the displayed list. Place the source image inside the

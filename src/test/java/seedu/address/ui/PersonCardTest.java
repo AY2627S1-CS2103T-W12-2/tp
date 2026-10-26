@@ -14,10 +14,22 @@ import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
 import javafx.scene.control.Label;
+import seedu.address.model.person.Meeting;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonCardTest {
+    @Test
+    public void constructor_eventCue_countsWholeCodePointsBeforeTruncating() {
+        for (String text : new String[]{"😀".repeat(20), "a".repeat(30) + "😀" + "bc"}) {
+            Person person = new PersonBuilder().build().toBuilder()
+                    .withMeeting(new Meeting(text, null, null)).build();
+            Label event = (Label) new PersonCard(person, 1).getRoot().lookup("#event");
+            String expected = text.codePointCount(0, text.length()) > 32
+                    ? "a".repeat(30) + "😀…" : text;
+            assertEquals(expected, event.getText());
+        }
+    }
 
     /**
      * Starts the JavaFX toolkit, which is needed to create UI controls.

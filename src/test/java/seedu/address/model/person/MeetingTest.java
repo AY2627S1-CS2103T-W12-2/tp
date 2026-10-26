@@ -14,6 +14,16 @@ import seedu.address.testutil.PersonBuilder;
 
 public class MeetingTest {
     @Test
+    public void constructor_supplementaryCharacters_countsCodePoints() {
+        String atLimit = "😀".repeat(80);
+        Meeting meeting = new Meeting(atLimit, null, atLimit);
+        assertEquals(atLimit, meeting.getEventName().orElseThrow());
+        assertEquals(atLimit, meeting.getRole().orElseThrow());
+        assertThrows(IllegalArgumentException.class, () -> new Meeting(atLimit + "a", null, null));
+        assertThrows(IllegalArgumentException.class, () -> new Meeting(null, null, atLimit + "a"));
+    }
+
+    @Test
     public void constructor_validatesTextAndRealCalendarDates() {
         assertEquals(LocalDate.of(2024, 2, 29), Meeting.parseDate("2024-02-29"));
         for (String date : new String[]{"2026-02-29", "2026-02-30", "2026-2-01", "0000-01-01"}) {

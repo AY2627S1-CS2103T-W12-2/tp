@@ -14,6 +14,7 @@ Add notes, star important contacts, record follow-up dates and meeting context, 
 
 * To get started, download the JAR from the [team releases page](https://github.com/AY2627S1-CS2103T-W12-2/tp/releases) and follow the [**User Guide quick start**](UserGuide.html#quick-start).
 * To contribute, see the [**Developer Guide**](DeveloperGuide.html).
+* For upcoming changes and outstanding integration checks, see the [v1.5 draft release notes](releases/v1.5.html).
 
 
 **Acknowledgements**
