@@ -174,6 +174,8 @@ public class FollowUpFeatureTest {
         assertEquals("Due for follow-up on or before 2026-10-20.\n2 contact(s) listed!",
                 logic.execute("due").getFeedbackToUser());
         assertEquals(List.of("Bob Choo", "Amy Bee"), names());
+        logic.execute("view 1");
+        assertEquals("Bob Choo", model.getViewedPerson().get().getName().fullName);
 
         // index 1 in the due list is Bob (earliest), not the first contact in the address book
         assertEquals("Follow-up date cleared for Bob Choo.", logic.execute("followup 1 clear").getFeedbackToUser());
