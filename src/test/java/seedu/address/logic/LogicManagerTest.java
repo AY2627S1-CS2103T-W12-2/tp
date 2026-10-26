@@ -13,6 +13,7 @@ import static seedu.address.logic.commands.CommandTestUtil.NAME_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.PHONE_DESC_AMY;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalPersons.AMY;
+import static seedu.address.testutil.TypicalPersons.BOB;
 import static seedu.address.testutil.TypicalPersons.getTypicalPersons;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 import static seedu.address.testutil.TypicalTimes.NOW;
@@ -413,6 +414,24 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_typedFind_indexAndMutationUseDisplayedContact() throws Exception {
+        model.addPerson(AMY);
+        model.addPerson(BOB);
+        logic.execute("note 1 nt/React teammate");
+
+        logic.execute("find nt/teammate");
+        logic.execute("tag 1 t/featured");
+
+        assertEquals(1, logic.getFilteredPersonList().size());
+        assertEquals(AMY.getName(), logic.getFilteredPersonList().getFirst().getName());
+        assertTrue(logic.getFilteredPersonList().getFirst().getTags().contains(new Tag("featured")));
+        logic.execute("note 1 clear");
+
+        assertTrue(logic.getFilteredPersonList().isEmpty());
+        assertFalse(model.getAddressBook().getPersonList().get(1).getTags().contains(new Tag("featured")));
+    }
+
+    @Test
     public void execute_editAndTagKeepTheNote() throws Exception {
         model.addPerson(AMY);
         logic.execute("note 1 nt/keep me");
@@ -512,9 +531,7 @@ public class LogicManagerTest {
                             CliSyntax.PREFIX_EVENT));
             assertCommandException("meeting 9 ev/" + secret, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
             logic.execute("find ev/" + secret);
-            assertParseException("find Alice ev/" + secret,
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                            FindCommand.MESSAGE_USAGE));
+            assertParseException("find Alice ev/" + secret, FindCommand.MESSAGE_MIXED_SEARCH);
         } finally {
             for (int i = 0; i < loggers.length; i++) {
                 loggers[i].removeHandler(handler);

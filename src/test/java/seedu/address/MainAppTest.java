@@ -38,7 +38,7 @@ public class MainAppTest {
 
     @Test
     public void version_matchesRelease() {
-        assertEquals("v1.3", MainApp.VERSION);
+        assertEquals("v1.4", MainApp.VERSION);
     }
 
     @Test
