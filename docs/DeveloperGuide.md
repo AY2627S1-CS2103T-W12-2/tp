@@ -141,6 +141,7 @@ The `Model` component,
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 * gives every `Person` an immutable `Activity` holding when the person was created, last edited and last viewed. Each time is optional: an unknown time is absent, never invented. `Person#withActivity` copies a person with new activity, and `Person#hasSameDetails` compares two persons while ignoring activity.
+* gives every `Person` an optional follow-up date (`Optional<LocalDate> getFollowUpDate()`). The `followup` command changes it through `Person#toBuilder` and `Model#editPerson`, and the `due` command shows the persons for whom `Person#isFollowUpDueOn` is true. See [Follow-up dates and the due list](#follow-up-dates-and-the-due-list).
 * gives every `Person` a `starred` flag, which is false by default. The `star` and `unstar` commands change it through `Person#toBuilder` and `Model#editPerson`, and the `filter starred` command shows the starred persons by passing `Person#isStarred` to `Model#updateFilteredPersonList`.
 * gives every `Person` an optional free-form `Note` of at most 1000 characters. An empty `Note` means that the person has no note. The `note` command changes it through `Person#toBuilder` and `Model#editPerson`, so the other fields and the activity times are kept, and the last edited time changes only when the note really changes.
 
@@ -163,6 +164,7 @@ The `Storage` component,
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 * saves a person's activity as optional `createdAt`, `lastEditedAt` and `lastViewedAt` fields in `addressbook.json`. Each is a whole-second ISO-8601 UTC timestamp written exactly as `2026-10-17T04:12:33Z`. A missing or `null` field loads as an absent time, so data files from v1.3 still load. A value with a fraction of a second, an offset other than `Z`, surrounding spaces or any other format makes the file fail to load with `Invalid contact data: '<field>' must be an ISO-8601 UTC timestamp.`, naming the field (`createdAt`, `lastEditedAt` or `lastViewedAt`). `JsonAdaptedPerson.INVALID_FIELD_MESSAGE_FORMAT` holds this message pattern so other fields use the same wording.
+* saves a person's follow-up date as an optional `followUpDate` string in `addressbook.json`, written as `2026-10-25`. A missing or `null` field loads as no follow-up date, so older data files still load. A value that is not a real `YYYY-MM-DD` date, including a non-string value, makes the file fail to load with `Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.`
 * saves whether a person is starred as an optional `starred` boolean in `addressbook.json`. A missing or `null` field loads as not starred, so older data files still load. Any other value, such as a string or a number, makes the file fail to load with `Invalid contact data: 'starred' must be true or false.` The field is kept as an `Object` in `JsonAdaptedPerson` so that such a value reaches this message instead of a generic Jackson error.
 * saves a person's note as an optional `note` string in `addressbook.json`. A missing or `null` field loads as no note, so older data files still load. A note that is blank, longer than 1000 characters or not a string makes the file fail to load with `Invalid contact data: 'note' must be a string of at most 1000 characters.`
 
@@ -366,6 +368,9 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 | Nice-to-have | hackathon participant | attach the hackathon name/date as a tag (auto or manual) | look back and remember which event I met each person at |
 | Nice-to-have | hackathon participant | tag a contact with their hackathon role (Frontend, Pitcher, Designer) | easily assemble balanced teams for future hackathons |
 | Nice-to-have | user | view a list of all saved contacts sorted by recency | quickly recall the last few people I spoke with |
+| Nice-to-have | user | see when a contact was added, last edited and last viewed | judge how up to date my information about them is |
+| Nice-to-have | hackathon participant | set a follow-up date on a contact | remember by when I wanted to get back to them |
+| Nice-to-have | hackathon participant | list the contacts whose follow-up date has arrived, earliest first | see who I should contact today without scanning my whole list |
 | Must-have | user | display a detailed view of a single contact card | read all notes, links, and tags in one clean view |
 | Nice-to-have | user | view images | remember the projects people have created |
 | Nice-to-have | CLI user | view contact summaries in a clean, formatted ASCII table | browse my address book without messy text wrapping |
@@ -647,6 +652,71 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 
     Use case resumes at step 2.
 
+**Use case: Set or clear a follow-up date**
+
+**MSS**
+
+1. User requests to list persons.
+2. LarperBoard shows a list of persons.
+3. User requests to set a follow-up date for a specific person in the list by index and gives a date.
+4. LarperBoard saves the date on the person and displays a confirmation message.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The given index is invalid (e.g., non-numeric, 0, negative, or exceeds list size).
+  * 3a1. LarperBoard shows an invalid index error message.
+
+    Use case resumes at step 2.
+
+* 3b. The date is not a real calendar date in `YYYY-MM-DD` format (e.g., `2027-02-29`).
+  * 3b1. LarperBoard shows an invalid date error message.
+
+    Use case resumes at step 3.
+
+* 3c. The date is missing, `d/` is given more than once, or extraneous parameters are provided.
+  * 3c1. LarperBoard shows an error message.
+
+    Use case resumes at step 3.
+
+* 3d. The user asks to clear the date instead of giving one.
+  * 3d1. LarperBoard removes the date from the person and displays a confirmation message.
+
+    Use case ends.
+
+* 3e. The person already has the given date (or has no date, when clearing).
+  * 3e1. LarperBoard displays a message that the date is unchanged. Nothing is changed and no undo step is added.
+
+    Use case ends.
+
+* 4a. LarperBoard cannot save the data file.
+  * 4a1. LarperBoard displays an error message and leaves the person as it was.
+
+    Use case ends.
+
+**Use case: List contacts due for follow-up**
+
+**MSS**
+
+1. User requests to list the contacts that are due for follow-up.
+2. LarperBoard shows the persons whose follow-up date is today or earlier (Singapore date), earliest date first.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. No person is due.
+  * 2a1. LarperBoard shows an empty list and a message that 0 contacts are listed.
+
+    Use case ends.
+
+**Implementation note:** `due` replaces the active search, group and sort of the existing filtered person list; it stores nothing. Index-based commands continue to use the displayed list.
+
 ### Non-functional requirements
 
 1. **Environment**: Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
@@ -671,14 +741,17 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 
 ### Glossary
 
+* **Activity times**: The three times LarperBoard records for each contact: when it was created, last edited and last viewed. A time is shown as `—` when it is not known
 * **Archive**: Hiding a contact from the active list without deleting it, so that it can be brought back later
 * **CLI (Command Line Interface)**: A way of using an application by typing text commands instead of clicking buttons
 * **Command**: A line of text typed into the command box that tells LarperBoard to do something, e.g. adding or deleting a contact
 * **Contact**: A person whose details are saved in LarperBoard, such as a teammate, mentor, recruiter or fellow participant met at a hackathon
 * **Cracked**: Slang for being highly skilled, used to describe the participants a user wants to remember and keep in touch with
 * **Data file**: The file on the user's computer where LarperBoard saves all contacts, stored in JSON format
+* **Due contact**: A contact whose follow-up date is today or earlier, in Singapore time. The `due` command lists these contacts
 * **Duplicate contact**: A contact that LarperBoard considers to be the same person as a contact already saved, in which case LarperBoard rejects it
 * **Export**: Saving the user's contacts into a file in another format (e.g. JSON, CSV or Markdown) so that they can be used in other tools
+* **Follow-up date**: An optional date on a contact, in `YYYY-MM-DD` format, by which the user wants to get back to that contact. It is overdue once it is before today
 * **Hackathon**: A time-limited event where participants form teams to build projects, and where the users of LarperBoard meet most of their contacts
 * **Hackathon role**: The part a contact plays in a team, e.g. Frontend, Pitcher or Designer
 * **Index**: The position number of a contact in the list currently shown, starting from 1, used to refer to that contact in a command
