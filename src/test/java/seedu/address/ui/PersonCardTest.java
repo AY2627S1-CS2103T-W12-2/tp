@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_LINKEDIN_AMY;
@@ -13,7 +14,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -91,6 +94,42 @@ public class PersonCardTest {
 
         assertFalse(star.isVisible());
         assertFalse(star.isManaged());
+    }
+
+    @Test
+    public void constructor_tags_assignDistinctStableColorClasses() {
+        Person person = new PersonBuilder().withTags("react", "backend").build();
+        PersonCard firstCard = new PersonCard(person, 1);
+        PersonCard secondCard = new PersonCard(person, 2);
+        FlowPane firstTags = (FlowPane) firstCard.getRoot().lookup("#tags");
+        FlowPane secondTags = (FlowPane) secondCard.getRoot().lookup("#tags");
+        Label backend = (Label) firstTags.getChildren().get(0);
+        Label react = (Label) firstTags.getChildren().get(1);
+        Label reactAgain = (Label) secondTags.getChildren().get(1);
+
+        assertNotEquals(colorClass(backend), colorClass(react));
+        assertEquals(colorClass(react), colorClass(reactAgain));
+    }
+
+    @Test
+    public void constructor_tags_applyDifferentPaletteBackgrounds() {
+        Person person = new PersonBuilder().withTags("react", "backend").build();
+        PersonCard card = new PersonCard(person, 1);
+        Scene scene = new Scene(card.getRoot());
+        scene.getStylesheets().add(getClass().getResource("/view/DarkTheme.css").toExternalForm());
+        card.getRoot().applyCss();
+        FlowPane tags = (FlowPane) card.getRoot().lookup("#tags");
+        Label backend = (Label) tags.getChildren().get(0);
+        Label react = (Label) tags.getChildren().get(1);
+
+        assertNotEquals(backend.getBackground(), react.getBackground());
+    }
+
+    private String colorClass(Label tagLabel) {
+        return tagLabel.getStyleClass().stream()
+                .filter(styleClass -> styleClass.startsWith("tag-color-"))
+                .findFirst()
+                .orElse("");
     }
 
     private Label getStarLabel(PersonCard personCard) {

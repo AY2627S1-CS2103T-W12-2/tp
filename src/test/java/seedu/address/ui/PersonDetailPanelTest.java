@@ -70,6 +70,18 @@ public class PersonDetailPanelTest {
     }
 
     @Test
+    public void constructor_tag_usesSameColorClassAsContactList() {
+        Person person = new PersonBuilder().withTags("React").build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
+        PersonCard card = new PersonCard(person, 1);
+        Label detailTag = (Label) ((FlowPane) lookup(panel, "#tags")).getChildren().get(0);
+        Label listTag = (Label) ((FlowPane) card.getRoot().lookup("#tags")).getChildren().get(0);
+
+        assertTrue(detailTag.getStyleClass().stream().anyMatch(styleClass -> styleClass.startsWith("tag-color-")));
+        assertEquals(listTag.getStyleClass(), detailTag.getStyleClass());
+    }
+
+    @Test
     public void star_visibleOnlyForStarredViewedPerson() {
         ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>();
         PersonDetailPanel panel = new PersonDetailPanel(viewedPerson);

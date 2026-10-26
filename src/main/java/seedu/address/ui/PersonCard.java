@@ -86,7 +86,7 @@ public class PersonCard extends UiPart<Region> {
         showFollowUp(person, today);
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+                .forEach(tag -> tags.getChildren().add(TagColor.createLabel(tag)));
     }
 
     /** Shows the follow-up date, with an Overdue cue if it is before {@code today}; hides the label if none. */
