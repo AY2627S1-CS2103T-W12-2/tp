@@ -179,10 +179,10 @@ public class ContactPhotoTest {
                 for (int i = 0; i < 20; i++) {
                     ContactPhoto.show("obsolete-" + i + ".png", image, placeholder, storage);
                 }
-                ImageView discardedCard = new ImageView();
-                CompletableFuture<Void> discarded = ContactPhoto.show("discarded-card.png", discardedCard,
+                ImageView discardedRequest = new ImageView();
+                CompletableFuture<Void> discarded = ContactPhoto.show("discarded-request.png", discardedRequest,
                         new Label(), storage);
-                ContactPhoto.cancel(discardedCard);
+                ContactPhoto.cancel(discardedRequest);
                 assertTrue(discarded.isDone());
                 return ContactPhoto.show("latest.png", image, placeholder, storage);
             });
