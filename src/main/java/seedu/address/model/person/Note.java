@@ -44,9 +44,9 @@ public class Note {
     }
 
     /**
-     * Returns the number of characters in {@code text}. A character that Java stores as two {@code char}s, such as
-     * an emoji, counts as one, so the limit on the length of a note is what the user sees and not how Java stores it.
-     * An emoji made of several parts, such as a flag or a family, still counts as several characters.
+     * Returns the number of Unicode code points in {@code text}, and not the number of UTF-16 {@code char}s. A
+     * character that Java stores as two {@code char}s, such as an emoji, counts as one. A symbol made of several
+     * code points, such as a flag, a family or a letter with a combining accent, counts as several.
      */
     public static int countCharacters(String text) {
         requireNonNull(text);
