@@ -14,7 +14,9 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.GridPane;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.model.Model;
@@ -33,6 +35,12 @@ public class PersonDetailPanel extends UiPart<Region> {
             DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm").withZone(Model.DISPLAY_ZONE);
     private static final Logger logger = LogsCenter.getLogger(PersonDetailPanel.class);
 
+    /**
+     * The width of the header below which the photo is shown under the name instead of beside it. Beside the
+     * name, the photo (160 pixels wide) would leave a very narrow column for a long name.
+     */
+    private static final double NARROW_HEADER_WIDTH = 400;
+
     @FXML
     private Label placeholder;
     @FXML
@@ -40,7 +48,11 @@ public class PersonDetailPanel extends UiPart<Region> {
     @FXML
     private VBox content;
     @FXML
+    private GridPane header;
+    @FXML
     private Label name;
+    @FXML
+    private StackPane photoFrame;
     @FXML
     private Label star;
     @FXML
@@ -51,6 +63,8 @@ public class PersonDetailPanel extends UiPart<Region> {
     private Label linkedIn;
     @FXML
     private FlowPane tags;
+    @FXML
+    private Label noTags;
     @FXML
     private Label note;
     @FXML
@@ -79,8 +93,26 @@ public class PersonDetailPanel extends UiPart<Region> {
     public PersonDetailPanel(ObservableValue<Person> viewedPerson) {
         super(FXML);
         scrollPane.addEventFilter(ScrollEvent.SCROLL, this::handleScroll);
+        header.widthProperty().addListener((observable, oldWidth, newWidth) ->
+                arrangeHeader(newWidth.doubleValue()));
         showPerson(viewedPerson.getValue());
         viewedPerson.addListener((observable, oldPerson, newPerson) -> showPerson(newPerson));
+    }
+
+    /**
+     * Shows the photo beside the name if the header is wide enough for both, and under the name otherwise.
+     */
+    private void arrangeHeader(double headerWidth) {
+        boolean isNarrow = isNarrowHeader(headerWidth);
+        GridPane.setColumnIndex(photoFrame, isNarrow ? 0 : 1);
+        GridPane.setRowIndex(photoFrame, isNarrow ? 1 : 0);
+    }
+
+    /**
+     * Returns true if a header of {@code headerWidth} pixels is too narrow to show the photo beside the name.
+     */
+    static boolean isNarrowHeader(double headerWidth) {
+        return headerWidth < NARROW_HEADER_WIDTH;
     }
 
     /**
@@ -149,6 +181,13 @@ public class PersonDetailPanel extends UiPart<Region> {
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
                 .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+        // a contact without tags shows a dash like the other fields, and not an empty row
+        boolean hasTags = !person.getTags().isEmpty();
+        tags.setVisible(hasTags);
+        tags.setManaged(hasTags);
+        noTags.setText(EMPTY_FIELD_TEXT);
+        noTags.setVisible(!hasTags);
+        noTags.setManaged(!hasTags);
     }
 
     /**

@@ -1,20 +1,30 @@
 package seedu.address.logic.parser;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_UNKNOWN_COMMAND;
+import static seedu.address.logic.parser.AddressBookParser.COMMAND_WORDS;
+import static seedu.address.logic.parser.AddressBookParser.MESSAGE_UNKNOWN_COMMAND_WITH_LIST;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 
+import java.lang.reflect.Field;
+import java.lang.reflect.Modifier;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.ClearCommand;
+import seedu.address.logic.commands.Command;
 import seedu.address.logic.commands.DeleteCommand;
 import seedu.address.logic.commands.EditCommand;
 import seedu.address.logic.commands.EditCommand.EditPersonDescriptor;
@@ -178,7 +188,76 @@ public class AddressBookParserTest {
 
     @Test
     public void parseCommand_unknownCommand_throwsParseException() {
-        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND, () -> parser.parseCommand("unknownCommand"));
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND_WITH_LIST, () ->
+                parser.parseCommand("unknownCommand"));
+    }
+
+    @Test
+    public void parseCommand_unknownCommand_messageListsTheAvailableCommands() {
+        // fully qualified because seedu.address.testutil.Assert.assertThrows, which returns nothing, is imported
+        ParseException exception = org.junit.jupiter.api.Assertions.assertThrows(ParseException.class, () ->
+                parser.parseCommand("strar 1"));
+
+        String message = exception.getMessage();
+        assertTrue(message.startsWith(MESSAGE_UNKNOWN_COMMAND + " Available commands: add, clear, delete, "));
+        assertTrue(message.endsWith("unstar, view."));
+        for (String commandWord : COMMAND_WORDS) {
+            assertTrue(message.contains(commandWord), commandWord + " is missing from: " + message);
+        }
+    }
+
+    @Test
+    public void commandWords_areSortedWithoutDuplicates() {
+        assertEquals(COMMAND_WORDS.stream().distinct().sorted().toList(), COMMAND_WORDS);
+    }
+
+    @Test
+    public void commandWords_includeEveryCommandWordDeclaredByTheCommandClasses() throws Exception {
+        Set<String> declared = getCommandWordsDeclaredByTheCommandClasses();
+
+        // a scan that finds nothing would make this test pass for the wrong reason
+        assertFalse(declared.isEmpty());
+        for (String commandWord : declared) {
+            assertTrue(COMMAND_WORDS.contains(commandWord),
+                    "AddressBookParser.COMMAND_WORDS is missing the command word: " + commandWord);
+        }
+    }
+
+    @Test
+    public void commandWords_areAllRecognisedByTheParser() {
+        for (String commandWord : COMMAND_WORDS) {
+            try {
+                parser.parseCommand(commandWord);
+            } catch (ParseException e) {
+                // a command that needs arguments reports its usage; only an unknown command word is a failure
+                assertFalse(e.getMessage().startsWith(MESSAGE_UNKNOWN_COMMAND),
+                        commandWord + " is listed but the parser does not recognise it");
+            }
+        }
+    }
+
+    /** Returns the values of all {@code *COMMAND_WORD} constants declared by the classes in the commands package. */
+    private static Set<String> getCommandWordsDeclaredByTheCommandClasses() throws Exception {
+        Path commandsDirectory = Path.of(Command.class.getResource("Command.class").toURI()).getParent();
+        List<String> classNames;
+        try (Stream<Path> files = Files.list(commandsDirectory)) {
+            classNames = files.map(file -> file.getFileName().toString())
+                    .filter(name -> name.endsWith(".class") && !name.contains("$"))
+                    .map(name -> name.substring(0, name.length() - ".class".length()))
+                    .toList();
+        }
+
+        Set<String> declared = new TreeSet<>();
+        for (String className : classNames) {
+            Class<?> type = Class.forName(Command.class.getPackageName() + "." + className);
+            for (Field field : type.getDeclaredFields()) {
+                if (Modifier.isStatic(field.getModifiers()) && field.getType() == String.class
+                        && field.getName().endsWith("COMMAND_WORD")) {
+                    declared.add((String) field.get(null));
+                }
+            }
+        }
+        return declared;
     }
 
     @Test

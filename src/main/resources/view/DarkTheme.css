@@ -402,3 +402,12 @@
     -fx-text-fill: #ff6b6b;
     -fx-font-weight: bold;
 }
+
+.photo-frame {
+    -fx-background-color: #2f3133;
+    -fx-background-radius: 4;
+}
+
+.photo-frame .label {
+    -fx-text-fill: #9a9a9a;
+}

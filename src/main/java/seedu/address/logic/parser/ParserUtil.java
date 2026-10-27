@@ -161,7 +161,7 @@ public class ParserUtil {
         if (trimmedNote.isEmpty()) {
             throw new ParseException(Note.MESSAGE_BLANK);
         }
-        if (trimmedNote.length() > Note.MAX_LENGTH) {
+        if (Note.countCharacters(trimmedNote) > Note.MAX_LENGTH) {
             throw new ParseException(Note.MESSAGE_TOO_LONG);
         }
         return new Note(trimmedNote);

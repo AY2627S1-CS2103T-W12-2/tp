@@ -7,29 +7,49 @@ import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_LINKEDIN_AMY;
 
 import java.awt.GraphicsEnvironment;
+import java.awt.image.BufferedImage;
+import java.nio.file.Path;
 import java.time.Instant;
+import java.util.concurrent.TimeUnit;
+import javax.imageio.ImageIO;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.Event;
+import javafx.geometry.Bounds;
 import javafx.scene.Node;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
 import javafx.scene.control.ScrollBar;
 import javafx.scene.control.ScrollPane;
+import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.FlowPane;
 import seedu.address.model.person.Activity;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
+import seedu.address.storage.PhotoStorage;
 import seedu.address.testutil.PersonBuilder;
 
 public class PersonDetailPanelTest {
+
+    /** A detail pane of this width has room for the photo beside the name. */
+    private static final double WIDE_PANE_WIDTH = 700;
+
+    /** The detail pane is about this wide when the main window has its minimum width of 700 pixels. */
+    private static final double NARROW_PANE_WIDTH = 360;
+
+    /** The longest name that the app allows is 50 characters. */
+    private static final String LONG_NAME = "Alexandria Montgomery Wolfeschlegelstein Jr";
+
+    @TempDir
+    private Path photoFolder;
 
     /**
      * Starts the JavaFX toolkit, which is needed to create UI controls.
@@ -84,6 +104,47 @@ public class PersonDetailPanelTest {
         viewedPerson.set(new PersonBuilder().withStarred(true).build());
         viewedPerson.set(null);
         assertFalse(lookup(panel, "#star").isVisible());
+    }
+
+    @Test
+    public void constructor_personWithoutTags_showsDashInPlaceOfTheTagRow() {
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build()));
+
+        Label noTags = (Label) lookup(panel, "#noTags");
+        assertEquals("-", noTags.getText());
+        assertTrue(noTags.isVisible());
+        assertTrue(noTags.isManaged());
+        // the tag row would style the dash like a tag, and would leave an empty gap, so it is hidden
+        FlowPane tags = (FlowPane) lookup(panel, "#tags");
+        assertFalse(tags.isVisible());
+        assertFalse(tags.isManaged());
+    }
+
+    @Test
+    public void viewedPersonChanges_dashAndTagRowTakeTurns() {
+        ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>(new PersonBuilder().withTags("react")
+                .build());
+        PersonDetailPanel panel = new PersonDetailPanel(viewedPerson);
+        FlowPane tags = (FlowPane) lookup(panel, "#tags");
+        Label noTags = (Label) lookup(panel, "#noTags");
+
+        // a contact with tags shows them and no dash
+        assertTrue(tags.isVisible());
+        assertTrue(tags.isManaged());
+        assertFalse(noTags.isVisible());
+        assertFalse(noTags.isManaged());
+
+        // one without tags shows the dash and no empty row
+        viewedPerson.set(new PersonBuilder().withName("No Tags Person").build());
+        assertEquals(0, tags.getChildren().size());
+        assertFalse(tags.isVisible());
+        assertTrue(noTags.isVisible());
+
+        // and back again
+        viewedPerson.set(new PersonBuilder().withName("Tagged Person").withTags("figma", "ui-ux").build());
+        assertEquals(2, tags.getChildren().size());
+        assertTrue(tags.isVisible());
+        assertFalse(noTags.isVisible());
     }
 
     @Test
@@ -202,6 +263,83 @@ public class PersonDetailPanelTest {
         assertTrue(note.getBoundsInParent().getMaxX() <= scrollPane.getViewportBounds().getWidth() + 1);
         // and the panel itself scrolls up and down to reach the end of the note
         assertTrue(verticalBar.isVisible());
+    }
+
+    @Test
+    public void photo_widePane_isBesideTheNameInAFixedFrameWithAndWithoutAPhoto() throws Exception {
+        ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>(new PersonBuilder().build());
+        Parent root = (Parent) panelInScene(viewedPerson, WIDE_PANE_WIDTH).getRoot();
+        ImageView photo = (ImageView) root.lookup("#photo");
+        Label placeholder = (Label) root.lookup("#photoPlaceholder");
+
+        // without a photo, the placeholder fills the frame
+        assertTrue(placeholder.isVisible());
+        assertFalse(photo.isVisible());
+        assertFrameIsFixedAndBesideTheName(root);
+
+        // a landscape and a portrait photo, loaded as in the app, leave the frame as it was
+        for (String file : new String[] {"landscape.png", "portrait.png"}) {
+            int width = file.startsWith("landscape") ? 400 : 300;
+            int height = file.startsWith("landscape") ? 300 : 400;
+            ImageIO.write(new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB), "png",
+                    photoFolder.resolve(file).toFile());
+            ContactPhoto.show(file, photo, placeholder, new PhotoStorage(photoFolder)).get(10, TimeUnit.SECONDS);
+            root.applyCss();
+            root.layout();
+
+            assertTrue(photo.isVisible(), file + " should be shown");
+            assertFalse(placeholder.isVisible());
+            assertFrameIsFixedAndBesideTheName(root);
+        }
+
+        // a contact with a very long name (the most the app allows is 50 characters) keeps the frame the same size
+        viewedPerson.set(new PersonBuilder().withName(LONG_NAME).build());
+        root.applyCss();
+        root.layout();
+        assertFrameIsFixedAndBesideTheName(root);
+    }
+
+    @Test
+    public void photo_narrowPane_isBelowTheNameSoThatTheNameStaysReadable() {
+        ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>(new PersonBuilder().withName(LONG_NAME)
+                .build());
+        Parent root = (Parent) panelInScene(viewedPerson, NARROW_PANE_WIDTH).getRoot();
+        Bounds name = sceneBounds(root.lookup("#name"));
+        Bounds frame = sceneBounds(root.lookup("#photoFrame"));
+
+        // below the name instead of squeezing the name into a narrow column beside it
+        assertTrue(frame.getMinY() >= name.getMaxY() - 1, "the photo should be below the name");
+        assertTrue(name.getWidth() > 200, "the name is only " + name.getWidth() + " pixels wide");
+        assertTrue(name.getHeight() < 110, "the name is " + name.getHeight() + " pixels tall");
+        assertEquals(160, frame.getWidth(), 0.5);
+        assertEquals(120, frame.getHeight(), 0.5);
+    }
+
+    /** Returns a panel showing {@code viewedPerson} in a window of {@code width} pixels, after layout. */
+    private PersonDetailPanel panelInScene(ObjectProperty<Person> viewedPerson, double width) {
+        PersonDetailPanel panel = new PersonDetailPanel(viewedPerson);
+        Parent root = (Parent) panel.getRoot();
+        new Scene(root, width, 600);
+        // the second pass lays out the header again after it has been arranged for its width
+        for (int pass = 0; pass < 2; pass++) {
+            root.applyCss();
+            root.layout();
+        }
+        return panel;
+    }
+
+    /** Checks that the photo frame is 160x120, to the right of the name and level with the top of it. */
+    private void assertFrameIsFixedAndBesideTheName(Parent root) {
+        Bounds name = sceneBounds(root.lookup("#name"));
+        Bounds frame = sceneBounds(root.lookup("#photoFrame"));
+        assertEquals(160, frame.getWidth(), 0.5);
+        assertEquals(120, frame.getHeight(), 0.5);
+        assertTrue(frame.getMinX() >= name.getMaxX() - 1, "the photo should be beside the name");
+        assertEquals(name.getMinY(), frame.getMinY(), 1);
+    }
+
+    private static Bounds sceneBounds(Node node) {
+        return node.localToScene(node.getBoundsInLocal());
     }
 
     @Test

@@ -75,6 +75,8 @@ Opens the help window with a link to this guide. The result message is `Opened h
 
 Format: `help`
 
+If you type a command that LarperBoard does not know, for example a typo such as `strar 1`, the result message is `Unknown command.` followed by the list of every command you can use, in alphabetical order, for example `Unknown command. Available commands: add, clear, delete, …`. Use `help` to open this guide.
+
 
 ### Adding a contact: `add`
 
@@ -172,7 +174,7 @@ Sets, replaces or removes a free-form note on a contact, for example where you m
 Format: `note INDEX nt/NOTE` or `note INDEX clear`
 
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
-* `NOTE` can contain spaces and punctuation and can be up to 1000 characters long. Spaces at the start and end are removed. A note that is empty or only spaces is not accepted: use `note INDEX clear` to remove a note.
+* `NOTE` can contain spaces and punctuation and can be up to 1000 characters long. An emoji such as 😀 counts as one character. An emoji that is made of several parts, such as a flag or a family, counts as several. Spaces at the start and end are removed. A note that is empty or only spaces is not accepted: use `note INDEX clear` to remove a note.
 * Setting a note on a contact that already has one replaces the old note.
 * The text after `nt/` is taken as typed, so it can contain `/`. Use `nt/` only once in a command.
 * The note is shown in full in the detail panel when you [`view`](#viewing-a-contact-view) the contact, and it is not shown in the contact list. If the note is long, scroll the detail panel to read all of it.
@@ -495,8 +497,12 @@ wrong types, or undecodable content; `Photo must be at most 5 MiB and 4096×4096
 size/dimension limits; and `Photo file could not be read.` for file-access failures.
 An invalid displayed index reports `The person index provided is invalid.`
 
-The list uses a 48×48 thumbnail and the scrolling detail panel fits the image within 240×180,
-preserving its aspect ratio. Absent, missing, malformed, or unreadable references show a placeholder;
+The photo is shown only in the detail panel (`view INDEX`), to the right of the contact's name, and not in
+the contact list. It is scaled to fit inside a fixed 160×120 frame, preserving its aspect ratio, so photos of
+different shapes never change the layout. If the detail panel is too narrow for the photo and the name
+side by side (for example when the window is at its minimum width), the photo is shown under the name
+instead. Absent, missing, malformed, or unreadable references show a
+"No photo" placeholder of the same size;
 unavailable images also produce a log warning and do not prevent other contacts loading.
 Unsafe saved paths are never opened. Old JSON without `photoPath` loads with no photo.
 
