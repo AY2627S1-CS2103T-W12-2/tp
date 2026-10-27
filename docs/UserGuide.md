@@ -425,7 +425,8 @@ Format: `followup INDEX d/YYYY-MM-DD` or `followup INDEX clear`
 * A successful command reports `Follow-up date for NAME set to DATE.` or `Follow-up date cleared for NAME.`
 * Setting the date a contact already has, or clearing a date that is not set, only reports `Follow-up date unchanged.` It does not change the last-edited time or add an undo step.
 * A real change counts as an edit of the contact and sets its last-edited time. You can reverse it with `undo`.
-* The contact card shows `Follow up: DATE`, once the date is before today (Singapore time), the whole line turns red and bold and ends with `(Overdue)`. A date that is today is not overdue. The card is drawn when the list is shown, so it does not change at midnight until the list is next refreshed. `view INDEX` shows the full date.
+* The contact card shows `Follow up: DATE`. Once the date is before today (Singapore time), the card shows `Follow up: DATE (Overdue)` and the whole line turns red and bold. A date that is today is not overdue. The card is drawn when the list is shown, so it does not change at midnight until the list is next refreshed.
+* `view INDEX` shows the full date in the detail panel.
 
 Examples:
 * `followup 1 d/2026-10-25` sets the follow-up date of the 1st displayed contact.
@@ -536,9 +537,9 @@ Field | Meaning | Format
 `lastEditedAt` | When the contact's details last really changed | Same as `createdAt`
 `lastViewedAt` | When the `view` command last showed the contact | Same as `createdAt`
 
-Each contact can also have an optional `note` field: a string of at most 1000 characters. A missing or `null` field means the contact has no note. A note that is empty or only spaces, longer than 1000 characters, or not a string makes the data file invalid, and LarperBoard reports `Invalid contact data: 'note' must be a string of at most 1000 characters.`
+Each contact can also have an optional `note` field: a string of at most 1000 characters. A missing or `null` field means the contact has no note. A note that is empty or only spaces, longer than 1000 characters, or not a string makes the data file invalid, so LarperBoard starts with an empty contact list and writes `Invalid contact data: 'note' must be a string of at most 1000 characters.` to its log.
 
-Each contact can also have an optional `starred` field, which is `true` or `false`. A missing or `null` field means the contact is not starred. Any other value makes the data file invalid, and LarperBoard reports `Invalid contact data: 'starred' must be true or false.`
+Each contact can also have an optional `starred` field, which is `true` or `false`. A missing or `null` field means the contact is not starred. Any other value makes the data file invalid, so LarperBoard starts with an empty contact list and writes `Invalid contact data: 'starred' must be true or false.` to its log.
 
 LarperBoard fills the time fields in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid. LarperBoard then starts with an empty contact list and writes `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem) to its log. The next command you run, of any kind (even `help` or `list`), saves the empty list over the file and the contacts in it are lost, so back up the file before editing it. Times are shown in Singapore time (Asia/Singapore).
 

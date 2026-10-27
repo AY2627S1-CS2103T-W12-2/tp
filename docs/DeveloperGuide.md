@@ -202,7 +202,7 @@ Design considerations:
 `Person` holds an optional `LocalDate followUpDate`, exposed as `Optional<LocalDate> getFollowUpDate()` and
 copied by `Person.toBuilder()` (`withFollowUpDate(null)` removes it). It takes part in `equals`, `hashCode` and
 `toString`. `isFollowUpDueOn(today)` (on or before today) and `isFollowUpOverdueOn(today)` (strictly before
-today) are the single definition of the boundary, so the card cue and the later `due` command cannot disagree.
+today) are the single definition of the boundary, so the card cue and the `due` command cannot disagree.
 
 `FollowUpCommandParser` checks the displayed index, duplicate `d/`, and either `clear` or a date, then reuses
 `Meeting.parseDate`, so follow-up dates follow the same strict rules and message as `md/`. `FollowUpCommand`
