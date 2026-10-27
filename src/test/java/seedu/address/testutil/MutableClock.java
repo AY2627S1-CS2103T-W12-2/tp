@@ -38,6 +38,10 @@ public class MutableClock extends Clock {
         return zone;
     }
 
+    /**
+     * Returns a new clock in {@code zone} that starts at this clock's current instant.
+     * The copy does not move when this clock is advanced.
+     */
     @Override
     public Clock withZone(ZoneId zone) {
         return new MutableClock(instant, zone);

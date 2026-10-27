@@ -39,7 +39,7 @@ import seedu.address.testutil.PersonBuilder;
  * to check activity times, failed and unchanged commands, save rollback, due-list indexes and undo/redo together.
  */
 public class FollowUpFeatureTest {
-    private static final LocalDate TODAY = LocalDate.of(2026, 10, 20);
+    private static final LocalDate TODAY = LocalDate.now(FIXED_CLOCK);
 
     @TempDir
     private Path folder;

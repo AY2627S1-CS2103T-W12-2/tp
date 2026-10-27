@@ -94,12 +94,14 @@ public class DueCommandTest {
         Model beforeLeapDay = modelWith(clockAt("2028-02-28T15:59:59Z"), dueOnLeapDay, dueNextDay);
 
         CommandResult result = new DueCommand().execute(startOfLeapDay);
-        new DueCommand().execute(endOfLeapDay);
+        CommandResult endResult = new DueCommand().execute(endOfLeapDay);
         new DueCommand().execute(afterLeapDay);
         new DueCommand().execute(beforeLeapDay);
 
         assertEquals(String.format(DueCommand.MESSAGE_SUCCESS, LocalDate.of(2028, 2, 29), 1),
                 result.getFeedbackToUser());
+        assertEquals(String.format(DueCommand.MESSAGE_SUCCESS, LocalDate.of(2028, 2, 29), 1),
+                endResult.getFeedbackToUser());
         assertEquals(List.of(dueOnLeapDay), startOfLeapDay.getFilteredPersonList());
         assertEquals(List.of(dueOnLeapDay), endOfLeapDay.getFilteredPersonList());
         assertEquals(List.of(dueOnLeapDay, dueNextDay), afterLeapDay.getFilteredPersonList());
