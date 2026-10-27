@@ -3,7 +3,9 @@ package seedu.address.logic.parser;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
+import static seedu.address.logic.Messages.getErrorMessageForDuplicatePrefixes;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
+import static seedu.address.logic.parser.PhotoCommandParser.PREFIX_FILE;
 
 import java.nio.file.Path;
 
@@ -32,6 +34,21 @@ public class PhotoCommandParserTest {
         assertParseFailure(parser, " clear", INVALID_FORMAT);
         assertParseFailure(parser, " CLEAR", INVALID_FORMAT);
         assertParseFailure(parser, " clear 1", INVALID_FORMAT);
+    }
+
+    @Test
+    public void parse_clearInPlaceOfTheIndexWithDuplicateFile_throwsUsageAndNotDuplicatePrefix() {
+        PhotoCommandParser parser = new PhotoCommandParser(new PhotoStorage(folder));
+
+        assertParseFailure(parser, " clear f/a.png f/b.png", INVALID_FORMAT);
+        assertParseFailure(parser, " CLEAR 1 f/a.png f/b.png", INVALID_FORMAT);
+    }
+
+    @Test
+    public void parse_indexWithDuplicateFile_stillThrowsDuplicatePrefix() {
+        PhotoCommandParser parser = new PhotoCommandParser(new PhotoStorage(folder));
+
+        assertParseFailure(parser, " 1 f/a.png f/b.png", getErrorMessageForDuplicatePrefixes(PREFIX_FILE));
     }
 
     @Test

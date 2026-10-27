@@ -22,11 +22,11 @@ public class PhotoCommandParser implements Parser<PhotoCommand> {
     public PhotoCommand parse(String args) throws ParseException {
         requireNonNull(args);
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(args, PREFIX_FILE);
-        fields.verifyNoDuplicatePrefixesFor(PREFIX_FILE);
         String[] preamble = fields.getPreamble().split("\\s+");
         if (preamble[0].isEmpty() || ParserUtil.isClearKeyword(preamble[0])) {
             throw usage();
         }
+        fields.verifyNoDuplicatePrefixesFor(PREFIX_FILE);
         Index index;
         try {
             index = ParserUtil.parseIndex(preamble[0]);
