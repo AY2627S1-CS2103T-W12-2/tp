@@ -422,6 +422,13 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
     Use case resumes at step 1.
 
+  `FindCommandParser` rejects other commands' reserved fields (`e/`, `p/`, `l/`, `d/`, `md/`, `r/`, `f/`)
+  at argument/whitespace boundaries before tokenizing supported search fields. This prevents an unsupported
+  field from being absorbed into a preceding term and producing a misleading zero-match result. The error is
+  the standard invalid format with find usage; parsing fails before execution, so the visible list, selection,
+  saved contacts and undo/redo history remain unchanged. Literal slash text such as `c/o`, `ai/ml` and URLs
+  is still accepted within typed terms.
+
 * 2a. No contacts match the provided terms.
   * 2a1. LarperBoard shows an empty valid result list.
 

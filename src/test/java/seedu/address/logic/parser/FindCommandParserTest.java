@@ -41,6 +41,12 @@ public class FindCommandParserTest {
     }
 
     @Test
+    public void parse_tagOnly_returnsTypedFindCommand() {
+        assertParseSuccess(parser, " t/react",
+                new FindCommand(new TypedSearchPredicate(List.of(), List.of("react"), List.of(), List.of())));
+    }
+
+    @Test
     public void parse_slashContainingEvent_preservesEventText() {
         for (String event : new String[]{"Conference c/o NUS", "ai/ml workshop", "Conference https://nus.edu.sg"}) {
             assertParseSuccess(parser, " ev/" + event,
@@ -49,8 +55,37 @@ public class FindCommandParserTest {
     }
 
     @Test
+    public void parse_unsupportedCommandFields_rejectsRegardlessOfPosition() {
+        for (String field : List.of("e/p0@example.com", "p/90000000", "l/user-0x", "d/2026-10-28",
+                "md/2026-10-28", "r/developer", "f/photo.png")) {
+            for (String args : List.of(" " + field, " " + field + " n/aisha",
+                    " n/aisha " + field, " n/aisha " + field + " t/react")) {
+                assertParseFailure(parser, args,
+                        String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+            }
+        }
+    }
+
+    @Test
+    public void parse_unsupportedFieldAfterAnySearchField_rejectsFormat() {
+        for (String prefix : List.of("n/", "t/", "nt/", "ev/")) {
+            for (String separator : List.of(" ", "\t", "\n")) {
+                assertParseFailure(parser, " " + prefix + "text" + separator + "e/",
+                        String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+            }
+        }
+    }
+
+    @Test
+    public void parse_slashesWithinNoteText_preservesText() {
+        String note = "c/o NUS ai/ml https://example.com/e/user path/p/90000000";
+        assertParseSuccess(parser, " nt/" + note,
+                new FindCommand(new TypedSearchPredicate(List.of(), List.of(), List.of(note), List.of())));
+    }
+
+    @Test
     public void parse_emptyMalformedOrMixedSearch_rejectsCorrectMessage() {
-        for (String args : new String[]{" n/", " ev/Hack ev/", " p/91234567"}) {
+        for (String args : new String[]{" n/", " t/", " nt/", " ev/Hack ev/", " p/91234567", " unknown/value"}) {
             assertParseFailure(parser, args,
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }

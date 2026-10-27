@@ -15,6 +15,8 @@ import seedu.address.model.person.TypedSearchPredicate;
  */
 public class FindCommandParser implements Parser<FindCommand> {
     private static final Pattern PREFIX_LIKE_TOKEN = Pattern.compile("(?:^|\\s)[A-Za-z]+/");
+    // Reserve other commands' fields without rejecting literal text such as c/o, ai/ml or URLs.
+    private static final Pattern UNSUPPORTED_FIELD = Pattern.compile("(?:^|\\s)(?:e|p|l|d|md|r|f)/");
 
     /**
      * Parses the given {@code String} of arguments in the context of the FindCommand
@@ -26,6 +28,10 @@ public class FindCommandParser implements Parser<FindCommand> {
         if (trimmedArgs.isEmpty()) {
             throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+        }
+
+        if (UNSUPPORTED_FIELD.matcher(trimmedArgs).find()) {
+            throw invalidFormat();
         }
 
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(args, CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_TAG,
