@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -125,7 +126,7 @@ public class DueCommandTest {
     }
 
     @Test
-    public void execute_clearsViewedContactThatIsNotDue() throws Exception {
+    public void execute_keepsViewedContactThatIsNotDue() throws Exception {
         Person notDue = person("NotDue", "10000001", null);
         Person due = person("Due", "10000002", TODAY);
         Model model = modelWith(TypicalTimes.FIXED_CLOCK, notDue, due);
@@ -133,7 +134,8 @@ public class DueCommandTest {
 
         new DueCommand().execute(model);
 
-        assertNull(model.getViewedPerson().get());
+        assertEquals(notDue, model.getViewedPerson().get());
+        assertFalse(model.getFilteredPersonList().contains(notDue));
     }
 
     @Test
