@@ -1,10 +1,8 @@
 package seedu.address;
 
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.util.Optional;
 import java.util.logging.Logger;
 
@@ -12,7 +10,6 @@ import javafx.application.Application;
 import javafx.stage.Stage;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.commons.exceptions.DataLoadingException;
-import seedu.address.commons.exceptions.IllegalValueException;
 import seedu.address.commons.util.StringUtil;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
@@ -46,7 +43,6 @@ public class MainApp extends Application {
     protected Logic logic;
     protected Storage storage;
     protected Model model;
-    private String startupWarning = "";
 
     @Override
     public void init() throws Exception {
@@ -62,7 +58,7 @@ public class MainApp extends Application {
 
         logic = new LogicManager(model, storage);
 
-        ui = new UiManager(logic, storage.getAddressBookFilePath(), startupWarning);
+        ui = new UiManager(logic, storage.getAddressBookFilePath());
     }
 
     /**
@@ -72,9 +68,8 @@ public class MainApp extends Application {
      * @param userPrefs preferences to use in the model
      * @return the initialized model
      */
-    Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) throws IOException {
+    Model initModelManager(Storage storage, ReadOnlyUserPrefs userPrefs) {
         logger.info("Using data file : " + storage.getAddressBookFilePath());
-        startupWarning = "";
 
         Optional<ReadOnlyAddressBook> addressBookOptional;
         ReadOnlyAddressBook initialData;
@@ -86,41 +81,12 @@ public class MainApp extends Application {
             }
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
-            Path backup = backupInvalidData(storage.getAddressBookFilePath());
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
-                    + " Preserved at " + backup + ". Will be starting with an empty LarperBoard.");
-            String reason = e.getCause() instanceof IllegalValueException
-                    ? e.getCause().getMessage() : "The data file could not be read or parsed.";
-            startupWarning = reason + "\nLarperBoard opened with an empty contact list. "
-                    + "The original file is preserved at " + backup + ". "
-                    + "The next successful command, including help or list, replaces the data file. "
-                    + "Close LarperBoard and correct a copy of the backup before using commands.";
+                    + " Will be starting with an empty LarperBoard.");
             initialData = new AddressBook();
         }
 
         return new ModelManager(initialData, userPrefs);
-    }
-
-    String getStartupWarning() {
-        return startupWarning;
-    }
-
-    private Path backupInvalidData(Path dataFile) throws IOException {
-        Path source = dataFile.toAbsolutePath().normalize();
-        String backupName = source.getFileName() + ".bak";
-        for (int suffix = 0; ; suffix++) {
-            Path backup = source.resolveSibling(backupName + (suffix == 0 ? "" : "." + suffix));
-            if (Files.exists(backup)) {
-                if (Files.isSymbolicLink(backup) || Files.isSameFile(source, backup)) {
-                    continue;
-                }
-                if (Files.mismatch(source, backup) == -1) {
-                    return backup;
-                }
-            } else {
-                return Files.copy(source, backup, StandardCopyOption.COPY_ATTRIBUTES);
-            }
-        }
     }
 
     /**

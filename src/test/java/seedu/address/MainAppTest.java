@@ -3,7 +3,6 @@ package seedu.address;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
@@ -18,7 +17,6 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import seedu.address.commons.exceptions.DataLoadingException;
-import seedu.address.logic.LogicManager;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.ReadOnlyUserPrefs;
@@ -75,7 +73,7 @@ public class MainAppTest {
     }
 
     @Test
-    public void initModelManager_missingData_usesSampleData() throws IOException {
+    public void initModelManager_missingData_usesSampleData() {
         Model model = app.initModelManager(createStorage(), new UserPrefs());
 
         assertEquals(SampleDataUtil.getSampleAddressBook(), model.getAddressBook());
@@ -98,99 +96,7 @@ public class MainAppTest {
         Model model = app.initModelManager(createStorage(), new UserPrefs());
 
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
-    }
-
-    @Test
-    public void initModelManager_invalidData_preservesOriginalBeforeNextCommand() throws Exception {
-        Path dataFile = testFolder.resolve("addressbook.json");
-        String invalidData = "{invalid json";
-        Files.writeString(dataFile, invalidData);
-        Storage storage = createStorage();
-
-        Model model = app.initModelManager(storage, new UserPrefs());
-        new LogicManager(model, storage).execute("list");
-
-        assertEquals(invalidData, Files.readString(testFolder.resolve("addressbook.json.bak")));
-        assertFalse(Files.readString(dataFile).equals(invalidData));
-        assertTrue(storage.readAddressBook().orElseThrow().getPersonList().isEmpty());
-    }
-
-    @Test
-    public void initModelManager_invalidField_preservesAllOriginalContacts() throws IOException {
-        Path dataFile = testFolder.resolve("addressbook.json");
-        String invalidData = "{\"persons\":["
-                + "{\"name\":\"Alice Pauline\",\"phone\":\"94351253\",\"email\":\"alice@example.com\"},"
-                + "{\"name\":\"Bob Choo\",\"phone\":\"93210283\",\"email\":\"bob@example.com\","
-                + "\"followUpDate\":\"2026-02-30\"}]}";
-        Files.writeString(dataFile, invalidData);
-
-        Model model = app.initModelManager(createStorage(), new UserPrefs());
-
-        assertTrue(model.getAddressBook().getPersonList().isEmpty());
-        assertEquals(invalidData, Files.readString(testFolder.resolve("addressbook.json.bak")));
-        assertEquals(invalidData, Files.readString(dataFile));
-        assertTrue(app.getStartupWarning().contains("followUpDate"));
-        assertTrue(app.getStartupWarning().contains("addressbook.json.bak"));
-    }
-
-    @Test
-    public void initModelManager_existingBackup_keepsItAndCreatesNumberedBackup() throws IOException {
-        Path dataFile = testFolder.resolve("addressbook.json");
-        Files.writeString(dataFile, "{new invalid json");
-        Path earlierBackup = testFolder.resolve("addressbook.json.bak");
-        Files.writeString(earlierBackup, "{older invalid json");
-
-        app.initModelManager(createStorage(), new UserPrefs());
-
-        assertEquals("{older invalid json", Files.readString(earlierBackup));
-        assertEquals("{new invalid json", Files.readString(testFolder.resolve("addressbook.json.bak.1")));
-    }
-
-    @Test
-    public void initModelManager_repeatedInvalidStartup_reusesIdenticalBackup() throws IOException {
-        Path dataFile = testFolder.resolve("addressbook.json");
-        Files.writeString(dataFile, "{invalid json");
-
-        app.initModelManager(createStorage(), new UserPrefs());
-        app.initModelManager(createStorage(), new UserPrefs());
-
-        assertTrue(Files.exists(testFolder.resolve("addressbook.json.bak")));
-        assertFalse(Files.exists(testFolder.resolve("addressbook.json.bak.1")));
-    }
-
-    @Test
-    public void initModelManager_hardLinkedBackup_keepsOriginalAndCreatesNumberedBackup() throws IOException {
-        Path dataFile = testFolder.resolve("addressbook.json");
-        String invalidData = "{invalid json";
-        Files.writeString(dataFile, invalidData);
-        Path existingBackup = testFolder.resolve("addressbook.json.bak");
-        Files.createLink(existingBackup, dataFile);
-
-        app.initModelManager(createStorage(), new UserPrefs());
-
-        assertTrue(Files.isSameFile(dataFile, existingBackup));
-        assertEquals(invalidData, Files.readString(testFolder.resolve("addressbook.json.bak.1")));
-    }
-
-    @Test
-    public void initModelManager_validData_hasNoStartupWarning() throws IOException {
-        Storage storage = createStorage();
-        storage.saveAddressBook(getTypicalAddressBook());
-
-        app.initModelManager(storage, new UserPrefs());
-
-        assertTrue(app.getStartupWarning().isEmpty());
         assertFalse(Files.exists(testFolder.resolve("addressbook.json.bak")));
-    }
-
-    @Test
-    public void initModelManager_backupFails_doesNotStartWithEmptyModel() throws IOException {
-        Path dataFile = testFolder.resolve("addressbook.json");
-        Files.writeString(dataFile, "{invalid json");
-        Files.createDirectory(testFolder.resolve("addressbook.json.bak"));
-
-        assertThrows(IOException.class, () -> app.initModelManager(createStorage(), new UserPrefs()));
-        assertEquals("{invalid json", Files.readString(dataFile));
     }
 
     @Test
