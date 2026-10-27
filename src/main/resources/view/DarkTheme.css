@@ -342,6 +342,7 @@
 }
 
 #tags {
+    /* Card tag rows are HBoxes and take their gap from TagRow.GAP; keep the two equal. */
     -fx-hgap: 7;
     -fx-vgap: 3;
 }

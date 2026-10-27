@@ -20,6 +20,7 @@ final class TagRow {
     /** Style class of the {@code +N} label, so it can be styled apart from the tags. */
     static final String OVERFLOW_STYLE_CLASS = "tag-overflow";
 
+    // Same as the -fx-hgap of #tags in DarkTheme.css (which only reaches the detail panel's FlowPane). Keep them equal.
     private static final double GAP = 7;
 
     private final HBox row;
@@ -27,10 +28,18 @@ final class TagRow {
     private final Label overflowLabel = new Label();
 
     /**
+     * Fills {@code row} with the tags of a contact and keeps it fitted to its width.
+     * The row's width listener keeps the fitting helper alive, so callers need not hold it.
+     */
+    static void fill(HBox row, Set<Tag> tags) {
+        new TagRow(row, tags);
+    }
+
+    /**
      * Fills {@code row} with a label per tag (sorted by name) and a {@code +N} label, and keeps the row fitted to
      * its width from now on.
      */
-    TagRow(HBox row, Set<Tag> tags) {
+    private TagRow(HBox row, Set<Tag> tags) {
         this.row = row;
         this.tagLabels = tags.stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))

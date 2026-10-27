@@ -82,7 +82,7 @@ public class PersonCard extends UiPart<Region> {
         event.setVisible(!eventName.isEmpty());
         event.setManaged(!eventName.isEmpty());
         showFollowUp(person, today);
-        new TagRow(tags, person.getTags());
+        TagRow.fill(tags, person.getTags());
     }
 
     /** Shows the follow-up date, with an Overdue cue if it is before {@code today}; hides the label if none. */
