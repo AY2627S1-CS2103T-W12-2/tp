@@ -40,6 +40,9 @@
       <Label fx:id="followUp" styleClass="detail-value" />
       <Label styleClass="detail-heading" text="TAGS" />
       <FlowPane fx:id="tags" />
+      <!-- shown instead of the tag row when there are no tags, like the other fields; the tag row styles its
+           labels like tags, so the dash cannot go inside it -->
+      <Label fx:id="noTags" styleClass="detail-value" />
       <Label styleClass="detail-heading" text="NOTE" />
       <Label fx:id="note" styleClass="detail-value" wrapText="true" />
       <GridPane hgap="20" vgap="6">

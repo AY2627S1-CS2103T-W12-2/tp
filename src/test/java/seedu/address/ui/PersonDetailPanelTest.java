@@ -99,6 +99,47 @@ public class PersonDetailPanelTest {
     }
 
     @Test
+    public void constructor_personWithoutTags_showsDashInPlaceOfTheTagRow() {
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(new PersonBuilder().build()));
+
+        Label noTags = (Label) lookup(panel, "#noTags");
+        assertEquals("-", noTags.getText());
+        assertTrue(noTags.isVisible());
+        assertTrue(noTags.isManaged());
+        // the tag row would style the dash like a tag, and would leave an empty gap, so it is hidden
+        FlowPane tags = (FlowPane) lookup(panel, "#tags");
+        assertFalse(tags.isVisible());
+        assertFalse(tags.isManaged());
+    }
+
+    @Test
+    public void viewedPersonChanges_dashAndTagRowTakeTurns() {
+        ObjectProperty<Person> viewedPerson = new SimpleObjectProperty<>(new PersonBuilder().withTags("react")
+                .build());
+        PersonDetailPanel panel = new PersonDetailPanel(viewedPerson);
+        FlowPane tags = (FlowPane) lookup(panel, "#tags");
+        Label noTags = (Label) lookup(panel, "#noTags");
+
+        // a contact with tags shows them and no dash
+        assertTrue(tags.isVisible());
+        assertTrue(tags.isManaged());
+        assertFalse(noTags.isVisible());
+        assertFalse(noTags.isManaged());
+
+        // one without tags shows the dash and no empty row
+        viewedPerson.set(new PersonBuilder().withName("No Tags Person").build());
+        assertEquals(0, tags.getChildren().size());
+        assertFalse(tags.isVisible());
+        assertTrue(noTags.isVisible());
+
+        // and back again
+        viewedPerson.set(new PersonBuilder().withName("Tagged Person").withTags("figma", "ui-ux").build());
+        assertEquals(2, tags.getChildren().size());
+        assertTrue(tags.isVisible());
+        assertFalse(noTags.isVisible());
+    }
+
+    @Test
     public void constructor_personWithoutLinkedIn_showsDash() {
         Person person = new PersonBuilder().withLinkedIn("").build();
         PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
