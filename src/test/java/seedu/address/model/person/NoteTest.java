@@ -4,13 +4,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalNotes.EMOJI;
 
 import org.junit.jupiter.api.Test;
 
 public class NoteTest {
-
-    /** U+1F600 (a grinning face): one character, but two Java chars. */
-    private static final String EMOJI = new String(Character.toChars(0x1F600));
 
     @Test
     public void constructor_null_throwsNullPointerException() {

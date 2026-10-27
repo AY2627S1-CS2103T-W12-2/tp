@@ -7,6 +7,7 @@ import static seedu.address.logic.parser.ParserUtil.MESSAGE_INDEX_TOO_LARGE;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.address.testutil.TypicalNotes.EMOJI;
 
 import java.util.List;
 import java.util.Set;
@@ -66,12 +67,9 @@ public class ParserUtilTest {
 
     @Test
     public void parseNote_emoji_countsEachEmojiAsOneCharacter() throws Exception {
-        // U+1F600 is one character, although Java stores it as two chars
-        String emoji = new String(Character.toChars(0x1F600));
-
-        assertEquals(new Note(emoji.repeat(Note.MAX_LENGTH)), ParserUtil.parseNote(emoji.repeat(Note.MAX_LENGTH)));
+        assertEquals(new Note(EMOJI.repeat(Note.MAX_LENGTH)), ParserUtil.parseNote(EMOJI.repeat(Note.MAX_LENGTH)));
         assertThrows(ParseException.class, Note.MESSAGE_TOO_LONG, () ->
-                ParserUtil.parseNote(emoji.repeat(Note.MAX_LENGTH + 1)));
+                ParserUtil.parseNote(EMOJI.repeat(Note.MAX_LENGTH + 1)));
     }
 
     @Test
