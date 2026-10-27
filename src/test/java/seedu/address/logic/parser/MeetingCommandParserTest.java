@@ -39,5 +39,8 @@ public class MeetingCommandParserTest {
         // MeetingCommand has no equals, so check the kind of command that comes back
         assertTrue(parser.parse(" 1 clear") instanceof MeetingCommand);
         assertTrue(parser.parse(" 1 clear date") instanceof MeetingCommand);
+        // clear is accepted in any letter case in the second position too, as it is in the first
+        assertTrue(parser.parse(" 1 CLEAR") instanceof MeetingCommand);
+        assertTrue(parser.parse(" 1 Clear date") instanceof MeetingCommand);
     }
 }

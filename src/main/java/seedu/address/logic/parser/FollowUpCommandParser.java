@@ -31,7 +31,7 @@ public class FollowUpCommandParser implements Parser<FollowUpCommand> {
         fields.verifyNoDuplicatePrefixesFor(PREFIX_FOLLOW_UP_DATE);
         boolean hasDate = fields.getValue(PREFIX_FOLLOW_UP_DATE).isPresent();
 
-        if (preamble.length == 2 && preamble[1].equalsIgnoreCase("clear") && !hasDate) {
+        if (preamble.length == 2 && ParserUtil.isClearKeyword(preamble[1]) && !hasDate) {
             return new FollowUpCommand(index, null);
         }
         if (preamble.length != 1 || !hasDate) {

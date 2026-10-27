@@ -34,7 +34,7 @@ public class MeetingCommandParser implements Parser<MeetingCommand> {
         boolean hasFields = fields.getValue(PREFIX_EVENT).isPresent()
                 || fields.getValue(PREFIX_MEETING_DATE).isPresent() || fields.getValue(PREFIX_ROLE).isPresent();
         if (preamble.length > 1) {
-            if (hasFields || !preamble[1].equals("clear") || preamble.length > 3
+            if (hasFields || !ParserUtil.isClearKeyword(preamble[1]) || preamble.length > 3
                     || (preamble.length == 3 && !Set.of("event", "date", "role").contains(preamble[2]))) {
                 throw usage();
             }

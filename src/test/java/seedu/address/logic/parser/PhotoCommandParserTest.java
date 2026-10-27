@@ -66,6 +66,8 @@ public class PhotoCommandParserTest {
 
         // PhotoCommand has no equals, so check the kind of command that comes back
         assertTrue(parser.parse(" 1 clear") instanceof PhotoCommand);
+        // clear is accepted in any letter case in the second position too, as it is in the first
+        assertTrue(parser.parse(" 1 CLEAR") instanceof PhotoCommand);
         assertTrue(parser.parse(" 1 f/portrait.png") instanceof PhotoCommand);
     }
 }

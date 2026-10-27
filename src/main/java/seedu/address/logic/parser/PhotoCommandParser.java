@@ -33,7 +33,7 @@ public class PhotoCommandParser implements Parser<PhotoCommand> {
         } catch (ParseException e) {
             throw new ParseException(MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, e);
         }
-        if (preamble.length == 2 && preamble[1].equals("clear") && fields.getValue(PREFIX_FILE).isEmpty()) {
+        if (preamble.length == 2 && ParserUtil.isClearKeyword(preamble[1]) && fields.getValue(PREFIX_FILE).isEmpty()) {
             return new PhotoCommand(index, "", photos);
         }
         if (preamble.length != 1 || fields.getValue(PREFIX_FILE).orElse("").isBlank()) {
