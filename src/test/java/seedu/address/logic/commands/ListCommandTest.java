@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
@@ -59,20 +60,26 @@ public class ListCommandTest {
         Person newer = new PersonBuilder(BENSON).withActivity(new Activity(NOW, NOW, NOW))
                 .withFollowUpDate(LocalDate.of(2026, 10, 19)).build();
         for (SortCriterion criterion : SortCriterion.values()) {
-            model = new ModelManager(new AddressBookBuilder().withPerson(older).withPerson(CARL)
-                    .withPerson(newer).build(), new UserPrefs(), FIXED_CLOCK);
+            assertNotEquals(0, criterion.getComparator().compare(older, newer),
+                    "Fixtures must have different sort keys for " + criterion);
+            List<Person> sortedPersons = List.of(older, newer).stream().sorted(criterion.getComparator()).toList();
+            Person originalFirst = sortedPersons.getLast();
+            Person originalLast = sortedPersons.getFirst();
+            // Start opposite to this criterion's order so list must undo a real reorder.
+            model = new ModelManager(new AddressBookBuilder().withPerson(originalFirst).withPerson(CARL)
+                    .withPerson(originalLast).build(), new UserPrefs(), FIXED_CLOCK);
             expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs(), FIXED_CLOCK);
             model.updateFilteredPersonList(person -> !person.equals(CARL));
             model.sortFilteredPersonList(criterion);
-            assertEquals(List.of(newer, older), model.getFilteredPersonList());
+            assertEquals(sortedPersons, model.getFilteredPersonList());
 
             assertCommandSuccess(new ListCommand(), model, ListCommand.MESSAGE_SUCCESS, expectedModel);
 
-            assertEquals(List.of(older, CARL, newer), model.getFilteredPersonList());
+            assertEquals(List.of(originalFirst, CARL, originalLast), model.getFilteredPersonList());
             assertEquals("Original order - 3 contact(s)", model.getPersonListStatus().get());
             new ViewCommand(INDEX_FIRST_PERSON).execute(model);
-            assertEquals(older.getName(), model.getViewedPerson().get().getName());
-            assertEquals(older.getName(), model.getFilteredPersonList().getFirst().getName());
+            assertEquals(originalFirst.getName(), model.getViewedPerson().get().getName());
+            assertEquals(originalFirst.getName(), model.getFilteredPersonList().getFirst().getName());
         }
     }
 }
