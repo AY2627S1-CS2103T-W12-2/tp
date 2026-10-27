@@ -14,6 +14,38 @@ import seedu.address.testutil.PersonBuilder;
 
 public class MeetingTest {
     @Test
+    public void isValidText_absentBlankAndBoundaryValues_validatesPresentText() {
+        for (String value : new String[]{null, "", " ", "\t\n", "\u2003", "x".repeat(81)}) {
+            assertFalse(Meeting.isValidText(value));
+        }
+        for (String value : new String[]{"x", " x ", "x".repeat(80), "😀".repeat(80)}) {
+            assertTrue(Meeting.isValidText(value));
+        }
+    }
+
+    @Test
+    public void isValidText_combiningMarksAndJoinedEmoji_countsEachCodePoint() {
+        for (String unit : new String[]{"e\u0301", "👩\u200D💻"}) {
+            int pointsPerUnit = unit.codePointCount(0, unit.length());
+            String atLimit = unit.repeat(80 / pointsPerUnit) + "x".repeat(80 % pointsPerUnit);
+            assertTrue(Meeting.isValidText(atLimit));
+            assertFalse(Meeting.isValidText(atLimit + "x"));
+            assertEquals(atLimit, new Meeting(atLimit, null, atLimit).getEventName().orElseThrow());
+        }
+    }
+
+    @Test
+    public void constructor_invalidText_explainsCodePointLimit() {
+        for (String value : new String[]{"", " ", "😀".repeat(81)}) {
+            var eventError = assertThrows(IllegalArgumentException.class, () -> new Meeting(value, null, null));
+            var roleError = assertThrows(IllegalArgumentException.class, () -> new Meeting(null, null, value));
+            String expected = "Event and role must each be nonblank and contain 1 to 80 Unicode code points.";
+            assertEquals(expected, eventError.getMessage());
+            assertEquals(expected, roleError.getMessage());
+        }
+    }
+
+    @Test
     public void constructor_supplementaryCharacters_countsCodePoints() {
         String atLimit = "😀".repeat(80);
         Meeting meeting = new Meeting(atLimit, null, atLimit);

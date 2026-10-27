@@ -12,6 +12,18 @@ import seedu.address.commons.util.JsonUtil;
 
 public class MeetingStorageTest {
     @Test
+    public void toModelType_invalidText_explainsFieldAndCodePointLimit() {
+        for (String field : new String[]{"eventName", "role"}) {
+            for (String value : new String[]{"", " ", "😀".repeat(81)}) {
+                var error = assertThrows(IllegalValueException.class, () ->
+                        read("{\"" + field + "\":\"" + value + "\"}"));
+                assertEquals(String.format(JsonAdaptedPerson.INVALID_FIELD_MESSAGE_FORMAT, "meeting." + field,
+                        "must be nonblank and contain 1 to 80 Unicode code points"), error.getMessage());
+            }
+        }
+    }
+
+    @Test
     public void toModelType_supplementaryText_usesSameBoundsAsCommands() throws Exception {
         String atLimit = "😀".repeat(80);
         var person = read("{\"eventName\":\"" + atLimit + "\",\"role\":\"" + atLimit + "\"}");

@@ -8,7 +8,8 @@ import java.util.Optional;
 /** Immutable, optional context about where and when a contact was met. */
 public final class Meeting {
     public static final Meeting EMPTY = new Meeting(null, null, null);
-    public static final String MESSAGE_TEXT = "Event and role must each contain 1 to 80 characters.";
+    public static final String MESSAGE_TEXT =
+            "Event and role must each be nonblank and contain 1 to 80 Unicode code points.";
     public static final String MESSAGE_DATE = "Date must be a real date in YYYY-MM-DD format.";
 
     private final String eventName;

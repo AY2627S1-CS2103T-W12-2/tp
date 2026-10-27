@@ -249,7 +249,7 @@ class JsonAdaptedPerson {
         }
         if (!(value instanceof String text) || !Meeting.isValidText(text)) {
             throw new IllegalValueException(String.format(INVALID_FIELD_MESSAGE_FORMAT, "meeting." + field,
-                    "must contain 1 to 80 nonblank characters"));
+                    "must be nonblank and contain 1 to 80 Unicode code points"));
         }
         return text;
     }
