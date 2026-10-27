@@ -95,8 +95,9 @@ final class TagRow {
     private void fit() {
         // Hidden labels stay in the row (just unmanaged), so they keep their styling and can still be measured.
         List<Double> widths = new ArrayList<>();
-        tagLabels.forEach(label -> widths.add(label.prefWidth(-1)));
-        int visible = visibleTagCount(widths, row.getSpacing(), this::overflowWidth, row.getWidth());
+        // The row lays labels out at whole-pixel sizes, so measure them the same way or a label can be squeezed.
+        tagLabels.forEach(label -> widths.add(row.snapSizeX(label.prefWidth(-1))));
+        int visible = visibleTagCount(widths, row.snapSpaceX(row.getSpacing()), this::overflowWidth, row.getWidth());
         for (int i = 0; i < tagLabels.size(); i++) {
             show(tagLabels.get(i), i < visible);
         }
@@ -107,7 +108,7 @@ final class TagRow {
     /** Returns the width of the {@code +N} label when it says {@code hidden} tags are left out. */
     private double overflowWidth(int hidden) {
         overflowLabel.setText("+" + hidden);
-        return overflowLabel.prefWidth(-1);
+        return row.snapSizeX(overflowLabel.prefWidth(-1));
     }
 
     private static void show(Label label, boolean isShown) {

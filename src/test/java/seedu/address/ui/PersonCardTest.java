@@ -159,19 +159,26 @@ public class PersonCardTest {
         List<Label> tagLabels = tags.getChildren().stream().map(node -> (Label) node)
                 .filter(label -> !label.getStyleClass().contains(TagRow.OVERFLOW_STYLE_CLASS))
                 .collect(Collectors.toList());
-        for (double width = 80; width <= 400; width++) {
+        // Quarter-pixel steps, so the sweep also hits widths where raw and whole-pixel measurements disagree.
+        for (double width = 80; width <= 400; width += 0.25) {
             resize(card, width);
             int shown = shownTagNames(card).size();
+            // The row lays labels out at whole-pixel sizes, so measure the same way.
+            double gap = tags.snapSpaceX(tags.getSpacing());
+            for (Label label : shownTagLabelsAndOverflow(card)) {
+                assertTrue(label.getWidth() >= label.prefWidth(-1) - 1e-3,
+                        "at width " + width + " label '" + label.getText() + "' is squeezed");
+            }
             if (shown == tagLabels.size()) {
                 continue;
             }
             double withOneMore = 0;
             for (int i = 0; i <= shown; i++) {
-                withOneMore += tagLabels.get(i).prefWidth(-1) + (i > 0 ? tags.getSpacing() : 0);
+                withOneMore += tags.snapSizeX(tagLabels.get(i).prefWidth(-1)) + (i > 0 ? gap : 0);
             }
             int hiddenAfter = tagLabels.size() - shown - 1;
             if (hiddenAfter > 0) {
-                withOneMore += tags.getSpacing() + overflowWidth("+" + hiddenAfter);
+                withOneMore += gap + tags.snapSizeX(overflowWidth("+" + hiddenAfter));
             }
             assertTrue(withOneMore > tags.getWidth(), "at width " + width + " one more tag would fit");
         }

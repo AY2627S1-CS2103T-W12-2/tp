@@ -87,8 +87,9 @@ The detail panel observes
 the viewed person and scrolls vertically to keep full meeting and contact details accessible.
 Both `PersonCard` and `PersonDetailPanel` show a ★ label in the top right corner of the card or panel of a starred
 person; the label is hidden otherwise (and in `PersonCard` it also takes no space).
-`PersonCard` shows tags on one non-wrapping row through `TagRow`. `TagRow` measures each tag label, uses the pure
-`TagRow#visibleTagCount` to decide how many tags fit (leaving room for the `+N` label, measured for the actual number of hidden tags), and refits whenever
+`PersonCard` shows tags on one non-wrapping row through `TagRow`. `TagRow` measures each tag label (rounded to whole
+pixels, as the row lays them out), uses the pure `TagRow#visibleTagCount` to decide how many tags fit (leaving room
+for the `+N` label, measured for the actual number of hidden tags), and refits whenever
 the row's width changes. Hidden tags stay in the row as unmanaged labels so they keep their styling and can be measured
 again. `PersonDetailPanel` is unchanged and wraps all tags.
 
