@@ -174,7 +174,7 @@ Sets, replaces or removes a free-form note on a contact, for example where you m
 Format: `note INDEX nt/NOTE` or `note INDEX clear`
 
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
-* `NOTE` can contain spaces and punctuation and can be up to 1000 characters long. Spaces at the start and end are removed. A note that is empty or only spaces is not accepted: use `note INDEX clear` to remove a note.
+* `NOTE` can contain spaces and punctuation and can be up to 1000 characters long. An emoji such as 😀 counts as one character. An emoji that is made of several parts, such as a flag or a family, counts as several. Spaces at the start and end are removed. A note that is empty or only spaces is not accepted: use `note INDEX clear` to remove a note.
 * Setting a note on a contact that already has one replaces the old note.
 * The text after `nt/` is taken as typed, so it can contain `/`. Use `nt/` only once in a command.
 * The note is shown in full in the detail panel when you [`view`](#viewing-a-contact-view) the contact, and it is not shown in the contact list. If the note is long, scroll the detail panel to read all of it.

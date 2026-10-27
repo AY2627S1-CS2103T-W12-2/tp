@@ -7,6 +7,7 @@ import static seedu.address.logic.parser.ParserUtil.MESSAGE_INDEX_TOO_LARGE;
 import static seedu.address.logic.parser.ParserUtil.MESSAGE_INVALID_INDEX;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
+import static seedu.address.testutil.TypicalNotes.EMOJI;
 
 import java.util.List;
 import java.util.Set;
@@ -18,6 +19,7 @@ import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.person.Email;
 import seedu.address.model.person.LinkedIn;
 import seedu.address.model.person.Name;
+import seedu.address.model.person.Note;
 import seedu.address.model.person.Phone;
 import seedu.address.model.tag.Tag;
 
@@ -61,6 +63,13 @@ public class ParserUtilTest {
             assertThrows(ParseException.class, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, ()
                 -> ParserUtil.parseDisplayedIndex(input));
         }
+    }
+
+    @Test
+    public void parseNote_emoji_countsEachEmojiAsOneCharacter() throws Exception {
+        assertEquals(new Note(EMOJI.repeat(Note.MAX_LENGTH)), ParserUtil.parseNote(EMOJI.repeat(Note.MAX_LENGTH)));
+        assertThrows(ParseException.class, Note.MESSAGE_TOO_LONG, () ->
+                ParserUtil.parseNote(EMOJI.repeat(Note.MAX_LENGTH + 1)));
     }
 
     @Test

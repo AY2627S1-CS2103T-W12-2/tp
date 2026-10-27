@@ -79,7 +79,7 @@ public class NoteCommand extends Command {
 
         model.editPerson(personToUpdate, personToUpdate.toBuilder().withNote(note).build());
         // the text of a note is personal, so only its length is logged
-        logger.info("Note " + (note.isEmpty() ? "cleared" : "saved (" + note.value.length() + " characters)")
+        logger.info("Note " + (note.isEmpty() ? "cleared" : "saved (" + note.getLength() + " characters)")
                 + " for the person at index " + targetIndex.getOneBased());
         String message = note.isEmpty() ? MESSAGE_CLEAR_SUCCESS : MESSAGE_SET_SUCCESS;
         return new CommandResult(String.format(message, name));
