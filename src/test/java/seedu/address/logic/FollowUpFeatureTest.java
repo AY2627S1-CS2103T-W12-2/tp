@@ -238,6 +238,7 @@ public class FollowUpFeatureTest {
         logic.execute("redo");
         assertEquals(withDate, model.getFilteredPersonList().get(0));
         logic.execute("redo");
+        assertEquals(replaced, model.getFilteredPersonList().get(0));
         logic.execute("redo");
 
         assertEquals(cleared, model.getFilteredPersonList().get(0));
