@@ -126,6 +126,7 @@ How the parsing works:
 
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
+* `AddressBookParser#COMMAND_WORDS` is the alphabetical list of every command word that `parseCommand` accepts, and it is what the `Unknown command.` message lists. The list is written out next to the `switch` in `parseCommand`, so a new command word must be added to both. `AddressBookParserTest` scans the command classes for `*COMMAND_WORD` constants and fails if one is missing from the list, and it also checks that every listed word is recognised by the parser.
 
 ### Model component
 
@@ -969,6 +970,19 @@ Given below are instructions to test the app manually.
       Expected: Similar to previous.
 
 1. _{ more test cases …​ }_
+
+### Unknown commands
+
+1. Entering a command word that does not exist
+
+   1. Test case: `strar 1`<br>
+      Expected: No contact is changed. The result box shows `Unknown command.` followed by `Available commands:` and every command word in alphabetical order. The message wraps onto several lines of the result box, with no horizontal scroll bar.
+
+   1. Other unknown commands to try: `foo`, `STAR 1` (command words are case-sensitive)<br>
+      Expected: Similar to previous.
+
+   1. Test case: `help`<br>
+      Expected: The help window opens, as before.
 
 ### Saving data
 
