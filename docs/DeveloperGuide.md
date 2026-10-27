@@ -220,6 +220,12 @@ Design considerations:
 
 ### Starring contacts
 
+The `find`, `group`, and `filter` commands only update the visible-list predicate;
+they do not clear `Model#getViewedPerson()` when a contact is filtered out.
+The detail selection is independent of list membership, including for zero results.
+A subsequent `view` selects by displayed index, while deleting the viewed contact
+or clearing the address book still clears the detail selection.
+
 `StarCommand` serves both `star` and `unstar`: `StarCommandParser` is created with `true` or `false` by `AddressBookParser`, so the two commands share one parser and one command class. `FilterCommand` serves `filter starred` and `filter starred off`.
 
 The sequence diagram below shows what happens when the user executes `star 1`. `unstar 1` takes the same steps with `false` in place of `true`.

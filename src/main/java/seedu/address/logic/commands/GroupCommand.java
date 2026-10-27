@@ -34,10 +34,6 @@ public class GroupCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(predicate);
-        if (model.getViewedPerson().get() != null
-                && !model.getFilteredPersonList().contains(model.getViewedPerson().get())) {
-            model.setViewedPerson(null);
-        }
         return new CommandResult(String.format(MESSAGE_SUCCESS, tag, model.getFilteredPersonList().size()));
     }
 
