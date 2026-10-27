@@ -159,6 +159,20 @@ public class MainAppTest {
     }
 
     @Test
+    public void initModelManager_hardLinkedBackup_keepsOriginalAndCreatesNumberedBackup() throws IOException {
+        Path dataFile = testFolder.resolve("addressbook.json");
+        String invalidData = "{invalid json";
+        Files.writeString(dataFile, invalidData);
+        Path existingBackup = testFolder.resolve("addressbook.json.bak");
+        Files.createLink(existingBackup, dataFile);
+
+        app.initModelManager(createStorage(), new UserPrefs());
+
+        assertTrue(Files.isSameFile(dataFile, existingBackup));
+        assertEquals(invalidData, Files.readString(testFolder.resolve("addressbook.json.bak.1")));
+    }
+
+    @Test
     public void initModelManager_validData_hasNoStartupWarning() throws IOException {
         Storage storage = createStorage();
         storage.saveAddressBook(getTypicalAddressBook());

@@ -104,6 +104,37 @@ public class MainWindowTest {
     }
 
     @Test
+    public void uiManagerStart_startupWarning_showsInWindow() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
+        Logic logic = new LogicManager(new ModelManager(), storage);
+        String warning = "The address book could not be loaded. Backup: addressbook.json.bak";
+
+        runOnFxThread(() -> {
+            Stage stage = new Stage();
+            new UiManager(logic, dataFile, warning).start(stage);
+            TextArea resultDisplay = (TextArea) stage.getScene().getRoot().lookup("#resultDisplay");
+            assertEquals(warning, resultDisplay.getText());
+        });
+    }
+
+    @Test
+    public void uiManagerStart_withoutWarning_leavesResultDisplayEmpty() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
+        Logic logic = new LogicManager(new ModelManager(), storage);
+
+        runOnFxThread(() -> {
+            Stage stage = new Stage();
+            new UiManager(logic, dataFile).start(stage);
+            TextArea resultDisplay = (TextArea) stage.getScene().getRoot().lookup("#resultDisplay");
+            assertEquals("", resultDisplay.getText());
+        });
+    }
+
+    @Test
     public void executeCommand_failedNoteCommand_logsTheCommandWithoutTheNoteText() throws Exception {
         Path dataFile = temporaryFolder.resolve("addressBook.json");
         StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
