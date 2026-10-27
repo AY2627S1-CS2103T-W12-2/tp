@@ -28,14 +28,6 @@ final class TagRow {
     private final Label overflowLabel = new Label();
 
     /**
-     * Fills {@code row} with the tags of a contact and keeps it fitted to its width.
-     * The row's width listener keeps the fitting helper alive, so callers need not hold it.
-     */
-    static void fill(HBox row, Set<Tag> tags) {
-        new TagRow(row, tags);
-    }
-
-    /**
      * Fills {@code row} with a label per tag (sorted by name) and a {@code +N} label, and keeps the row fitted to
      * its width from now on.
      */
@@ -55,6 +47,14 @@ final class TagRow {
         row.getChildren().add(overflowLabel);
         fit();
         row.widthProperty().addListener((observable, oldWidth, newWidth) -> fit());
+    }
+
+    /**
+     * Fills {@code row} with the tags of a contact and keeps it fitted to its width.
+     * The row's width listener keeps the fitting helper alive, so callers need not hold it.
+     */
+    static void fill(HBox row, Set<Tag> tags) {
+        new TagRow(row, tags);
     }
 
     /** Creates the label of one tag. */
