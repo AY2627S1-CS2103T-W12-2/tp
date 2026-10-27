@@ -2,14 +2,18 @@ package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.function.IntToDoubleFunction;
 
 import org.junit.jupiter.api.Test;
 
 public class TagRowTest {
 
     private static final double GAP = 5;
-    private static final double PLUS = 20;
+    private static final IntToDoubleFunction PLUS = hidden -> 20;
+    private static final IntToDoubleFunction PLUS_BY_DIGITS = hidden -> 8 + 6 * String.valueOf(hidden).length();
 
     @Test
     public void visibleTagCount_allTagsFit_returnsAll() {
@@ -67,5 +71,26 @@ public class TagRowTest {
     public void visibleTagCount_firstTagTooWideButLaterOnesNarrow_stopsAtFirstMisfit() {
         // tags keep their order: a wide first tag hides everything even though the second would fit
         assertEquals(0, TagRow.visibleTagCount(List.of(200.0, 10.0), GAP, PLUS, 100));
+    }
+
+    @Test
+    public void visibleTagCount_fewerHiddenTagsHaveShorterOverflowLabel_keepsMoreTags() {
+        List<Double> tenTags = Collections.nCopies(10, 20.0);
+        // all ten: 200 + 9 * 5 = 245, too wide for 240.
+        // nine tags: 180 + 8 * 5 = 220; "+1" is 14 wide, so 220 + 5 + 14 = 239 fits in 240.
+        // Reserving "+10" (20 wide) would need 245 and drop the ninth tag.
+        assertEquals(9, TagRow.visibleTagCount(tenTags, GAP, PLUS_BY_DIGITS, 240));
+        assertEquals(8, TagRow.visibleTagCount(tenTags, GAP, PLUS_BY_DIGITS, 238.9));
+    }
+
+    @Test
+    public void visibleTagCount_overflowWidth_isAskedForTheNumberOfHiddenTags() {
+        List<Integer> asked = new ArrayList<>();
+        TagRow.visibleTagCount(List.of(30.0, 30.0, 30.0, 30.0), GAP, hidden -> {
+            asked.add(hidden);
+            return 20;
+        }, 90);
+        // 4 tags do not fit in 90; 3 tags (hidden 1) do not fit with +N; 2 tags (hidden 2) do
+        assertEquals(List.of(1, 2), asked);
     }
 }

@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Set;
+import java.util.function.IntToDoubleFunction;
 import java.util.stream.Collectors;
 
 import javafx.scene.control.Label;
@@ -53,16 +54,19 @@ final class TagRow {
     }
 
     /**
-     * Returns how many leading tags to show, given the width of each tag, the {@code gap} between labels, the
-     * width of the {@code +N} label and the room available. All tags are shown if they fit. Otherwise the
-     * largest number of tags that still leaves room for the {@code +N} label is shown, which may be zero.
+     * Returns how many leading tags to show, given the width of each tag, the {@code gap} between labels and the
+     * room available. {@code overflowWidth} gives the width of the {@code +N} label for a given number of hidden
+     * tags. All tags are shown if they fit. Otherwise the largest number of tags that still leaves room for the
+     * {@code +N} label of the tags left out is shown, which may be zero.
      */
-    static int visibleTagCount(List<Double> tagWidths, double gap, double overflowWidth, double availableWidth) {
+    static int visibleTagCount(List<Double> tagWidths, double gap, IntToDoubleFunction overflowWidth,
+            double availableWidth) {
         if (rowWidth(tagWidths, tagWidths.size(), gap) <= availableWidth) {
             return tagWidths.size();
         }
         for (int count = tagWidths.size() - 1; count > 0; count--) {
-            if (rowWidth(tagWidths, count, gap) + gap + overflowWidth <= availableWidth) {
+            if (rowWidth(tagWidths, count, gap) + gap + overflowWidth.applyAsDouble(tagWidths.size() - count)
+                    <= availableWidth) {
                 return count;
             }
         }
@@ -83,14 +87,18 @@ final class TagRow {
         // Hidden labels stay in the row (just unmanaged), so they keep their styling and can still be measured.
         List<Double> widths = new ArrayList<>();
         tagLabels.forEach(label -> widths.add(label.prefWidth(-1)));
-        // The widest possible "+N" (every tag hidden), so it never needs re-measuring while the row narrows.
-        overflowLabel.setText("+" + tagLabels.size());
-        int visible = visibleTagCount(widths, row.getSpacing(), overflowLabel.prefWidth(-1), row.getWidth());
+        int visible = visibleTagCount(widths, row.getSpacing(), this::overflowWidth, row.getWidth());
         for (int i = 0; i < tagLabels.size(); i++) {
             show(tagLabels.get(i), i < visible);
         }
         overflowLabel.setText("+" + (tagLabels.size() - visible));
         show(overflowLabel, visible < tagLabels.size());
+    }
+
+    /** Returns the width of the {@code +N} label when it says {@code hidden} tags are left out. */
+    private double overflowWidth(int hidden) {
+        overflowLabel.setText("+" + hidden);
+        return overflowLabel.prefWidth(-1);
     }
 
     private static void show(Label label, boolean isShown) {

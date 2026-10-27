@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
@@ -149,9 +150,49 @@ public class PersonCardTest {
         assertTrue(overflowLabel(card).isVisible());
     }
 
+    @Test
+    public void tagRow_tenTags_noFurtherTagWouldFitWithItsRealCount() {
+        Person person = new PersonBuilder().withTags("t0", "t1", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9")
+                .build();
+        PersonCard card = laidOutCard(person, 600);
+        HBox tags = (HBox) card.getRoot().lookup("#tags");
+        List<Label> tagLabels = tags.getChildren().stream().map(node -> (Label) node)
+                .filter(label -> !label.getStyleClass().contains(TagRow.OVERFLOW_STYLE_CLASS))
+                .collect(Collectors.toList());
+        for (double width = 80; width <= 400; width++) {
+            resize(card, width);
+            int shown = shownTagNames(card).size();
+            if (shown == tagLabels.size()) {
+                continue;
+            }
+            double withOneMore = 0;
+            for (int i = 0; i <= shown; i++) {
+                withOneMore += tagLabels.get(i).prefWidth(-1) + (i > 0 ? tags.getSpacing() : 0);
+            }
+            int hiddenAfter = tagLabels.size() - shown - 1;
+            if (hiddenAfter > 0) {
+                withOneMore += tags.getSpacing() + overflowWidth("+" + hiddenAfter);
+            }
+            assertTrue(withOneMore > tags.getWidth(), "at width " + width + " one more tag would fit");
+        }
+    }
+
+    /** Measures a {@code +N} label styled like the one on a card. */
+    private double overflowWidth(String text) {
+        Label probe = new Label(text);
+        probe.getStyleClass().add(TagRow.OVERFLOW_STYLE_CLASS);
+        HBox box = new HBox(probe);
+        box.setId("tags");
+        Scene scene = new Scene(box);
+        scene.getStylesheets().add(PersonCard.class.getResource("/view/DarkTheme.css").toExternalForm());
+        box.applyCss();
+        return probe.prefWidth(-1);
+    }
+
     private PersonCard laidOutCard(Person person, double width) {
         PersonCard card = new PersonCard(person, 1);
         Scene scene = new Scene(card.getRoot(), width, 200);
+        scene.getStylesheets().add(PersonCard.class.getResource("/view/DarkTheme.css").toExternalForm());
         layOut(scene);
         return card;
     }
