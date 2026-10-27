@@ -100,6 +100,18 @@ Examples:
 
 ### Listing all contacts: `list`
 
+The heading above the contact list keeps showing the active filter, order, and result count,
+even after another command such as `view` replaces the command-result message.
+For example, `group t/react` shows `Group: react - Original order - 6 contact(s)` when six contacts match.
+`filter starred` shows `Starred only`, while plain and typed `find` show `Find results`.
+The search heading identifies an active search but does not repeat the search terms.
+`due` shows `Due on/before YYYY-MM-DD`, using the date when the command ran.
+
+Changing the filter replaces its label; filters do not combine in this release.
+Sorting preserves the filter label, and the count updates when contacts change, including to zero.
+`filter starred off` removes the filter label while keeping the sort. `list` clears both the filter and sort
+and returns the heading to `Original order - N contact(s)`.
+
 Shows all contacts in their original order. It also clears any active time sort.
 
 Format: `list`

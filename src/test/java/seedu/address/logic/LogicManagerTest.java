@@ -204,6 +204,7 @@ public class LogicManagerTest {
     private void assertCommandFailure(String inputCommand, Class<? extends Throwable> expectedException,
             String expectedMessage) {
         Model expectedModel = new ModelManager(model.getAddressBook(), new UserPrefs(), FIXED_CLOCK);
+        expectedModel.restore(model.createSnapshot());
         assertCommandFailure(inputCommand, expectedException, expectedMessage, expectedModel);
     }
 

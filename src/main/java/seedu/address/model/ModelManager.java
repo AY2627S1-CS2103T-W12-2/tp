@@ -47,6 +47,7 @@ public class ModelManager implements Model {
     private final ReadOnlyStringWrapper personListStatus = new ReadOnlyStringWrapper();
     private final Clock clock;
     private SortCriterion sortCriterion;
+    private String filterDescription = "";
     private final Deque<State> undoHistory = new ArrayDeque<>();
     private final Deque<State> redoHistory = new ArrayDeque<>();
 
@@ -55,13 +56,15 @@ public class ModelManager implements Model {
         private final Person viewedPerson;
         private final Predicate<? super Person> filter;
         private final SortCriterion sortCriterion;
+        private final String filterDescription;
 
         State(ReadOnlyAddressBook addressBook, Person viewedPerson, Predicate<? super Person> filter,
-                SortCriterion sortCriterion) {
+                SortCriterion sortCriterion, String filterDescription) {
             this.addressBook = new AddressBook(addressBook);
             this.viewedPerson = viewedPerson;
             this.filter = filter;
             this.sortCriterion = sortCriterion;
+            this.filterDescription = filterDescription;
         }
     }
 
@@ -207,7 +210,13 @@ public class ModelManager implements Model {
 
     @Override
     public void updateFilteredPersonList(Predicate<Person> predicate) {
-        requireNonNull(predicate);
+        updateFilteredPersonList(predicate, predicate == PREDICATE_SHOW_ALL_PERSONS ? "" : "Filtered contacts");
+    }
+
+    @Override
+    public void updateFilteredPersonList(Predicate<Person> predicate, String filterDescription) {
+        requireAllNonNull(predicate, filterDescription);
+        this.filterDescription = filterDescription;
         filteredPersons.setPredicate(predicate);
         updatePersonListStatus();
     }
@@ -231,7 +240,9 @@ public class ModelManager implements Model {
         String orderDescription = sortCriterion == null
                 ? "Original order"
                 : "Sorted by " + sortCriterion.getCommandArgument();
-        personListStatus.set(String.format("%s - %d contact(s)", orderDescription, sortedPersons.size()));
+        String filterPrefix = filterDescription.isEmpty() ? "" : filterDescription + " - ";
+        personListStatus.set(String.format("%s%s - %d contact(s)", filterPrefix,
+                orderDescription, sortedPersons.size()));
     }
 
     //=========== Viewed Person Accessors ====================================================================
@@ -306,7 +317,8 @@ public class ModelManager implements Model {
     }
 
     private State captureState() {
-        return new State(addressBook, viewedPerson.get(), filteredPersons.getPredicate(), sortCriterion);
+        return new State(addressBook, viewedPerson.get(), filteredPersons.getPredicate(), sortCriterion,
+                filterDescription);
     }
 
     private static boolean hasContactChange(ReadOnlyAddressBook before, ReadOnlyAddressBook after) {
@@ -334,6 +346,7 @@ public class ModelManager implements Model {
             restored.add(saved);
         }
         addressBook.setPersons(restored);
+        filterDescription = state.filterDescription;
         filteredPersons.setPredicate(state.filter);
         setSortCriterion(state.sortCriterion);
         viewedPerson.set(findRestoredSelection(state.viewedPerson, restored));
@@ -420,7 +433,8 @@ public class ModelManager implements Model {
         return addressBook.equals(otherModelManager.addressBook)
                 && userPrefs.equals(otherModelManager.userPrefs)
                 && filteredPersons.equals(otherModelManager.filteredPersons)
-                && sortCriterion == otherModelManager.sortCriterion;
+                && sortCriterion == otherModelManager.sortCriterion
+                && filterDescription.equals(otherModelManager.filterDescription);
     }
 
 }

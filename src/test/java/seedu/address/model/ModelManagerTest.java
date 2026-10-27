@@ -41,6 +41,42 @@ public class ModelManagerTest {
     private ModelManager modelManager = new ModelManager();
 
     @Test
+    public void updateFilteredPersonList_withoutDescription_replacesPreviousLabel() {
+        modelManager.updateFilteredPersonList(person -> false, "Group: react");
+        modelManager.updateFilteredPersonList(person -> false);
+        assertEquals("Filtered contacts - Original order - 0 contact(s)",
+                modelManager.getPersonListStatus().get());
+
+        modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
+        assertEquals("Original order - 0 contact(s)", modelManager.getPersonListStatus().get());
+    }
+
+    @Test
+    public void updateFilteredPersonList_nullArguments_preservesPreviousState() {
+        modelManager.addPerson(ALICE);
+        modelManager.updateFilteredPersonList(person -> false, "Group: missing");
+
+        assertThrows(NullPointerException.class, () -> modelManager.updateFilteredPersonList(null, "Find results"));
+        assertThrows(NullPointerException.class, () ->
+                modelManager.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS, null));
+        assertThrows(NullPointerException.class, () -> modelManager.updateFilteredPersonList(null));
+
+        assertEquals(List.of(), modelManager.getFilteredPersonList());
+        assertEquals("Group: missing - Original order - 0 contact(s)", modelManager.getPersonListStatus().get());
+    }
+
+    @Test
+    public void equals_sameResultsDifferentFilterDescriptions_returnsFalse() {
+        ModelManager other = new ModelManager();
+        modelManager.updateFilteredPersonList(person -> false, "Find results");
+        other.updateFilteredPersonList(person -> false, "Group: missing");
+        assertFalse(modelManager.equals(other));
+
+        other.updateFilteredPersonList(person -> false, "Find results");
+        assertTrue(modelManager.equals(other));
+    }
+
+    @Test
     public void constructor() {
         assertEquals(new UserPrefs(), modelManager.getUserPrefs());
         assertEquals(new GuiSettings(), modelManager.getGuiSettings());

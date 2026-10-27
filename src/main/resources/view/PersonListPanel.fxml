@@ -5,6 +5,6 @@
 <?import javafx.scene.layout.VBox?>
 
 <VBox xmlns="http://javafx.com/javafx/17" xmlns:fx="http://javafx.com/fxml/1">
-  <Label fx:id="personListStatus" />
+  <Label fx:id="personListStatus" wrapText="true" maxWidth="Infinity" />
   <ListView fx:id="personListView" VBox.vgrow="ALWAYS" />
 </VBox>

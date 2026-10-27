@@ -41,7 +41,7 @@ public class GroupCommandTest {
         TagMatchesPredicate predicate = new TagMatchesPredicate(tag);
         GroupCommand command = new GroupCommand(tag);
         String expectedMessage = String.format(GroupCommand.MESSAGE_SUCCESS, tag, 3);
-        expectedModel.updateFilteredPersonList(predicate);
+        expectedModel.updateFilteredPersonList(predicate, "Group: friends");
 
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
         assertEquals(List.of(ALICE, BENSON, DANIEL), model.getFilteredPersonList());
@@ -52,7 +52,7 @@ public class GroupCommandTest {
         Tag tag = new Tag("react");
         GroupCommand command = new GroupCommand(tag);
         String expectedMessage = String.format(GroupCommand.MESSAGE_SUCCESS, tag, 0);
-        expectedModel.updateFilteredPersonList(new TagMatchesPredicate(tag));
+        expectedModel.updateFilteredPersonList(new TagMatchesPredicate(tag), "Group: react");
 
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
         assertEquals(List.of(), model.getFilteredPersonList());

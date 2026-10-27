@@ -198,6 +198,18 @@ Design considerations:
 
 ### Activity-time sorting
 
+`ModelManager` keeps a display description alongside the active filter predicate. Commands use
+`updateFilteredPersonList(predicate, description)` to replace them together without changing the sort.
+`find` supplies `Find results`, `group` supplies the normalized tag, `filter starred` supplies `Starred only`,
+and `due` supplies its captured cutoff date. The one-argument overload clears the description for
+`PREDICATE_SHOW_ALL_PERSONS` and uses `Filtered contacts` for other predicates, avoiding a stale label.
+
+The read-only `personListStatus` property combines this description with the sort and live result count.
+`PersonListPanel` binds its wrapping heading to that property, so subsequent command feedback does not hide
+the active filter. Filter descriptions are session-only, not JSON fields. `State` includes the description
+alongside the predicate and sort so undo, redo, and failed-save rollback restore consistent feedback.
+This does not change selection rules or implement combined filters from #128.
+
 `SortCommand` passes a `SortCriterion` (`ADDED`, `EDITED`, or `VIEWED`) to `ModelManager`. The model keeps one
 `FilteredList` for the current contacts and wraps it in a `SortedList`, which is the list exposed to the UI and every
 index-based command. This ensures that the index a user sees is the contact that `view`, `edit`, `delete`, and `tag`

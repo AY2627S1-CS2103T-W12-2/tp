@@ -137,7 +137,7 @@ public class LogicManagerRedoTest {
         logic.execute("redo");
 
         assertEquals("Bob Choo", model.getFilteredPersonList().getFirst().getName().fullName);
-        assertEquals("Sorted by added - 1 contact(s)", model.getPersonListStatus().get());
+        assertEquals("Find results - Sorted by added - 1 contact(s)", model.getPersonListStatus().get());
         assertEquals("Amy Bee", model.getViewedPerson().get().getName().fullName);
         assertEquals(1, model.getFilteredPersonList().getFirst().getTags().size());
         assertEquals(model.getAddressBook(), storage.readAddressBook().orElseThrow());
