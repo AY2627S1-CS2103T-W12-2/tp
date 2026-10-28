@@ -348,11 +348,34 @@
 
 #tags .label {
     -fx-text-fill: white;
-    -fx-background-color: #3e7b91;
     -fx-padding: 1 3 1 3;
     -fx-border-radius: 2;
     -fx-background-radius: 2;
     -fx-font-size: 11;
+}
+
+#tags .tag-color-0 {
+    -fx-background-color: #285f85;
+}
+
+#tags .tag-color-1 {
+    -fx-background-color: #70519b;
+}
+
+#tags .tag-color-2 {
+    -fx-background-color: #2e704e;
+}
+
+#tags .tag-color-3 {
+    -fx-background-color: #9a4f36;
+}
+
+#tags .tag-color-4 {
+    -fx-background-color: #8a6122;
+}
+
+#tags .tag-color-5 {
+    -fx-background-color: #8d385e;
 }
 
 .detail-placeholder {

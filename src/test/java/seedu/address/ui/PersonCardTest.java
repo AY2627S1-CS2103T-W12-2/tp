@@ -2,6 +2,7 @@ package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
@@ -14,7 +15,9 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
+import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.layout.FlowPane;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -102,6 +105,62 @@ public class PersonCardTest {
 
         assertFalse(star.isVisible());
         assertFalse(star.isManaged());
+    }
+
+    @Test
+    public void constructor_sameTagHasSameColorClassAcrossCards() {
+        Person person = new PersonBuilder().withTags("react").build();
+        PersonCard firstCard = new PersonCard(person, 1);
+        PersonCard secondCard = new PersonCard(person, 2);
+        FlowPane firstTags = (FlowPane) firstCard.getRoot().lookup("#tags");
+        FlowPane secondTags = (FlowPane) secondCard.getRoot().lookup("#tags");
+        Label react = (Label) firstTags.getChildren().get(0);
+        Label reactAgain = (Label) secondTags.getChildren().get(0);
+
+        assertFalse(colorClass(react).isEmpty());
+        assertEquals(colorClass(react), colorClass(reactAgain));
+    }
+
+    @Test
+    public void constructor_tag_appliesPaletteBackground() {
+        Person person = new PersonBuilder().withTags("react").build();
+        PersonCard card = new PersonCard(person, 1);
+        Scene scene = new Scene(card.getRoot());
+        scene.getStylesheets().add(getClass().getResource("/view/DarkTheme.css").toExternalForm());
+        card.getRoot().applyCss();
+        FlowPane tags = (FlowPane) card.getRoot().lookup("#tags");
+        Label react = (Label) tags.getChildren().get(0);
+
+        assertNotNull(react.getBackground());
+        assertFalse(react.getBackground().getFills().isEmpty());
+    }
+
+    @Test
+    public void palette_everyColorClassHasBackground() {
+        FlowPane tags = new FlowPane();
+        tags.setId("tags");
+        Scene scene = new Scene(tags);
+        scene.getStylesheets().add(getClass().getResource("/view/DarkTheme.css").toExternalForm());
+
+        for (int index = 0; index < TagColor.PALETTE_SIZE; index++) {
+            Label label = new Label("tag");
+            label.getStyleClass().add("tag-color-" + index);
+            tags.getChildren().add(label);
+        }
+        tags.applyCss();
+
+        for (int index = 0; index < TagColor.PALETTE_SIZE; index++) {
+            Label label = (Label) tags.getChildren().get(index);
+            assertNotNull(label.getBackground(), "Missing background for tag-color-" + index);
+            assertFalse(label.getBackground().getFills().isEmpty());
+        }
+    }
+
+    private String colorClass(Label tagLabel) {
+        return tagLabel.getStyleClass().stream()
+                .filter(styleClass -> styleClass.startsWith("tag-color-"))
+                .findFirst()
+                .orElse("");
     }
 
     private Label getStarLabel(PersonCard personCard) {

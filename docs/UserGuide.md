@@ -85,7 +85,8 @@ Adds a contact to LarperBoard.
 Format: `add n/NAME [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A contact can have any number of tags, including zero.
+A contact can have any number of tags, including zero. Each tag is shown in one of several colours, chosen from its
+name, so the same tag always looks the same in the contact list and detail panel.
 </div>
 
 * `LINKEDIN_HANDLE` is the last part of the contact's LinkedIn profile link (e.g. `john-doe` in `linkedin.com/in/john-doe`). It may contain only letters, digits and hyphens, and must be 3 to 50 characters long.
