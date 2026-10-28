@@ -57,7 +57,6 @@ HelpWindow --|> UiPart
 
 PersonCard ..> Model
 PersonDetailPanel ..> Model
-PersonCard ..> ContactPhoto : renders photo
 PersonDetailPanel ..> ContactPhoto : renders photo
 ContactPhoto ..> PhotoStorage : reads validated bytes
 UiManager -right-> Logic

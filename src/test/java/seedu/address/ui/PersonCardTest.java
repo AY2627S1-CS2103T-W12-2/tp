@@ -2,6 +2,8 @@ package seedu.address.ui;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_LINKEDIN_AMY;
@@ -78,6 +80,16 @@ public class PersonCardTest {
 
     private Label followUp(PersonCard card) {
         return (Label) card.getRoot().lookup("#followUp");
+    }
+
+    @Test
+    public void constructor_card_showsNoPhotoOrPhotoPlaceholder() {
+        Person withPhoto = new PersonBuilder().build().toBuilder().withPhotoPath("photos/face.png").build();
+        PersonCard card = new PersonCard(withPhoto, 1);
+
+        // the photo is shown only in the detail panel, so the list card has no room for either
+        assertNull(card.getRoot().lookup("#photo"));
+        assertNull(card.getRoot().lookup("#photoPlaceholder"));
     }
 
     @Test
@@ -231,6 +243,62 @@ public class PersonCardTest {
 
     private Label overflowLabel(PersonCard card) {
         return (Label) card.getRoot().lookup("." + TagRow.OVERFLOW_STYLE_CLASS);
+    }
+
+    @Test
+    public void constructor_sameTagHasSameColorClassAcrossCards() {
+        Person person = new PersonBuilder().withTags("react").build();
+        PersonCard firstCard = new PersonCard(person, 1);
+        PersonCard secondCard = new PersonCard(person, 2);
+        HBox firstTags = (HBox) firstCard.getRoot().lookup("#tags");
+        HBox secondTags = (HBox) secondCard.getRoot().lookup("#tags");
+        Label react = (Label) firstTags.getChildren().get(0);
+        Label reactAgain = (Label) secondTags.getChildren().get(0);
+
+        assertFalse(colorClass(react).isEmpty());
+        assertEquals(colorClass(react), colorClass(reactAgain));
+    }
+
+    @Test
+    public void constructor_tag_appliesPaletteBackground() {
+        Person person = new PersonBuilder().withTags("react").build();
+        PersonCard card = new PersonCard(person, 1);
+        Scene scene = new Scene(card.getRoot());
+        scene.getStylesheets().add(getClass().getResource("/view/DarkTheme.css").toExternalForm());
+        card.getRoot().applyCss();
+        HBox tags = (HBox) card.getRoot().lookup("#tags");
+        Label react = (Label) tags.getChildren().get(0);
+
+        assertNotNull(react.getBackground());
+        assertFalse(react.getBackground().getFills().isEmpty());
+    }
+
+    @Test
+    public void palette_everyColorClassHasBackground() {
+        HBox tags = new HBox();
+        tags.setId("tags");
+        Scene scene = new Scene(tags);
+        scene.getStylesheets().add(getClass().getResource("/view/DarkTheme.css").toExternalForm());
+
+        for (int index = 0; index < TagColor.PALETTE_SIZE; index++) {
+            Label label = new Label("tag");
+            label.getStyleClass().add("tag-color-" + index);
+            tags.getChildren().add(label);
+        }
+        tags.applyCss();
+
+        for (int index = 0; index < TagColor.PALETTE_SIZE; index++) {
+            Label label = (Label) tags.getChildren().get(index);
+            assertNotNull(label.getBackground(), "Missing background for tag-color-" + index);
+            assertFalse(label.getBackground().getFills().isEmpty());
+        }
+    }
+
+    private String colorClass(Label tagLabel) {
+        return tagLabel.getStyleClass().stream()
+                .filter(styleClass -> styleClass.startsWith("tag-color-"))
+                .findFirst()
+                .orElse("");
     }
 
     private Label getStarLabel(PersonCard personCard) {

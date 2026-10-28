@@ -15,7 +15,7 @@ import javafx.scene.image.ImageView;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.storage.PhotoStorage;
 
-/** Shared bounded photo rendering for cards and details. File access is confined to validated storage. */
+/** Bounded photo rendering for the detail panel. File access is confined to validated storage. */
 final class ContactPhoto {
     private static final Logger logger = LogsCenter.getLogger(ContactPhoto.class);
     private static final Object REQUEST_KEY = new Object();

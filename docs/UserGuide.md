@@ -85,7 +85,8 @@ Adds a contact to LarperBoard.
 Format: `add n/NAME [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`
 
 <div markdown="span" class="alert alert-primary">:bulb: **Tip:**
-A contact can have any number of tags, including zero.
+A contact can have any number of tags, including zero. Each tag is shown in one of several colours, chosen from its
+name, so the same tag always looks the same in the contact list and detail panel.
 </div>
 
 * `LINKEDIN_HANDLE` is the last part of the contact's LinkedIn profile link (e.g. `john-doe` in `linkedin.com/in/john-doe`). It may contain only letters, digits and hyphens, and must be 3 to 50 characters long.
@@ -175,7 +176,7 @@ Sets, replaces or removes a free-form note on a contact, for example where you m
 Format: `note INDEX nt/NOTE` or `note INDEX clear`
 
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
-* `NOTE` can contain spaces and punctuation and can be up to 1000 characters long. Spaces at the start and end are removed. A note that is empty or only spaces is not accepted: use `note INDEX clear` to remove a note.
+* `NOTE` can contain spaces and punctuation and can be up to 1000 characters long. An emoji such as 😀 counts as one character. An emoji that is made of several parts, such as a flag or a family, counts as several. Spaces at the start and end are removed. A note that is empty or only spaces is not accepted: use `note INDEX clear` to remove a note.
 * Setting a note on a contact that already has one replaces the old note.
 * The text after `nt/` is taken as typed, so it can contain `/`. Use `nt/` only once in a command.
 * The note is shown in full in the detail panel when you [`view`](#viewing-a-contact-view) the contact, and it is not shown in the contact list. If the note is long, scroll the detail panel to read all of it.
@@ -418,49 +419,57 @@ Successful real changes update last-edited time and are saved before entering se
 
 ### Setting a follow-up date: `followup`
 
-Use `followup INDEX d/YYYY-MM-DD` to set or replace the date by which you want to follow up with a
-contact, for example after a hackathon. Use `followup INDEX clear` to remove it.
+Sets, replaces or removes the date by which you want to follow up with a contact, for example after a hackathon.
+
+Format: `followup INDEX d/YYYY-MM-DD` or `followup INDEX clear`
+
+* `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
+* `clear` can be typed in any letter case.
+* The date must be a real calendar date in exactly `YYYY-MM-DD` format. Leap days such as `2028-02-29` are accepted; `2027-02-29` is not.
+* A successful command reports `Follow-up date for NAME set to DATE.` or `Follow-up date cleared for NAME.`
+* Setting the date a contact already has, or clearing a date that is not set, only reports `Follow-up date unchanged.` It does not change the last-edited time or add an undo step.
+* A real change counts as an edit of the contact and sets its last-edited time. You can reverse it with `undo`.
+* The contact card shows `Follow up: DATE`. Once the date is before today (Singapore time), the card shows `Follow up: DATE (Overdue)` and the whole line turns red and bold. A date that is today is not overdue. The card is drawn when the list is shown, so it does not change at midnight until the list is next refreshed.
+* `view INDEX` shows the full date in the detail panel.
 
 Examples:
-```
-followup 1 d/2026-10-25
-followup 1 clear
-```
+* `followup 1 d/2026-10-25` sets the follow-up date of the 1st displayed contact.
+* `followup 1 clear` removes it.
+* `due` followed by `followup 1 clear` removes the 1st contact of the due list from that list.
 
-`INDEX` is the number shown in the current list. The date must be a real calendar date in exactly
-YYYY-MM-DD format (leap days such as 2028-02-29 are accepted; 2027-02-29 is not).
+If the follow-up date cannot be set, LarperBoard shows these errors and leaves the contact unchanged:
 
-Invalid dates report `Date must be a real date in YYYY-MM-DD format.` and an invalid index reports
-`The person index provided is invalid.` Failures leave the contact unchanged. Setting the date a contact
-already has, or clearing a date that is not set, only reports `Follow-up date unchanged.`: it does not change
-the last-edited time or add an undo step. A real change can be reversed with `undo`.
+Input or situation | Message
+-------------------|--------
+`followup 1 d/2026-02-30`, `followup 1 d/2027-02-29`, `followup 1 d/2026-1-5`, or `followup 1 d/` (date that is not real or not in `YYYY-MM-DD` format) | `Date must be a real date in YYYY-MM-DD format.`
+`followup 0 d/2026-10-25`, `followup abc clear`, or `followup 2147483648 clear` (invalid or oversized index) | `The person index provided is invalid.`
+`followup 99 d/2026-10-25` when the displayed list has fewer than 99 contacts, or any `followup` with an index when the displayed list is empty | `The person index provided is invalid.`
+`followup`, `followup 1`, `followup 1 clear d/2026-10-25`, or `followup 1 2 d/2026-10-25` | `Invalid command format!` followed by the command usage
+`followup 1 d/2026-10-25 d/2026-10-26` (`d/` used twice) | `Multiple values specified for the following single-valued field(s): d/`
+The data file cannot be saved because it or its folder is not writable | `Could not save data to file FILE_PATH due to insufficient permissions to write to the file or the folder.`
+The data file cannot be saved for another reason | `Could not save data due to the following error: REASON`
 
-The contact card shows `Follow up: DATE`, followed by `(Overdue)` in red once the date is before today
-(Singapore time). A date that is today is not overdue. The card is drawn when the list is shown, so it does
-not change at midnight until the list is next refreshed. `view INDEX` shows the full date.
-
-The date is saved in the optional JSON field `followUpDate`, for example `"followUpDate": "2026-10-25"`.
-A missing or null value means no follow-up. A malformed value stops the file loading with
-`Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` Back up the file before
-editing it by hand.
+The date is saved in the optional JSON field `followUpDate`, for example `"followUpDate": "2026-10-25"`. A missing or `null` value means no follow-up. A malformed value makes the data file invalid, so LarperBoard starts with an empty contact list and writes `Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` to its log. The next command you run, of any kind (even `help` or `list`), saves the empty list over the file and the contacts in it are lost, so back up the file before editing it by hand. See [Editing the data file](#editing-the-data-file).
 
 ### Showing contacts due for follow-up: `due`
 
+Shows the contacts that you planned to follow up with by today, so that you can see who to contact next.
+
 Format: `due`
 
-Shows every contact whose follow-up date is today or earlier, with the earliest date first. Contacts with
-the same date stay in their original list order. Contacts with no follow-up date, or a date after today, are
-left out. "Today" is the Singapore date when you run the command; nothing runs in the background, so run `due`
-again to refresh the list.
-
-* `due` replaces any search, group or sort that was active. A later `sort added|edited|viewed` can reorder
-  the contacts it shows.
-* No contact being due is a normal result: the list is empty and the message says `0 contact(s) listed!`.
-* Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date
-  from the due list removes that contact from it.
+* Shows every contact whose follow-up date is today or earlier, with the earliest date first. Contacts with the same date stay in their original list order. Contacts with no follow-up date, or a date after today, are left out.
+* "Today" is the Singapore date when you run the command. Nothing runs in the background, so run `due` again to refresh the list.
+* A successful command reports `Due for follow-up on or before TODAY.` and then `N contact(s) listed!` on the next line, where `TODAY` is the date in `YYYY-MM-DD` format.
+* `due` replaces any search, group, filter or sort that was active. A later `sort added|edited|viewed` can reorder the contacts it shows. `sort due` is not a valid sort.
+* The due-date order stays active for later `find`, `group` and `filter` commands, and the line above the list says `Sorted by due`, until you run `sort ...`, `list` or `reset`.
+* No contact being due is a normal result: the list is empty and the message ends with `0 contact(s) listed!`.
+* Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date from the due list removes that contact from it.
 * `list` or `reset` shows all contacts again in their original order.
+* Any text typed after `due` is ignored.
 
-Example: `followup 2 d/2026-10-18` then `due` lists the second contact first if its date is the earliest.
+Examples:
+* `followup 2 d/2026-10-18` followed by `due` lists the second contact first if its date is the earliest.
+* `due` when no contact has a date up to today reports `0 contact(s) listed!`.
 
 ### Contact photos: `photo`
 
@@ -498,8 +507,12 @@ wrong types, or undecodable content; `Photo must be at most 5 MiB and 4096×4096
 size/dimension limits; and `Photo file could not be read.` for file-access failures.
 An invalid displayed index reports `The person index provided is invalid.`
 
-The list uses a 48×48 thumbnail and the scrolling detail panel fits the image within 240×180,
-preserving its aspect ratio. Absent, missing, malformed, or unreadable references show a placeholder;
+The photo is shown only in the detail panel (`view INDEX`), to the right of the contact's name, and not in
+the contact list. It is scaled to fit inside a fixed 160×120 frame, preserving its aspect ratio, so photos of
+different shapes never change the layout. If the detail panel is too narrow for the photo and the name
+side by side (for example when the window is at its minimum width), the photo is shown under the name
+instead. Absent, missing, malformed, or unreadable references show a
+"No photo" placeholder of the same size;
 unavailable images also produce a log warning and do not prevent other contacts loading.
 Unsafe saved paths are never opened. Old JSON without `photoPath` loads with no photo.
 
@@ -532,11 +545,13 @@ Field | Meaning | Format
 `lastEditedAt` | When the contact's details last really changed | Same as `createdAt`
 `lastViewedAt` | When the `view` command last showed the contact | Same as `createdAt`
 
-Each contact can also have an optional `note` field: a string of at most 1000 characters. A missing or `null` field means the contact has no note. A note that is empty or only spaces, longer than 1000 characters, or not a string makes the data file invalid, and LarperBoard reports `Invalid contact data: 'note' must be a string of at most 1000 characters.`
+Each contact can also have an optional `note` field: a string of at most 1000 characters. A missing or `null` field means the contact has no note. A note that is empty or only spaces, longer than 1000 characters, or not a string makes the data file invalid, so LarperBoard starts with an empty contact list and writes `Invalid contact data: 'note' must be a string of at most 1000 characters.` to its log.
 
-Each contact can also have an optional `starred` field, which is `true` or `false`. A missing or `null` field means the contact is not starred. Any other value makes the data file invalid, and LarperBoard reports `Invalid contact data: 'starred' must be true or false.`
+Each contact can also have an optional `starred` field, which is `true` or `false`. A missing or `null` field means the contact is not starred. Any other value makes the data file invalid, so LarperBoard starts with an empty contact list and writes `Invalid contact data: 'starred' must be true or false.` to its log.
 
-LarperBoard fills the time fields in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid, and LarperBoard reports `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem). Times are shown in Singapore time (Asia/Singapore).
+LarperBoard fills the time fields in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid. LarperBoard then starts with an empty contact list and writes `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem) to its log. The next command you run, of any kind (even `help` or `list`), saves the empty list over the file and the contacts in it are lost, so back up the file before editing it. Times are shown in Singapore time (Asia/Singapore).
+
+Each contact can also have an optional `followUpDate` field, a date written like `"2026-10-25"`. A missing or `null` field means the contact has no follow-up date. A value that is not a real date in `YYYY-MM-DD` format makes the data file invalid, with the same effect as above. See [Setting a follow-up date](#setting-a-follow-up-date-followup).
 
 ### Archiving data files `[coming in v2.0]`
 

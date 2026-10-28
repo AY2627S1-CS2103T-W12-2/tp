@@ -35,7 +35,7 @@ final class TagRow {
         this.row = row;
         this.tagLabels = tags.stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
-                .map(TagRow::createTagLabel)
+                .map(TagColor::createLabel)
                 .collect(Collectors.toList());
         overflowLabel.getStyleClass().add(OVERFLOW_STYLE_CLASS);
         row.setSpacing(GAP);
@@ -55,11 +55,6 @@ final class TagRow {
      */
     static void fill(HBox row, Set<Tag> tags) {
         new TagRow(row, tags);
-    }
-
-    /** Creates the label of one tag. */
-    private static Label createTagLabel(Tag tag) {
-        return new Label(tag.tagName);
     }
 
     /**
