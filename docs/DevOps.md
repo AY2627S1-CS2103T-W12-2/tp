@@ -69,6 +69,10 @@ legacy publisher. See [workflow concurrency](https://docs.github.com/en/actions/
 
 ### Recovering infrastructure failures
 
+Keep the Java CI workflow enabled in the Actions tab. A manually disabled workflow runs no checks,
+even after its YAML is corrected; re-enable it before pushing an update or requesting a manual run.
+Do not disable all Java CI to work around one runner pool's capacity problem.
+
 If a macOS job fails with `The job was not acquired by Runner of type hosted even after multiple attempts`,
 the build never started. Retry failed jobs after capacity recovers. GitHub reruns use the original run's
 workflow revision, so retrying an old `macos-latest` failure still uses arm64; new runs use the Intel pin.
