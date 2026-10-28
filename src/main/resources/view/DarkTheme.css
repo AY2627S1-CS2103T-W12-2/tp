@@ -342,6 +342,7 @@
 }
 
 #tags {
+    /* Card tag rows are HBoxes and take their gap from TagRow.GAP; keep the two equal. */
     -fx-hgap: 7;
     -fx-vgap: 3;
 }
@@ -352,6 +353,11 @@
     -fx-border-radius: 2;
     -fx-background-radius: 2;
     -fx-font-size: 11;
+}
+
+#tags .tag-overflow {
+    -fx-text-fill: #d0d0d0;
+    -fx-background-color: transparent;
 }
 
 #tags .tag-color-0 {

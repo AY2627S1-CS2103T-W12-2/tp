@@ -1,12 +1,10 @@
 package seedu.address.ui;
 
 import java.time.LocalDate;
-import java.util.Comparator;
 import java.util.Optional;
 
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
-import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Region;
 import seedu.address.model.Model;
@@ -44,7 +42,7 @@ public class PersonCard extends UiPart<Region> {
     @FXML
     private Label linkedIn;
     @FXML
-    private FlowPane tags;
+    private HBox tags;
     @FXML
     private Label event;
     @FXML
@@ -77,9 +75,7 @@ public class PersonCard extends UiPart<Region> {
         event.setVisible(!eventName.isEmpty());
         event.setManaged(!eventName.isEmpty());
         showFollowUp(person, today);
-        person.getTags().stream()
-                .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(TagColor.createLabel(tag)));
+        TagRow.fill(tags, person.getTags());
     }
 
     /** Shows the follow-up date, with an Overdue cue if it is before {@code today}; hides the label if none. */
