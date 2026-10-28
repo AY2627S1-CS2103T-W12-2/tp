@@ -6,7 +6,7 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import seedu.address.model.Model;
 
 /**
- * Lists all persons in the address book to the user.
+ * Clears the active contact filter and sort, and lists all persons in their original order.
  */
 public class ListCommand extends Command {
 
@@ -14,16 +14,11 @@ public class ListCommand extends Command {
 
     public static final String MESSAGE_SUCCESS = "Listed all persons.";
 
-
     @Override
     public CommandResult execute(Model model) {
-        resetVisibleList(model);
-        return new CommandResult(MESSAGE_SUCCESS);
-    }
-
-    static void resetVisibleList(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(PREDICATE_SHOW_ALL_PERSONS);
         model.clearPersonListSort();
+        return new CommandResult(MESSAGE_SUCCESS);
     }
 }

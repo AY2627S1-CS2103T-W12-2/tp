@@ -36,7 +36,6 @@ import seedu.address.logic.commands.HelpCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.NoteCommand;
 import seedu.address.logic.commands.RedoCommand;
-import seedu.address.logic.commands.ResetCommand;
 import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.StarCommand;
 import seedu.address.logic.commands.TagCommand;
@@ -136,8 +135,10 @@ public class AddressBookParserTest {
     }
 
     @Test
-    public void parseCommand_reset() throws Exception {
-        assertTrue(parser.parseCommand(ResetCommand.COMMAND_WORD) instanceof ResetCommand);
+    public void parseCommand_reset_throwsUnknownCommand() {
+        assertFalse(COMMAND_WORDS.contains("reset"));
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND_WITH_LIST, () -> parser.parseCommand("reset"));
+        assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND_WITH_LIST, () -> parser.parseCommand("reset 1"));
     }
 
     @Test
