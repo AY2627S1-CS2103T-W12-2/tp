@@ -57,6 +57,25 @@ public class MainAppTest {
     }
 
     @Test
+    public void initModelManager_nullJsonRoot_recoversWithEmptyBook() throws Exception {
+        Storage storage = createStorage();
+        Files.writeString(storage.getAddressBookFilePath(), "null");
+
+        Model model = app.initModelManager(storage, new UserPrefs());
+
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertEquals("null", Files.readString(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void initPrefs_nullJsonRoot_recoversWithDefaults() throws Exception {
+        Path file = testFolder.resolve("null-preferences.json");
+        Files.writeString(file, "null");
+
+        assertEquals(new UserPrefs(), app.initPrefs(new JsonUserPrefsStorage(file)));
+    }
+
+    @Test
     public void mainWindowFxml_hasLarperBoardTitle() throws IOException {
         try (InputStream fxml = MainApp.class.getResourceAsStream("/view/MainWindow.fxml")) {
             assertNotNull(fxml);

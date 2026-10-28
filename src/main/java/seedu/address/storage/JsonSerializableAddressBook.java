@@ -49,7 +49,8 @@ class JsonSerializableAddressBook {
         AddressBook addressBook = new AddressBook();
         for (JsonAdaptedPerson jsonAdaptedPerson : persons) {
             if (jsonAdaptedPerson == null) {
-                throw new IllegalValueException("Invalid contact data: 'persons' must not contain null entries.");
+                throw new IllegalValueException(String.format(JsonAdaptedPerson.INVALID_FIELD_MESSAGE_FORMAT,
+                        "persons", "must not contain null entries"));
             }
             Person person = jsonAdaptedPerson.toModelType();
             if (addressBook.hasPerson(person)) {

@@ -39,15 +39,26 @@ public class JsonAddressBookStorageTest {
     public Path testFolder;
 
     @Test
-    public void readAddressBook_nullCollectionElements_reportsDataErrorAndPreservesFile() throws Exception {
+    public void readAddressBook_nullContactEntry_reportsDataErrorAndPreservesFile() throws Exception {
+        assertInvalidJsonPreserved("{\"persons\":[null]}");
+    }
+
+    @Test
+    public void readAddressBook_nullTagEntry_reportsDataErrorAndPreservesFile() throws Exception {
+        assertInvalidJsonPreserved("{\"persons\":[{\"name\":\"Alice\",\"tags\":[null]}]}");
+    }
+
+    @Test
+    public void readAddressBook_nullRoot_reportsDataErrorAndPreservesFile() throws Exception {
+        assertInvalidJsonPreserved("null");
+    }
+
+    private void assertInvalidJsonPreserved(String json) throws Exception {
         Path file = testFolder.resolve("null-elements.json");
-        for (String json : new String[] {"{\"persons\":[null]}",
-            "{\"persons\":[{\"name\":\"Alice\",\"tags\":[null]}]}"}) {
-            Files.writeString(file, json);
-            JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
-            assertThrows(DataLoadingException.class, storage::readAddressBook);
-            assertEquals(json, Files.readString(file));
-        }
+        Files.writeString(file, json);
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+        assertThrows(DataLoadingException.class, storage::readAddressBook);
+        assertEquals(json, Files.readString(file));
     }
 
     @Test

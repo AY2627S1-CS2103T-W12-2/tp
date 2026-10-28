@@ -138,7 +138,8 @@ class JsonAdaptedPerson {
         final List<Tag> personTags = new ArrayList<>();
         for (JsonAdaptedTag tag : tags) {
             if (tag == null) {
-                throw new IllegalValueException("Invalid contact data: 'tags' must not contain null entries.");
+                throw new IllegalValueException(String.format(INVALID_FIELD_MESSAGE_FORMAT,
+                        "tags", "must not contain null entries"));
             }
             personTags.add(tag.toModelType());
         }
