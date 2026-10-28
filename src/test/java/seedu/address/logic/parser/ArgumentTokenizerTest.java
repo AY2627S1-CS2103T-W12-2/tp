@@ -9,6 +9,19 @@ import org.junit.jupiter.api.Test;
 
 public class ArgumentTokenizerTest {
 
+    @Test
+    public void tokenize_tabBoundaries_preserveValuesAndEmbeddedSlashes() {
+        Prefix name = new Prefix("n/");
+        Prefix phone = new Prefix("p/");
+        ArgumentMultimap fields = ArgumentTokenizer.tokenize("\tn/Alice\tp/12345678", name, phone);
+        assertEquals("", fields.getPreamble());
+        assertEquals("Alice", fields.getValue(name).orElseThrow());
+        assertEquals("12345678", fields.getValue(phone).orElseThrow());
+
+        fields = ArgumentTokenizer.tokenize("\tn/Alice\tTan/n/example", name);
+        assertEquals("Alice\tTan/n/example", fields.getValue(name).orElseThrow());
+    }
+
     private final Prefix unknownPrefix = new Prefix("--u");
     private final Prefix pSlash = new Prefix("p/");
     private final Prefix dashT = new Prefix("-t");

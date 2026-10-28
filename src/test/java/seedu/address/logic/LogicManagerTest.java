@@ -55,6 +55,14 @@ import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 
 public class LogicManagerTest {
+
+    @Test
+    public void execute_tabSeparatedAddAndEdit_targetTheContact() throws Exception {
+        logic.execute("add\tn/Alice\tp/12345678");
+        assertEquals("Alice", model.getFilteredPersonList().getFirst().getName().fullName);
+        logic.execute("edit 1\tp/87654321");
+        assertEquals("87654321", model.getFilteredPersonList().getFirst().getPhone().value);
+    }
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
     private static final IOException DUMMY_AD_EXCEPTION = new AccessDeniedException("dummy access denied exception");
 
