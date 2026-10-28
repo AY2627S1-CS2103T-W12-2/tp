@@ -526,7 +526,8 @@ that may still be referenced by a contact or session history.
 
 ### Saving the data
 
-LarperBoard automatically saves data after every successful command. You do not need to save manually.
+LarperBoard automatically saves data after successful commands. You do not need to save manually.
+`help` and `exit` do not write contact data and remain available if the contact data file is read-only.
 
 ### Editing the data file
 
