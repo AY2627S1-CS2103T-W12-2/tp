@@ -207,6 +207,11 @@ public class JsonAdaptedPersonTest {
             "2026-10-17 04:12:33Z", // space instead of T
             "2026-10-17T04:12Z", // no seconds
             "2026-02-30T04:12:33Z", // no such day
+            "2027-02-29T04:12:33Z", // 29 Feb in a year that is not a leap year
+            "2026-13-01T04:12:33Z", // no such month
+            "2026-10-17T25:00:00Z", // no such hour
+            "2026-10-17T04:60:00Z", // no such minute
+            "2026-10-17t04:12:33z", // lower-case separators
             "2026-10-17T24:00:00Z", // no such hour (end of day is accepted by Instant.parse, but not here)
             "2026-10-17T23:59:60Z", // leap second
             " 2026-10-17T04:12:33Z", // leading space
@@ -349,7 +354,11 @@ public class JsonAdaptedPersonTest {
     @Test
     public void toModelType_malformedFollowUpDate_throwsFieldSpecificMessage() throws Exception {
         String expected = "Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.";
-        for (String value : new String[] {"\"2027-02-29\"", "\"25-10-2026\"", "\"\"", "\"tomorrow\"", "20261025"}) {
+        String[] malformed = {"\"2027-02-29\"", "\"2026-02-30\"", "\"2026-13-01\"", "\"2026-10-32\"",
+            "\"25-10-2026\"", "\"2026-1-5\"", "\"2026/10/25\"", "\"2026-10-25 \"", "\" 2026-10-25\"",
+            "\"2026-10-25T00:00:00Z\"", "\"+2026-10-25\"", "\"0000-01-01\"", "\"\"", "\"tomorrow\"",
+            "20261025", "true", "{}", "[]", "[\"2026-10-25\"]"};
+        for (String value : malformed) {
             String json = "{\"name\":\"Amy Bee\",\"phone\":\"85355255\",\"email\":\"amy@gmail.com\","
                     + "\"followUpDate\":" + value + "}";
             JsonAdaptedPerson adapted = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
