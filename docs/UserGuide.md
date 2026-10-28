@@ -495,7 +495,10 @@ photo 1 clear
 ```
 
 Subfolders and spaces in paths are allowed. Absolute paths, URLs, `..` traversal, and symlinks that
-escape the JAR folder are rejected. Sources must be readable PNG/JPEG files, at most **5 MiB**
+escape the JAR folder are rejected. If a path contains ` f/`, surround the whole path with double quotes,
+for example `photo 1 f/"my f/portrait.png"`, so that the embedded text is treated as part of the filename.
+Quoted paths use the same file and folder validation as unquoted paths. Sources must be readable PNG/JPEG
+files, at most **5 MiB**
 (5,242,880 bytes) and **4096×4096 pixels**. Both filename extension and decoded image format
 must agree. The JAR folder must be writable. The application copies accepted images to `photos/`
 with generated collision-safe names and saves a relative reference such as
