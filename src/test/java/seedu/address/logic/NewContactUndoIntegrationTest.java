@@ -13,9 +13,7 @@ import java.awt.image.BufferedImage;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.time.Clock;
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import javax.imageio.ImageIO;
 
@@ -33,6 +31,7 @@ import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.PhotoStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.MutableClock;
 
 /** Checks that newly added contact fields use the same saved, session-only undo history. */
 public class NewContactUndoIntegrationTest {
@@ -368,34 +367,5 @@ public class NewContactUndoIntegrationTest {
 
     private static Person withViewAt(Person person, Instant viewedAt) {
         return person.withActivity(person.getActivity().withLastViewedAt(viewedAt));
-    }
-
-    private static class MutableClock extends Clock {
-        private Instant instant;
-        private final ZoneId zone;
-
-        MutableClock(Instant instant, ZoneId zone) {
-            this.instant = instant;
-            this.zone = zone;
-        }
-
-        void advanceSeconds(long seconds) {
-            instant = instant.plusSeconds(seconds);
-        }
-
-        @Override
-        public ZoneId getZone() {
-            return zone;
-        }
-
-        @Override
-        public Clock withZone(ZoneId zone) {
-            return new MutableClock(instant, zone);
-        }
-
-        @Override
-        public Instant instant() {
-            return instant;
-        }
     }
 }

@@ -78,15 +78,24 @@ The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDi
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
-`PersonCard` and `PersonDetailPanel` use `ContactPhoto` to display bounded images from validated
-`PhotoStorage` bytes. A single background worker performs file validation and image decoding,
-so building a contact list does not block the JavaFX thread on photo reads. A placeholder is shown
-until loading finishes. Replaced requests and discarded contact cards cancel queued photo work;
+`PersonDetailPanel` uses `ContactPhoto` to display a bounded image from validated `PhotoStorage` bytes. The photo
+is shown only in the detail panel, to the right of the name, in a fixed 160×120 frame (`#photoFrame` in
+`PersonDetailPanel.fxml`); the image is scaled to fit inside it, and the "No photo" placeholder fills the same
+frame, so the layout does not change with the shape of the photo. The name and the frame are in a `GridPane`
+(`#header`); when the header is narrower than 400 pixels (`PersonDetailPanel#isNarrowHeader`), the panel moves
+the frame below the name so that a long name is not squeezed into a narrow column. `PersonCard` shows no photo. A single
+background worker performs file validation and image decoding, so showing a contact does not block the JavaFX
+thread on photo reads. A placeholder is shown until loading finishes. Replaced requests cancel queued photo work;
 an already-running decode can finish, but its stale result is never displayed.
 The detail panel observes
 the viewed person and scrolls vertically to keep full meeting and contact details accessible.
 Both `PersonCard` and `PersonDetailPanel` show a ★ label in the top right corner of the card or panel of a starred
 person; the label is hidden otherwise (and in `PersonCard` it also takes no space).
+`PersonCard` shows tags on one non-wrapping row through `TagRow`. `TagRow` measures each tag label (rounded to whole
+pixels, as the row lays them out), uses the pure `TagRow#visibleTagCount` to decide how many tags fit (leaving room
+for the `+N` label, measured for the actual number of hidden tags), and refits whenever
+the row's width changes. Hidden tags stay in the row as unmanaged labels so they keep their styling and can be measured
+again. `PersonDetailPanel` is unchanged and wraps all tags.
 
 The `UI` component,
 
@@ -142,8 +151,9 @@ The `Model` component,
 * stores a `UserPrefs` object that represents the user’s preferences (currently, just the GUI settings). This is exposed to the outside as a `ReadOnlyUserPrefs` object.
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 * gives every `Person` an immutable `Activity` holding when the person was created, last edited and last viewed. Each time is optional: an unknown time is absent, never invented. `Person#withActivity` copies a person with new activity, and `Person#hasSameDetails` compares two persons while ignoring activity.
+* gives every `Person` an optional follow-up date (`Optional<LocalDate> getFollowUpDate()`). The `followup` command changes it through `Person#toBuilder` and `Model#editPerson`, and the `due` command shows the persons for whom `Person#isFollowUpDueOn` is true. See [Follow-up dates and the due list](#follow-up-dates-and-the-due-list).
 * gives every `Person` a `starred` flag, which is false by default. The `star` and `unstar` commands change it through `Person#toBuilder` and `Model#editPerson`, and the `filter starred` command shows the starred persons by passing `Person#isStarred` to `Model#updateFilteredPersonList`.
-* gives every `Person` an optional free-form `Note` of at most 1000 characters. An empty `Note` means that the person has no note. The `note` command changes it through `Person#toBuilder` and `Model#editPerson`, so the other fields and the activity times are kept, and the last edited time changes only when the note really changes.
+* gives every `Person` an optional free-form `Note` of at most 1000 characters, counted by `Note#countCharacters` as Unicode code points, so an emoji that Java stores as two `char`s counts as one (the command, the parser and the storage all use this one count). An empty `Note` means that the person has no note. The `note` command changes it through `Person#toBuilder` and `Model#editPerson`, so the other fields and the activity times are kept, and the last edited time changes only when the note really changes.
 
 <div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
 
@@ -164,6 +174,7 @@ The `Storage` component,
 * is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
 * depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
 * saves a person's activity as optional `createdAt`, `lastEditedAt` and `lastViewedAt` fields in `addressbook.json`. Each is a whole-second ISO-8601 UTC timestamp written exactly as `2026-10-17T04:12:33Z`. A missing or `null` field loads as an absent time, so data files from v1.3 still load. A value with a fraction of a second, an offset other than `Z`, surrounding spaces or any other format makes the file fail to load with `Invalid contact data: '<field>' must be an ISO-8601 UTC timestamp.`, naming the field (`createdAt`, `lastEditedAt` or `lastViewedAt`). `JsonAdaptedPerson.INVALID_FIELD_MESSAGE_FORMAT` holds this message pattern so other fields use the same wording.
+* saves a person's follow-up date as an optional `followUpDate` string in `addressbook.json`, written as `2026-10-25`. A missing or `null` field loads as no follow-up date, so older data files still load. A value that is not a real `YYYY-MM-DD` date, including a non-string value, makes the file fail to load with `Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.`
 * saves whether a person is starred as an optional `starred` boolean in `addressbook.json`. A missing or `null` field loads as not starred, so older data files still load. Any other value, such as a string or a number, makes the file fail to load with `Invalid contact data: 'starred' must be true or false.` The field is kept as an `Object` in `JsonAdaptedPerson` so that such a value reaches this message instead of a generic Jackson error.
 * saves a person's note as an optional `note` string in `addressbook.json`. A missing or `null` field loads as no note, so older data files still load. A note that is blank, longer than 1000 characters or not a string makes the file fail to load with `Invalid contact data: 'note' must be a string of at most 1000 characters.`
 
@@ -195,6 +206,53 @@ Design considerations:
 
 * **Stamp in the model, not in each command.** Each command would otherwise repeat the "was anything really changed?" check and could drift apart. The trade-off is that `Model` gains two methods.
 * **Ignore the edited person's activity.** Commands build the edited `Person` from the old one, and a new field that someone forgets to copy would silently reset the times. Always taking the activity from `target` makes that mistake harmless.
+
+### Follow-up dates and the due list
+
+`Person` holds an optional `LocalDate followUpDate`, exposed as `Optional<LocalDate> getFollowUpDate()` and
+copied by `Person.toBuilder()` (`withFollowUpDate(null)` removes it). It takes part in `equals`, `hashCode` and
+`toString`. `isFollowUpDueOn(today)` (on or before today) and `isFollowUpOverdueOn(today)` (strictly before
+today) are the single definition of the boundary, so the card cue and the `due` command cannot disagree.
+
+`FollowUpCommandParser` checks the displayed index, duplicate `d/`, and either `clear` or a date, then reuses
+`Meeting.parseDate`, so follow-up dates follow the same strict rules and message as `md/`. `FollowUpCommand`
+compares the new value with the current one. If they are equal it returns `Follow-up date unchanged.` without
+touching the model. Otherwise it calls `Model.editPerson` with `target.toBuilder().withFollowUpDate(date).build()`,
+which stamps last-edited time and keeps the viewed contact in step, as `MeetingCommand` does. `LogicManager` then
+saves and records the undo entry, and restores its snapshot if saving fails, so no separate history code exists.
+
+`JsonAdaptedPerson` writes `followUpDate` as an ISO string or null. It reads the field as an `Object` so that a
+non-string value reaches `parseFollowUpDate` and gets the field-specific error rather than a Jackson error.
+`PersonCard` takes `today` as a parameter in a package-private constructor, so tests do not depend on the real
+date; the public constructor uses `LocalDate.now(Model.DISPLAY_ZONE)`.
+
+The sequence diagram below shows `followup 1 d/2026-10-25`, including the no-op and failed-save paths.
+
+![Interactions for the `followup 1 d/2026-10-25` Command](images/FollowUpSequenceDiagram.png)
+
+`DueCommand` uses the existing visible-list pipeline and adds no second list. When it runs it reads today from
+`Model.getClock()` (Asia/Singapore), calls `updateFilteredPersonList(new FollowUpDuePredicate(today))`, then
+`sortFilteredPersonList(SortCriterion.DUE)`. It sets the sort after the filter so `due` wins over any sort that
+was active. `FollowUpDuePredicate` calls `Person.isFollowUpDueOn`, the same rule as the overdue cue. `SortCriterion`
+now holds a comparator per constant: `DUE` orders by follow-up date, earliest first with no date last, and
+`ModelManager.setSortCriterion` adds original-list order as the tie-breaker. `SortCommandParser` has no `due` case,
+so `sort due` is rejected. The predicate keeps the date it was built with, so the list does not change at midnight
+until `due` is run again.
+
+Tests cover leap and invalid dates, set, replace, clear and no-op paths, out-of-range indexes, field
+preservation, old and malformed JSON with round trips, the due and overdue boundaries, and the card and detail UI.
+
+Design considerations:
+
+* **One definition of "due".** `Person#isFollowUpDueOn` and `isFollowUpOverdueOn` hold the boundary, and both the
+  card cue and `FollowUpDuePredicate` call them. A separate check in each place could disagree on whether today is
+  due. The trade-off is that `Person` knows about "today", so callers pass it in and tests inject the date.
+* **`due` is a filter plus a sort on the existing visible list.** It adds no second list, so displayed indexes stay
+  correct for every index command and the list follows the one pipeline that `find`, `group` and `sort` use. The
+  trade-off is that the due-date sort stays active after `due`, so later `find`, `group` and `filter` results keep
+  that order until `sort`, `list` or `reset`.
+* **The predicate keeps the date it was built with.** `due` reads today once, which keeps the result stable while you
+  work and easy to test. The trade-off is that the list does not refresh at midnight; run `due` again.
 
 ### Activity-time sorting
 
@@ -332,6 +390,9 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 | Nice-to-have | hackathon participant | attach the hackathon name/date as a tag (auto or manual) | look back and remember which event I met each person at |
 | Nice-to-have | hackathon participant | tag a contact with their hackathon role (Frontend, Pitcher, Designer) | easily assemble balanced teams for future hackathons |
 | Nice-to-have | user | view a list of all saved contacts sorted by recency | quickly recall the last few people I spoke with |
+| Nice-to-have | user | see when a contact was added, last edited and last viewed | judge how up to date my information about them is |
+| Nice-to-have | hackathon participant | set a follow-up date on a contact | remember by when I wanted to get back to them |
+| Nice-to-have | hackathon participant | list the contacts whose follow-up date has arrived, earliest first | see who I should contact today without scanning my whole list |
 | Must-have | user | display a detailed view of a single contact card | read all notes, links, and tags in one clean view |
 | Nice-to-have | user | view images | remember the projects people have created |
 | Nice-to-have | CLI user | view contact summaries in a clean, formatted ASCII table | browse my address book without messy text wrapping |
@@ -613,6 +674,69 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 
     Use case resumes at step 2.
 
+**Use case: Set or clear a follow-up date**
+
+**MSS**
+
+1. User requests to list persons.
+2. LarperBoard shows a list of persons.
+3. User requests to set a follow-up date for a specific person in the list by index and gives a date.
+4. LarperBoard saves the date on the person and displays a confirmation message.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. The list is empty.
+
+  Use case ends.
+
+* 3a. The given index is invalid (e.g., non-numeric, 0, negative, or exceeds list size).
+  * 3a1. LarperBoard shows an invalid index error message.
+
+    Use case resumes at step 2.
+
+* 3b. The date is not a real calendar date in `YYYY-MM-DD` format (e.g., `2027-02-29`).
+  * 3b1. LarperBoard shows an invalid date error message.
+
+    Use case resumes at step 3.
+
+* 3c. The date is missing, `d/` is given more than once, or extraneous parameters are provided.
+  * 3c1. LarperBoard shows an error message.
+
+    Use case resumes at step 3.
+
+* 3d. The user asks to clear the date instead of giving one.
+  * 3d1. LarperBoard removes the date from the person and displays a confirmation message.
+
+    Use case ends.
+
+* 3e. The person already has the given date (or has no date, when clearing).
+  * 3e1. LarperBoard displays a message that the date is unchanged. Nothing is changed and no undo step is added.
+
+    Use case ends.
+
+* 4a. LarperBoard cannot save the data file.
+  * 4a1. LarperBoard displays an error message and leaves the person as it was.
+
+    Use case ends.
+
+**Use case: List contacts due for follow-up**
+
+**MSS**
+
+1. User requests to list the contacts that are due for follow-up.
+2. LarperBoard shows the persons whose follow-up date is today or earlier (Singapore date), earliest date first.
+
+   Use case ends.
+
+**Extensions**
+
+* 2a. No person is due.
+  * 2a1. LarperBoard shows an empty list and a message that 0 contacts are listed.
+
+    Use case ends.
+
 ### Non-functional requirements
 
 1. **Environment**: Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
@@ -637,14 +761,17 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 
 ### Glossary
 
+* **Activity times**: The three times LarperBoard records for each contact: when it was created, last edited and last viewed. A time is shown as `—` when it is not known
 * **Archive**: Hiding a contact from the active list without deleting it, so that it can be brought back later
 * **CLI (Command Line Interface)**: A way of using an application by typing text commands instead of clicking buttons
 * **Command**: A line of text typed into the command box that tells LarperBoard to do something, e.g. adding or deleting a contact
 * **Contact**: A person whose details are saved in LarperBoard, such as a teammate, mentor, recruiter or fellow participant met at a hackathon
 * **Cracked**: Slang for being highly skilled, used to describe the participants a user wants to remember and keep in touch with
 * **Data file**: The file on the user's computer where LarperBoard saves all contacts, stored in JSON format
+* **Due contact**: A contact whose follow-up date is today or earlier, in Singapore time. The `due` command lists these contacts
 * **Duplicate contact**: A contact that LarperBoard considers to be the same person as a contact already saved, in which case LarperBoard rejects it
 * **Export**: Saving the user's contacts into a file in another format (e.g. JSON, CSV or Markdown) so that they can be used in other tools
+* **Follow-up date**: An optional date on a contact, in `YYYY-MM-DD` format, by which the user wants to get back to that contact. It is overdue once it is before today
 * **Hackathon**: A time-limited event where participants form teams to build projects, and where the users of LarperBoard meet most of their contacts
 * **Hackathon role**: The part a contact plays in a team, e.g. Frontend, Pitcher or Designer
 * **Index**: The position number of a contact in the list currently shown, starting from 1, used to refer to that contact in a command
@@ -693,6 +820,148 @@ Given below are instructions to test the app manually.
 
 1. Run `find NAME`, followed by `sort edited`, then `list`.<br>
    Expected: Filtering keeps the active sort; `list` restores the full original-order list.
+
+### Contact activity times
+
+1. Created, edited and viewed times
+
+   1. Prerequisites: Start with the sample data. The detail panel of a sample contact shows `—` for all three times.
+
+   1. Test case: `add n/Activity Test`, then `find Activity`, then `view 1`<br>
+      Expected: The detail panel shows `CREATED` as the current Singapore time in `yyyy-MM-dd HH:mm` format, `LAST EDITED` as `—`, and `LAST VIEWED` as the current time.
+
+   1. Test case: `edit 1 p/91234567`, then `view 1`<br>
+      Expected: The status message of `edit` starts with `Edited person:`. The detail panel now shows `LAST EDITED` as the current time. `CREATED` is unchanged.
+
+   1. Test case: `list`, then `view 2` where the 2nd contact is a sample contact<br>
+      Expected: The status message starts with `Now viewing:`. `LAST VIEWED` shows the current time. `CREATED` and `LAST EDITED` stay `—`.
+
+1. Commands that change nothing do not change any time
+
+   1. Prerequisites: Complete the test cases above. Run `find Activity`, then `view 1`, and note the three times. Wait at least one minute.
+
+   1. Test case: `edit 1 p/91234567` (the phone number the contact already has)<br>
+      Expected: The status message starts with `Person unchanged:`. Run `view 1`: `CREATED` and `LAST EDITED` are the same as before. Only `LAST VIEWED` moves, because of the `view`.
+
+   1. Test case: `edit 1`<br>
+      Expected: `At least one field to edit must be provided.` No time changes.
+
+   1. Test case: `add n/Activity Test p/91234567` (the same name and phone as the existing contact)<br>
+      Expected: `This person already exists in the address book.` No contact is added and no time changes.
+
+   1. Test case: `view 99` (larger than the list size)<br>
+      Expected: `The person index provided is invalid.` The `LAST VIEWED` time of every contact is unchanged.
+
+1. Old data file with no time fields
+
+   1. Prerequisites: Close the app and back up `data/addressbook.json`. Open it and delete every `createdAt`, `lastEditedAt` and `lastViewedAt` line (a file from before the activity feature has none of them). Start the app.
+
+   1. Test case: `view 1`<br>
+      Expected: The contact loads without any error. `CREATED` and `LAST EDITED` show `—`. `LAST VIEWED` shows the current time.
+
+   1. Test case: `sort added`, then `sort viewed`<br>
+      Expected: Contacts with an unknown time are listed after contacts with a known time, in their original order.
+
+1. A save that fails changes no time
+
+   1. Prerequisites: Close the app and back up `data/addressbook.json`. Start the app. Make the data file read-only: `chmod u-w data/addressbook.json` on macOS or Linux, or `attrib +R data\addressbook.json` in PowerShell.
+
+   1. Test case: `view 1`<br>
+      Expected: `Could not save data to file ` followed by the file path and ` due to insufficient permissions to write to the file or the folder.` The detail panel does not show a new `LAST VIEWED` time.
+
+   1. Test case: `edit 1 p/90000000`<br>
+      Expected: The same error message. The phone number and the times of the contact are unchanged.
+
+   1. Restore the file with `chmod u+w data/addressbook.json` or `attrib -R data\addressbook.json`.
+
+### Testing follow-up dates and the due list
+
+1. Setting, replacing and clearing a follow-up date
+
+   1. Prerequisites: Run `list`, with multiple contacts in the list. None of them has a follow-up date.
+
+   1. Test case: `followup 1 d/2099-12-31`<br>
+      Expected: `Follow-up date for NAME set to 2099-12-31.` where `NAME` is the name of the 1st contact. The card shows `Follow up: 2099-12-31` with no `(Overdue)`. `view 1` shows the date under `FOLLOW UP` and a new `LAST EDITED` time.
+
+   1. Test case: `followup 1 d/2020-01-01`<br>
+      Expected: `Follow-up date for NAME set to 2020-01-01.` The card shows `Follow up: 2020-01-01 (Overdue)`, with the whole follow-up line in red.
+
+   1. Test case: `followup 1 d/2020-01-01` again<br>
+      Expected: `Follow-up date unchanged.` The `LAST EDITED` time does not change and no undo step is added.
+
+   1. Test case: `followup 1 clear`<br>
+      Expected: `Follow-up date cleared for NAME.` The card no longer shows a follow-up line.
+
+   1. Test case: `followup 1 clear` again<br>
+      Expected: `Follow-up date unchanged.`
+
+   1. Test case: `followup 1 d/2020-01-01`, then `undo`<br>
+      Expected: `Undid the last contact change.` The follow-up date is gone again.
+
+1. Invalid follow-up commands
+
+   1. Prerequisites: Run `list`, with multiple contacts in the list.
+
+   1. Test case: `followup 1 d/2026-02-30`<br>
+      Expected: `Date must be a real date in YYYY-MM-DD format.` No contact is changed. Other dates to try: `d/2027-02-29`, `d/2026-1-5`, `d/26-01-05`, `d/` (empty).<br>
+      Expected: The same message.
+
+   1. Test case: `followup 1 d/2028-02-29`<br>
+      Expected: The date is accepted (2028 is a leap year).
+
+   1. Test case: `followup 0 d/2099-12-31`<br>
+      Expected: `The person index provided is invalid.` Other invalid indexes to try: `followup 99 d/2099-12-31` (larger than the list size), `followup abc d/2099-12-31`, `followup -1 clear`.<br>
+      Expected: The same message.
+
+   1. Test case: `followup 1`<br>
+      Expected: `Invalid command format!` followed by the usage on separate lines: `followup INDEX d/YYYY-MM-DD`, `followup INDEX clear` and `Example: followup 1 d/2026-10-25`. Other commands to try: `followup`, `followup 1 clear d/2099-12-31`, `followup 1 2 d/2099-12-31`.<br>
+      Expected: The same message.
+
+   1. Test case: `followup 1 d/2099-12-31 d/2099-12-30`<br>
+      Expected: `Multiple values specified for the following single-valued field(s): d/`
+
+1. Listing contacts that are due
+
+   1. Prerequisites: Run `list`. Using `followup`, give the 1st, 2nd and 3rd contacts the dates `2020-03-01`, `2020-01-01` and `2099-12-31` in that order. Leave the other contacts without a date.
+
+   1. Test case: `due`<br>
+      Expected: The status message is `Due for follow-up on or before TODAY.` followed by a new line and `2 contact(s) listed!`, where `TODAY` is today's Singapore date in `YYYY-MM-DD` format. The contact dated `2020-01-01` is first and the one dated `2020-03-01` is second. The contact dated `2099-12-31` and the contacts without a date are not shown.
+
+   1. Test case: `list`, then `followup 4 d/TODAY` (replace `TODAY` with today's date), then `due`<br>
+      Expected: `3 contact(s) listed!` The contact dated `TODAY` is last in the list, and its card shows `Follow up: TODAY` without `(Overdue)`. A date that is today counts as due but not as overdue.
+
+   1. Test case: `sort edited`, then `due`<br>
+      Expected: The list is ordered by follow-up date again, not by edited time. `sort due` is rejected with `Invalid command format!` followed by the `sort` usage.
+
+   1. Test case: `due`, then `followup 1 clear`<br>
+      Expected: The contact disappears from the due list. `list` shows all contacts again in their original order.
+
+   1. Test case: `list`, then `followup N clear` for every contact that still has a date (replace `N` with its index), then `due`<br>
+      Expected: The list is empty and the status message ends with `0 contact(s) listed!`. No error is shown.
+
+### Malformed activity and follow-up data
+
+1. A malformed `followUpDate` or time in the data file
+
+   1. Prerequisites: Close the app and back up `data/addressbook.json`. Run the app from a terminal so that the log is printed, or open `addressbook.log` in the folder you ran it from afterwards.
+
+   1. Test case: add `"followUpDate" : "2026-02-30"` to a contact and start the app<br>
+      Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` The data file on disk is not changed until you run any command, even `help` or `list`; that command saves the empty list over it.
+
+   1. Test case: change the value to `2026-1-5`, `""` or `20261005`, or to a non-string such as `5`, `true` or `{}`, and start the app<br>
+      Expected: The same behaviour and the same log message.
+
+   1. Test case: change the value to `null`, or remove the field, and start the app<br>
+      Expected: The app starts normally. The contact has no follow-up date.
+
+   1. Test case: add `"createdAt" : "2026-10-17T04:12:33.5Z"` to a contact and start the app<br>
+      Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` Other values to try: `2026-10-17T12:12:33+08:00`, `" 2026-10-17T04:12:33Z"`, `2026-10-17`, `2026-02-30T04:12:33Z`, `1760674353`.<br>
+      Expected: The same behaviour. The field name in the message is `lastEditedAt` or `lastViewedAt` when that field is the bad one.
+
+   1. Test case: use `"createdAt" : "2026-10-17T04:12:33Z"` and start the app<br>
+      Expected: The app starts normally. `view` shows `CREATED` as `2026-10-17 12:12` (Singapore time is 8 hours ahead of UTC).
+
+   1. Restore the backup of the data file.
 
 ### Deleting a person
 
@@ -756,41 +1025,6 @@ The card bounds its event cue to 32 displayed characters, and the detail panel s
 
 Tests cover strict/leap dates, 80/81-character bounds, partial updates and individual/all clears,
 old/malformed JSON and round trips, filtered targeting, no-ops, event search, UI, and rollback/undo.
-
-### Follow-up date implementation
-
-`Person` holds an optional `LocalDate followUpDate`, exposed as `Optional<LocalDate> getFollowUpDate()` and
-copied by `Person.toBuilder()` (`withFollowUpDate(null)` removes it). It takes part in `equals`, `hashCode` and
-`toString`. `isFollowUpDueOn(today)` (on or before today) and `isFollowUpOverdueOn(today)` (strictly before
-today) are the single definition of the boundary, so the card cue and the later `due` command cannot disagree.
-
-`FollowUpCommandParser` checks the displayed index, duplicate `d/`, and either `clear` or a date, then reuses
-`Meeting.parseDate`, so follow-up dates follow the same strict rules and message as `md/`. `FollowUpCommand`
-compares the new value with the current one. If they are equal it returns `Follow-up date unchanged.` without
-touching the model. Otherwise it calls `Model.editPerson` with `target.toBuilder().withFollowUpDate(date).build()`,
-which stamps last-edited time and keeps the viewed contact in step, as `MeetingCommand` does. `LogicManager` then
-saves and records the undo entry, and restores its snapshot if saving fails, so no separate history code exists.
-
-`JsonAdaptedPerson` writes `followUpDate` as an ISO string or null. It reads the field as an `Object` so that a
-non-string value reaches `parseFollowUpDate` and gets the field-specific error rather than a Jackson error.
-`PersonCard` takes `today` as a parameter in a package-private constructor, so tests do not depend on the real
-date; the public constructor uses `LocalDate.now(Model.DISPLAY_ZONE)`.
-
-The sequence diagram below shows `followup 1 d/2026-10-25`, including the no-op and failed-save paths.
-
-![Interactions for the `followup 1 d/2026-10-25` Command](images/FollowUpSequenceDiagram.png)
-
-`DueCommand` uses the existing visible-list pipeline and adds no second list. When it runs it reads today from
-`Model.getClock()` (Asia/Singapore), calls `updateFilteredPersonList(new FollowUpDuePredicate(today))`, then
-`sortFilteredPersonList(SortCriterion.DUE)`. It sets the sort after the filter so `due` wins over any sort that
-was active. `FollowUpDuePredicate` calls `Person.isFollowUpDueOn`, the same rule as the overdue cue. `SortCriterion`
-now holds a comparator per constant: `DUE` orders by follow-up date, earliest first with no date last, and
-`ModelManager.setSortCriterion` adds original-list order as the tie-breaker. `SortCommandParser` has no `due` case,
-so `sort due` is rejected. The predicate keeps the date it was built with, so the list does not change at midnight
-until `due` is run again.
-
-Tests cover leap and invalid dates, set, replace, clear and no-op paths, out-of-range indexes, field
-preservation, old and malformed JSON with round trips, the due and overdue boundaries, and the card and detail UI.
 
 ### Contact photo implementation
 
