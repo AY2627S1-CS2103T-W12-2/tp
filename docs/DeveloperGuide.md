@@ -218,8 +218,9 @@ all meeting fields each create one undo step when they change the contact.
 
 `JsonAdaptedPerson` accepts absent/null meeting fields for older data, validates present JSON types
 without coercion, and reports the exact offending meeting field. Empty context is omitted on save.
-`EventContainsTermsPredicate` supplies case-insensitive partial OR matching to #127/#128; the base
-parser exposes event-only `find ev/TERM` without implementing other owners' search features.
+`FindCommandParser` creates a `TypedSearchPredicate` for `n/`, `t/`, `nt/` and `ev/` terms.
+It matches partial event names without case sensitivity, using OR within one field and AND across
+different fields. An absent event matches only when no event terms were supplied.
 The card bounds its event cue to 32 UTF-16 code units, and the detail panel scrolls vertically.
 A pending Unicode fix in #181 is not part of v1.4.1.
 
