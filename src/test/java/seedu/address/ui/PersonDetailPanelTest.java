@@ -31,6 +31,7 @@ import javafx.scene.control.ScrollPane;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.Pane;
 import seedu.address.model.person.Activity;
 import seedu.address.model.person.Note;
 import seedu.address.model.person.Person;
@@ -87,6 +88,18 @@ public class PersonDetailPanelTest {
         assertEquals("alex.yeo@example.com", text(panel, "#email"));
         assertEquals(VALID_LINKEDIN_AMY, text(panel, "#linkedIn"));
         assertEquals(2, ((FlowPane) lookup(panel, "#tags")).getChildren().size());
+    }
+
+    @Test
+    public void constructor_tag_usesSameColorClassAsContactList() {
+        Person person = new PersonBuilder().withTags("React").build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
+        PersonCard card = new PersonCard(person, 1);
+        Label detailTag = (Label) ((FlowPane) lookup(panel, "#tags")).getChildren().get(0);
+        Label listTag = (Label) ((Pane) card.getRoot().lookup("#tags")).getChildren().get(0);
+
+        assertTrue(detailTag.getStyleClass().stream().anyMatch(styleClass -> styleClass.startsWith("tag-color-")));
+        assertEquals(listTag.getStyleClass(), detailTag.getStyleClass());
     }
 
     @Test
@@ -174,6 +187,18 @@ public class PersonDetailPanelTest {
         assertEquals("2026-10-18 04:00", text(panel, "#createdAt"));
         assertEquals("2026-10-18 12:05", text(panel, "#lastEditedAt"));
         assertEquals("2027-01-01 00:00", text(panel, "#lastViewedAt"));
+    }
+
+    @Test
+    public void constructor_singaporeMidnightAndLeapDay_showsSingaporeDateAndMinute() {
+        // 15:59:59 UTC is 23:59 in Singapore; one second later it is 00:00 on the next Singapore date
+        Person person = new PersonBuilder().withActivity(new Activity(Instant.parse("2026-10-20T15:59:59Z"),
+                Instant.parse("2026-10-20T16:00:00Z"), Instant.parse("2028-02-28T16:00:00Z"))).build();
+        PersonDetailPanel panel = new PersonDetailPanel(new SimpleObjectProperty<>(person));
+
+        assertEquals("2026-10-20 23:59", text(panel, "#createdAt"));
+        assertEquals("2026-10-21 00:00", text(panel, "#lastEditedAt"));
+        assertEquals("2028-02-29 00:00", text(panel, "#lastViewedAt"));
     }
 
     @Test

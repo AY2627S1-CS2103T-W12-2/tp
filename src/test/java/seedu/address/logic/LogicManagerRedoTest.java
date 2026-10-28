@@ -9,9 +9,6 @@ import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.Clock;
-import java.time.Instant;
-import java.time.ZoneId;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -27,6 +24,7 @@ import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.MutableClock;
 
 public class LogicManagerRedoTest {
     private static final String ADD_AMY = "add n/Amy Bee p/87654321 e/amy@example.com";
@@ -203,34 +201,5 @@ public class LogicManagerRedoTest {
         assertNull(reloaded.getViewedPerson().get());
         assertFalse(reloaded.canUndo());
         assertFalse(reloaded.canRedo());
-    }
-
-    private static class MutableClock extends Clock {
-        private Instant instant;
-        private final ZoneId zone;
-
-        MutableClock(Instant instant, ZoneId zone) {
-            this.instant = instant;
-            this.zone = zone;
-        }
-
-        void advanceSeconds(long seconds) {
-            instant = instant.plusSeconds(seconds);
-        }
-
-        @Override
-        public ZoneId getZone() {
-            return zone;
-        }
-
-        @Override
-        public Clock withZone(ZoneId zone) {
-            return new MutableClock(instant, zone);
-        }
-
-        @Override
-        public Instant instant() {
-            return instant;
-        }
     }
 }
