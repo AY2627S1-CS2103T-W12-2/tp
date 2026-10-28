@@ -326,7 +326,7 @@ The sequence diagram below shows what happens when the user executes `star 1`. `
 
 `ModelManager` keeps up to 50 contact states in a session-only undo stack. Each state copies the address book, the viewed contact, the active visible-list predicate, and the sort criterion. Its `ModelSnapshot` also captures both history stacks so a failed save can restore them. History is not written to JSON; the restored contacts are.
 
-`LogicManager` takes a snapshot before running each command. After the command succeeds, it saves the address book. Only after a successful save does `Model#recordSuccessfulMutation(before)` compare the contact data and add the previous state to history. The comparison ignores `lastViewedAt`, so `view` is not an undoable contact change. Failed commands, failed saves, and changes that leave contacts unchanged add no entry. A new saved mutation clears redo history. The same path covers add, edit, tag, delete, clear, note, star, follow-up, meeting, and photo mutations; these commands do not maintain separate history entries.
+`LogicManager` takes a snapshot before running each command. After the command succeeds, it saves the address book, except for `help` and `exit`, which return before the save. Only after a successful save does `Model#recordSuccessfulMutation(before)` compare the contact data and add the previous state to history. The comparison ignores `lastViewedAt`, so `view` is not an undoable contact change. Failed commands, failed saves, and changes that leave contacts unchanged add no entry. A new saved mutation clears redo history. The same path covers add, edit, tag, delete, clear, note, star, follow-up, meeting, and photo mutations; these commands do not maintain separate history entries.
 
 The following sequence shows the `undo` command, including rollback if saving the restored state fails:
 
@@ -981,7 +981,7 @@ Given below are instructions to test the app manually.
    1. Prerequisites: Close the app and back up `data/addressbook.json`. Run the app from a terminal so that the log is printed, or open `addressbook.log` in the folder you ran it from afterwards.
 
    1. Test case: add `"followUpDate" : "2026-02-30"` to a contact and start the app<br>
-      Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` The data file on disk is not changed until you run any command, even `help` or `list`; that command saves the empty list over it.
+      Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` The data file on disk is not changed by `help` or `exit`. A successful command other than these (even `list`) saves the empty list over it.
 
    1. Test case: change the value to `2026-1-5`, `""` or `20261005`, or to a non-string such as `5`, `true` or `{}`, and start the app<br>
       Expected: The same behaviour and the same log message.

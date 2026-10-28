@@ -89,6 +89,46 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_helpWithUnwritableStorage_returnsHelpWithoutSaving() throws Exception {
+        useFailingStorageWithTypicalContacts();
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        CommandResult result = logic.execute("help");
+
+        assertTrue(result.isShowHelp());
+        assertFalse(result.isExit());
+        assertEquals(before, model.getAddressBook());
+        assertFalse(model.canUndo());
+    }
+
+    @Test
+    public void execute_exitWithUnwritableStorage_returnsExitWithoutSaving() throws Exception {
+        useFailingStorageWithTypicalContacts();
+        AddressBook before = new AddressBook(model.getAddressBook());
+
+        CommandResult result = logic.execute("exit");
+
+        assertTrue(result.isExit());
+        assertFalse(result.isShowHelp());
+        assertEquals(before, model.getAddressBook());
+        assertFalse(model.canUndo());
+    }
+
+    @Test
+    public void execute_helpAndExit_preserveInvalidDataFileUntilList() throws Exception {
+        Path file = temporaryFolder.resolve("addressBook.json");
+        String invalidJson = "{invalid json";
+        Files.writeString(file, invalidJson);
+
+        assertTrue(logic.execute("help").isShowHelp());
+        assertTrue(logic.execute("exit").isExit());
+        assertEquals(invalidJson, Files.readString(file));
+
+        logic.execute("list");
+        assertTrue(new JsonAddressBookStorage(file).readAddressBook().orElseThrow().getPersonList().isEmpty());
+    }
+
+    @Test
     public void execute_commandExecutionError_throwsCommandException() {
         String deleteCommand = "delete 9";
         assertCommandException(deleteCommand, MESSAGE_EMPTY_PERSON_LIST);
