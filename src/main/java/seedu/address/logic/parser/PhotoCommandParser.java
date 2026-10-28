@@ -15,7 +15,9 @@ import seedu.address.storage.PhotoStorage;
 /** Parses a single photo source or the explicit clear form. Importing happens only after index validation. */
 public class PhotoCommandParser implements Parser<PhotoCommand> {
     public static final Prefix PREFIX_FILE = new Prefix("f/");
-    private static final Pattern QUOTED_FILE = Pattern.compile("\\s*(\\S+)\\s+f/\"([^\"]*)\"\\s*");
+    public static final String MESSAGE_QUOTED_PATH =
+            "If the path contains \" f/\", put the whole path in double quotes: f/\"my f/portrait.png\"";
+    private static final Pattern QUOTED_FILE = Pattern.compile("\\s*(\\S+)\\s+f/\\s*\"([^\"]*)\"\\s*");
     private final PhotoStorage photos;
 
     public PhotoCommandParser(PhotoStorage photos) {
@@ -42,7 +44,11 @@ public class PhotoCommandParser implements Parser<PhotoCommand> {
         if (preamble[0].isEmpty() || ParserUtil.isClearKeyword(preamble[0])) {
             throw usage();
         }
-        fields.verifyNoDuplicatePrefixesFor(PREFIX_FILE);
+        try {
+            fields.verifyNoDuplicatePrefixesFor(PREFIX_FILE);
+        } catch (ParseException e) {
+            throw new ParseException(e.getMessage() + "\n" + MESSAGE_QUOTED_PATH, e);
+        }
         Index index;
         try {
             index = ParserUtil.parseIndex(preamble[0]);
@@ -51,6 +57,9 @@ public class PhotoCommandParser implements Parser<PhotoCommand> {
         }
         if (preamble.length == 2 && ParserUtil.isClearKeyword(preamble[1]) && fields.getValue(PREFIX_FILE).isEmpty()) {
             return new PhotoCommand(index, "", photos);
+        }
+        if (fields.getValue(PREFIX_FILE).orElse("").startsWith("\"")) {
+            throw new ParseException(usage().getMessage() + "\n" + MESSAGE_QUOTED_PATH);
         }
         if (preamble.length != 1 || fields.getValue(PREFIX_FILE).orElse("").isBlank()) {
             throw usage();
