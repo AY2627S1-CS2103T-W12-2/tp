@@ -515,7 +515,11 @@ photo 1 clear
 ```
 
 Subfolders and spaces in paths are allowed. Absolute paths, URLs, `..` traversal, and symlinks that
-escape the JAR folder are rejected. Sources must be readable PNG/JPEG files, at most **5 MiB**
+escape the JAR folder are rejected. If a path contains ` f/`, surround the whole path with double quotes,
+for example `photo 1 f/"my f/portrait.png"`, so that the embedded text is treated as part of the filename.
+Spaces after `f/` are also accepted, for example `photo 1 f/ "my f/portrait.png"`.
+Quoted paths use the same file and folder validation as unquoted paths. Sources must be readable PNG/JPEG
+files, at most **5 MiB**
 (5,242,880 bytes) and **4096×4096 pixels**. Both filename extension and decoded image format
 must agree. The JAR folder must be writable. The application copies accepted images to `photos/`
 with generated collision-safe names and saves a relative reference such as
@@ -526,6 +530,11 @@ Errors are `Photo file must be a PNG or JPEG inside the application folder.` for
 wrong types, or undecodable content; `Photo must be at most 5 MiB and 4096×4096 pixels.` for
 size/dimension limits; and `Photo file could not be read.` for file-access failures.
 An invalid displayed index reports `The person index provided is invalid.`
+
+Input | Error and recovery
+------|-------------------
+An unquoted path containing ` f/`, or multiple `f/` arguments | `Multiple values specified for the following single-valued field(s): f/`, followed by `If the path contains " f/", put the whole path in double quotes: f/"my f/portrait.png"`
+An unclosed quoted path | A duplicate-file or invalid-format error, followed by the same quoting hint. Close both quotes around the whole path.
 
 The photo is shown only in the detail panel (`view INDEX`), to the right of the contact's name, and not in
 the contact list. It is scaled to fit inside a fixed 160×120 frame, preserving its aspect ratio, so photos of
