@@ -55,7 +55,6 @@ import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
 
 public class LogicManagerTest {
-
     private static final IOException DUMMY_IO_EXCEPTION = new IOException("dummy IO exception");
     private static final IOException DUMMY_AD_EXCEPTION = new AccessDeniedException("dummy access denied exception");
 
@@ -81,6 +80,7 @@ public class LogicManagerTest {
         logic.execute("edit 1\tp/87654321");
         assertEquals("87654321", model.getFilteredPersonList().getFirst().getPhone().value);
     }
+
     @Test
     public void execute_invalidCommandFormat_throwsParseException() {
         String invalidCommand = "uicfhmowqewca";
