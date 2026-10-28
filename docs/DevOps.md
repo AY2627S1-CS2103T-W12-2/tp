@@ -28,6 +28,10 @@ The following commands perform common Gradle tasks.
 * **`checkstyleMain`**: Runs the code style check for the main code base.<br>
   **`checkstyleTest`**: Runs the code style check for the test code base.
 
+* **`javadoc`**: Builds the Java API documentation and validates links and markup. CI also runs this task.
+  Missing-tag warnings inherited from existing code are reported separately from errors; Checkstyle enforces
+  the repository's Javadoc requirements.
+
 * **`test`**
   * `./gradlew test`: Runs all tests.
   * `./gradlew clean test`: Cleans the project before running all tests
@@ -71,9 +75,22 @@ Any warnings or errors will be printed out to the console.
 
 ## Making a release
 
-Here are the steps to create a new release.
+Prepare each release from the latest merged `master`, on a meaningful kebab-case branch such as
+`release-v1-4-1`. Preserve local test data. Use imperative commit subjects of at most 72 characters,
+a blank line before the explanatory body, and body lines wrapped at 72 characters.
 
-1. Update the version number in [`MainApp.java`](https://github.com/AY2627S1-CS2103T-W12-2/tp/blob/master/src/main/java/seedu/address/MainApp.java).
-1. Generate a fat JAR file using Gradle (i.e., `./gradlew shadowJar`).
-1. Tag the repo with the version number. e.g. `v0.1`
-1. [Create a new release in the project repository](https://github.com/AY2627S1-CS2103T-W12-2/tp/releases/new). Upload the JAR file you created.
+1. Update `MainApp.VERSION`, the UG, landing page, README and versioned release notes together.
+1. Run `./gradlew clean check coverage javadoc shadowJar`, `./.github/run-checks.sh` and `git diff --check`.
+   Checkstyle includes the project's Java and Javadoc conventions. Fix Javadoc generation errors;
+   do not disable link/markup checking to hide them.
+1. Smoke-test the exact `build/libs/larperboard.jar` in a clean writable folder with Java 25,
+   using `java -ea -jar larperboard.jar`. Check core commands, invalid input, photo storage,
+   undo/redo, restart and legacy JSON. Confirm actual window layout and identify any scaling
+   checks that were simulated rather than native OS checks.
+1. Commit only release sources/docs, open a PR and wait for Java CI and documentation builds.
+   Merge the reviewed release change; do not include unmerged feature branches implicitly.
+1. Create an annotated version tag on that merged commit, e.g. `git tag -a v1.4.1 -m "Release LarperBoard v1.4.1"`.
+   Do not move an existing release tag.
+1. Publish a GitHub release for that tag with the exact tested JAR, `SHA256SUMS`, accurate notes
+   and verification evidence. Verify the uploaded JAR's SHA-256 after downloading it again.
+   Link known limitations and explain any removed commands in the upgrade notes.

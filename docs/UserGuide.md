@@ -43,7 +43,7 @@ LarperBoard is a desktop app for keeping track of people you meet at hackathons.
 
 ## Features
 
-This guide describes v1.4. `sort` supports `added`, `edited`, and `viewed`. Separate
+This guide describes v1.4.1. `sort` supports `added`, `edited`, and `viewed`. Separate
 `find`, `group`, and `filter` commands replace the previous filter; combined filters
 and `sort name` / `sort starred` from [#128](https://github.com/AY2627S1-CS2103T-W12-2/tp/issues/128) are deferred.
 
@@ -322,7 +322,7 @@ Format: `view INDEX`
 
 Examples:
 * `view 1` shows the 1st displayed contact.<br>
-  ![result for 'view 1'](images/view-panel.png)
+  ![result for 'view 1'](images/Ui-v1.4.1.png)
 * `find Aisha` followed by `view 1` shows the 1st contact in the search results.
 
 If the contact cannot be viewed, LarperBoard shows these errors:
@@ -395,9 +395,9 @@ Examples:
 
 ### Recording meeting context: `meeting`
 
-![Meeting feature at 1280×720](images/meeting-feature.png)
+![Meeting feature at 1280×720](images/meeting-v1.4.1.png)
 
-[View the simulated 150% layout](images/meeting-feature-150percent.png).
+[View the simulated 150% layout](images/meeting-v1.4.1-150percent.png).
 
 Use `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]` to set or replace one or more fields.
 Omitted fields keep their existing values. For example:
@@ -412,7 +412,9 @@ find ev/singapore
 
 `meeting INDEX clear` removes all context. Add `event`, `date`, or `role` to clear only that field.
 Indexes refer to the displayed list, including after a search. Event and role each accept 1–80
-characters and cannot be blank. Dates must be real calendar dates in exactly YYYY-MM-DD format
+UTF-16 code units and cannot be blank. Most letters count once; supplementary characters such as
+`😀` count twice, so at most 40 such emoji fit. This meeting-field limit differs from the note limit.
+Dates must be real calendar dates in exactly YYYY-MM-DD format
 (years 0001–9999); they are displayed as Singapore calendar dates without time-zone conversion.
 Tags are independent and are never generated from meeting fields.
 
@@ -422,7 +424,7 @@ Invalid text reports `Event and role must each contain 1 to 80 characters.` Inva
 `The person index provided is invalid.` Failures leave the contact unchanged. Same-value updates
 and clearing an already absent field are informational no-ops, with no timestamp or undo entry.
 
-The list shows an event cue of at most 32 characters; `view INDEX` shows full event, date, and role
+The list shows an event cue of at most 32 UTF-16 code units; `view INDEX` shows full event, date, and role
 in a vertically scrolling detail panel. Editing a viewed contact refreshes the panel. If changing
 its event excludes it from the current event search, its selection is cleared.
 
@@ -493,9 +495,9 @@ Examples:
 
 ### Contact photos: `photo`
 
-![Photo feature at 1280×720](images/photo-feature.png)
+![Photo feature at 1280×720](images/photo-v1.4.1.png)
 
-[View the simulated 150% layout](images/photo-feature-150percent.png).
+[View the simulated 150% layout](images/photo-v1.4.1-150percent.png).
 
 Use `photo INDEX f/RELATIVE_PATH` to attach or replace one PNG/JPEG, or `photo INDEX clear` to
 remove its reference. INDEX always refers to the displayed list. Place the source image inside the
@@ -583,20 +585,24 @@ LarperBoard fills the time fields in for you. Contacts saved by an older version
 
 Each contact can also have an optional `followUpDate` field, a date written like `"2026-10-25"`. A missing or `null` field means the contact has no follow-up date. A value that is not a real date in `YYYY-MM-DD` format makes the data file invalid, with the same effect as above. See [Setting a follow-up date](#setting-a-follow-up-date-followup).
 
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous LarperBoard home folder.
+**A**: Close LarperBoard on both computers. Copy `data/addressbook.json` from the old working folder
+and the managed `photos/` folder from beside the old JAR into the corresponding folders on the new computer.
+Keep the relative folder layout. Copy `preferences.json` only if you want the same window settings.
+Back up the destination files before replacing them. Undo/redo and command recall do not transfer.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## Known issues
+
+Meeting text counts supplementary characters twice, and an event preview can split a surrogate pair
+when truncated. The pending [Unicode fix](https://github.com/AY2627S1-CS2103T-W12-2/tp/pull/181)
+is not included in v1.4.1. `find` also reports `person(s)` while other list commands say `contact(s)`;
+this wording difference does not change the results.
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
