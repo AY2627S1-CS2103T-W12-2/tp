@@ -27,6 +27,18 @@ public class ParserUtil {
     /** Message shown when an index is larger than {@link Integer#MAX_VALUE}. */
     public static final String MESSAGE_INDEX_TOO_LARGE = "The provided index is too large.";
 
+    /** The word that removes a value in commands such as {@code photo INDEX clear}. */
+    private static final String KEYWORD_CLEAR = "clear";
+
+    /**
+     * Returns true if {@code word} is the keyword {@code clear}, in any letter case. In commands such as
+     * {@code photo INDEX clear} the keyword comes after the index, so a command with it where the index should be
+     * has no index or has its words in the wrong order, and should report the usage and not an invalid index.
+     */
+    public static boolean isClearKeyword(String word) {
+        return KEYWORD_CLEAR.equalsIgnoreCase(word);
+    }
+
     /**
      * Parses a one-based index after trimming surrounding whitespace.
      *
@@ -78,7 +90,8 @@ public class ParserUtil {
 
     /**
      * Parses a {@code String name} into a {@code Name}.
-     * Leading and trailing whitespaces will be trimmed and inner whitespace runs will be collapsed.     *
+     * Leading and trailing whitespace will be trimmed and inner whitespace runs will be collapsed.
+     *
      * @throws ParseException if the given {@code name} is invalid.
      */
     public static Name parseName(String name) throws ParseException {
@@ -149,7 +162,7 @@ public class ParserUtil {
         if (trimmedNote.isEmpty()) {
             throw new ParseException(Note.MESSAGE_BLANK);
         }
-        if (trimmedNote.length() > Note.MAX_LENGTH) {
+        if (Note.countCharacters(trimmedNote) > Note.MAX_LENGTH) {
             throw new ParseException(Note.MESSAGE_TOO_LONG);
         }
         return new Note(trimmedNote);

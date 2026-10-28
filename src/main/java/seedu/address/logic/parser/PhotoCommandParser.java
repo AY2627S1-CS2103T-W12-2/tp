@@ -22,18 +22,18 @@ public class PhotoCommandParser implements Parser<PhotoCommand> {
     public PhotoCommand parse(String args) throws ParseException {
         requireNonNull(args);
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(args, PREFIX_FILE);
-        fields.verifyNoDuplicatePrefixesFor(PREFIX_FILE);
         String[] preamble = fields.getPreamble().split("\\s+");
-        if (preamble[0].isEmpty()) {
+        if (preamble[0].isEmpty() || ParserUtil.isClearKeyword(preamble[0])) {
             throw usage();
         }
+        fields.verifyNoDuplicatePrefixesFor(PREFIX_FILE);
         Index index;
         try {
             index = ParserUtil.parseIndex(preamble[0]);
         } catch (ParseException e) {
             throw new ParseException(MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, e);
         }
-        if (preamble.length == 2 && preamble[1].equals("clear") && fields.getValue(PREFIX_FILE).isEmpty()) {
+        if (preamble.length == 2 && ParserUtil.isClearKeyword(preamble[1]) && fields.getValue(PREFIX_FILE).isEmpty()) {
             return new PhotoCommand(index, "", photos);
         }
         if (preamble.length != 1 || fields.getValue(PREFIX_FILE).orElse("").isBlank()) {

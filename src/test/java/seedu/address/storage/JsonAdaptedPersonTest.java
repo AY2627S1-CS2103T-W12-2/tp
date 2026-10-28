@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalNotes.EMOJI;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.time.Instant;
@@ -206,6 +207,11 @@ public class JsonAdaptedPersonTest {
             "2026-10-17 04:12:33Z", // space instead of T
             "2026-10-17T04:12Z", // no seconds
             "2026-02-30T04:12:33Z", // no such day
+            "2027-02-29T04:12:33Z", // 29 Feb in a year that is not a leap year
+            "2026-13-01T04:12:33Z", // no such month
+            "2026-10-17T25:00:00Z", // no such hour
+            "2026-10-17T04:60:00Z", // no such minute
+            "2026-10-17t04:12:33z", // lower-case separators
             "2026-10-17T24:00:00Z", // no such hour (end of day is accepted by Instant.parse, but not here)
             "2026-10-17T23:59:60Z", // leap second
             " 2026-10-17T04:12:33Z", // leading space
@@ -291,6 +297,27 @@ public class JsonAdaptedPersonTest {
     }
 
     @Test
+    public void toModelType_noteOfEmoji_countsEachEmojiAsOneCharacter() throws Exception {
+        String halfOfTheLimitPlusOne = EMOJI.repeat(Note.MAX_LENGTH / 2 + 1);
+        String longest = EMOJI.repeat(Note.MAX_LENGTH);
+
+        assertEquals(new Note(halfOfTheLimitPlusOne), personWithNote(halfOfTheLimitPlusOne).toModelType().getNote());
+        assertEquals(new Note(longest), personWithNote(longest).toModelType().getNote());
+        assertThrows(IllegalValueException.class, noteError(),
+                personWithNote(EMOJI.repeat(Note.MAX_LENGTH + 1))::toModelType);
+    }
+
+    @Test
+    public void toModelType_noteOfEmojiRoundTripThroughJson_isKept() throws Exception {
+        Person person = new PersonBuilder(BENSON).withNote(EMOJI.repeat(Note.MAX_LENGTH)).build();
+
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(person));
+        Person loaded = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+
+        assertEquals(person, loaded);
+    }
+
+    @Test
     public void toJson_noteAndNoNote_writesStringOrNull() throws Exception {
         Person bensonWithNote = new PersonBuilder(BENSON).withNote("hi").build();
         String withNote = JsonUtil.toJsonString(new JsonAdaptedPerson(bensonWithNote));
@@ -327,7 +354,11 @@ public class JsonAdaptedPersonTest {
     @Test
     public void toModelType_malformedFollowUpDate_throwsFieldSpecificMessage() throws Exception {
         String expected = "Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.";
-        for (String value : new String[] {"\"2027-02-29\"", "\"25-10-2026\"", "\"\"", "\"tomorrow\"", "20261025"}) {
+        String[] malformed = {"\"2027-02-29\"", "\"2026-02-30\"", "\"2026-13-01\"", "\"2026-10-32\"",
+            "\"25-10-2026\"", "\"2026-1-5\"", "\"2026/10/25\"", "\"2026-10-25 \"", "\" 2026-10-25\"",
+            "\"2026-10-25T00:00:00Z\"", "\"+2026-10-25\"", "\"0000-01-01\"", "\"\"", "\"tomorrow\"",
+            "20261025", "true", "{}", "[]", "[\"2026-10-25\"]"};
+        for (String value : malformed) {
             String json = "{\"name\":\"Amy Bee\",\"phone\":\"85355255\",\"email\":\"amy@gmail.com\","
                     + "\"followUpDate\":" + value + "}";
             JsonAdaptedPerson adapted = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class);
