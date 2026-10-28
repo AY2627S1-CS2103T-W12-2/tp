@@ -457,6 +457,7 @@ Format: `due`
 * "Today" is the Singapore date when you run the command. Nothing runs in the background, so run `due` again to refresh the list.
 * A successful command reports `Due for follow-up on or before TODAY.` and then `N contact(s) listed!` on the next line, where `TODAY` is the date in `YYYY-MM-DD` format.
 * `due` replaces any search, group, filter or sort that was active. A later `sort added|edited|viewed` can reorder the contacts it shows. `sort due` is not a valid sort.
+* `due` does not clear the detail panel, even if the contact you are viewing is not due.
 * The due-date order stays active for later `find`, `group` and `filter` commands, and the line above the list says `Sorted by due`, until you run `sort ...` or `list`.
 * No contact being due is a normal result: the list is empty and the message ends with `0 contact(s) listed!`.
 * Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date from the due list removes that contact from it.
