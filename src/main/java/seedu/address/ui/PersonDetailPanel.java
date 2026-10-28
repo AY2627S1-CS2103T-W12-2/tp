@@ -150,7 +150,7 @@ public class PersonDetailPanel extends UiPart<Region> {
         lastViewedAt.setText(formatTime(person.getActivity().getLastViewedAt()));
         person.getTags().stream()
                 .sorted(Comparator.comparing(tag -> tag.tagName))
-                .forEach(tag -> tags.getChildren().add(new Label(tag.tagName)));
+                .forEach(tag -> tags.getChildren().add(TagColor.createLabel(tag)));
         // a contact without tags shows a dash like the other fields, and not an empty row
         boolean hasTags = !person.getTags().isEmpty();
         tags.setVisible(hasTags);
