@@ -40,7 +40,43 @@ The following commands perform common Gradle tasks.
 
 ## Continuous integration (CI)
 
-This project uses GitHub Actions for CI. The necessary workflow configuration files are in `.github/workflows`. No further setup is required.
+This project uses GitHub Actions for CI. Workflow configuration is versioned in `.github/workflows`;
+Pages also requires the repository publishing setting described below.
+
+Java CI runs on pushes to `master`, pull requests targeting `master`, and manual dispatches.
+Feature-branch pushes are checked through their PR, so opening a PR does not duplicate a push build.
+Tag pushes do not start another matrix: release the exact source already verified before tagging.
+New commits supersede older runs for the same PR or branch. A failure on one platform does not
+cancel the other platforms, so their results remain available.
+
+The matrix uses Linux, Windows and the explicit `macos-15-intel` runner. `macos-latest` selects
+the arm64 pool, which could not allocate runners for several v1.4.1 jobs. The Intel label avoids
+that pool while retaining macOS checks; this does not guarantee runner availability or replace
+Apple Silicon coverage. Revisit the pin when GitHub deprecates the image or arm64 capacity recovers.
+See the [supported runner labels](https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
+
+### Documentation deployment
+
+Set **Settings → Pages → Build and deployment → Source** to **GitHub Actions** (`build_type: workflow`).
+Do not also enable branch-based Pages publishing: the custom workflow generates PlantUML diagrams
+and must be the only publisher. Changing the publishing method preserves the existing website URL.
+
+The Documentation workflow validates PRs without deploying them. Pushes to `master` and manual
+dispatches on `master` build and deploy the site. Runs for the same ref share a concurrency group.
+An active production build/deployment finishes before another starts; stale PR builds can be cancelled.
+This prevents competing custom deployments, while the Pages source setting removes the competing
+legacy publisher. See [workflow concurrency](https://docs.github.com/en/actions/how-tos/write-workflows/choose-when-workflows-run/control-workflow-concurrency).
+
+### Recovering infrastructure failures
+
+If a macOS job fails with `The job was not acquired by Runner of type hosted even after multiple attempts`,
+the build never started. Retry failed jobs after capacity recovers. GitHub reruns use the original run's
+workflow revision, so retrying an old `macos-latest` failure still uses arm64; new runs use the Intel pin.
+A successful newer run does not erase historical failures. Do not move release tags to change old CI results.
+
+For a Pages deployment conflict, let the active deployment finish, confirm the source setting above,
+then manually run Documentation on `master`. Do not retry obsolete deployments that would publish
+older documentation. Check the deployed guide after the successful run.
 
 ### Code coverage
 
