@@ -2,8 +2,8 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
@@ -61,18 +61,19 @@ public class FilterCommandTest {
     }
 
     /*
-     * Selection partitions when filtering: the viewed contact is hidden by the filter (selection cleared),
+     * Selection partitions when filtering: the viewed contact is hidden by the filter (selection kept),
      * the viewed contact still matches (selection kept), and no contact is viewed.
      */
     @Test
-    public void execute_viewedPersonHiddenByFilter_clearsSelection() {
+    public void execute_viewedPersonHiddenByFilter_keepsSelection() {
         Model model = modelWithAliceStarred();
         model.viewPerson(model.getFilteredPersonList().get(1));
-        assertNotNull(model.getViewedPerson().get());
+        Person viewedPerson = model.getViewedPerson().get();
 
         new FilterCommand(true).execute(model);
 
-        assertNull(model.getViewedPerson().get());
+        assertEquals(1, model.getFilteredPersonList().size());
+        assertSame(viewedPerson, model.getViewedPerson().get());
     }
 
     @Test

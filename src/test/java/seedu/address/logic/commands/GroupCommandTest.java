@@ -2,7 +2,7 @@ package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
@@ -152,12 +152,14 @@ public class GroupCommandTest {
     }
 
     @Test
-    public void execute_groupExcludesViewedPerson_clearsSelection() throws Exception {
+    public void execute_groupExcludesViewedPerson_keepsSelection() throws Exception {
         new ViewCommand(INDEX_SECOND_PERSON).execute(model);
+        Person viewedPerson = model.getViewedPerson().get();
 
         new GroupCommand(new Tag("react")).execute(model);
 
-        assertNull(model.getViewedPerson().get());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertSame(viewedPerson, model.getViewedPerson().get());
     }
 
     @Test
