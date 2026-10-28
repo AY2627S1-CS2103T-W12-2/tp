@@ -454,6 +454,7 @@ again to refresh the list.
 
 * `due` replaces any search, group or sort that was active. A later `sort added|edited|viewed` can reorder
   the contacts it shows.
+* `due` does not clear the detail panel, even if the contact you are viewing is not due.
 * No contact being due is a normal result: the list is empty and the message says `0 contact(s) listed!`.
 * Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date
   from the due list removes that contact from it.

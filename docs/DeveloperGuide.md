@@ -787,7 +787,8 @@ The sequence diagram below shows `followup 1 d/2026-10-25`, including the no-op 
 `DueCommand` uses the existing visible-list pipeline and adds no second list. When it runs it reads today from
 `Model.getClock()` (Asia/Singapore), calls `updateFilteredPersonList(new FollowUpDuePredicate(today))`, then
 `sortFilteredPersonList(SortCriterion.DUE)`. It sets the sort after the filter so `due` wins over any sort that
-was active. `FollowUpDuePredicate` calls `Person.isFollowUpDueOn`, the same rule as the overdue cue. `SortCriterion`
+was active. It does not touch `Model#getViewedPerson()`, so the detail panel keeps a viewed contact that is not due.
+`FollowUpDuePredicate` calls `Person.isFollowUpDueOn`, the same rule as the overdue cue. `SortCriterion`
 now holds a comparator per constant: `DUE` orders by follow-up date, earliest first with no date last, and
 `ModelManager.setSortCriterion` adds original-list order as the tie-breaker. `SortCommandParser` has no `due` case,
 so `sort due` is rejected. The predicate keeps the date it was built with, so the list does not change at midnight
