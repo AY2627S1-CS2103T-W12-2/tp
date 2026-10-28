@@ -9,6 +9,11 @@ import org.junit.jupiter.api.Test;
 
 public class ArgumentTokenizerTest {
 
+    private final Prefix unknownPrefix = new Prefix("--u");
+    private final Prefix pSlash = new Prefix("p/");
+    private final Prefix dashT = new Prefix("-t");
+    private final Prefix hatQ = new Prefix("^Q");
+
     @Test
     public void tokenize_tabBoundaries_preserveValuesAndEmbeddedSlashes() {
         Prefix name = new Prefix("n/");
@@ -21,11 +26,6 @@ public class ArgumentTokenizerTest {
         fields = ArgumentTokenizer.tokenize("\tn/Alice\tTan/n/example", name);
         assertEquals("Alice\tTan/n/example", fields.getValue(name).orElseThrow());
     }
-
-    private final Prefix unknownPrefix = new Prefix("--u");
-    private final Prefix pSlash = new Prefix("p/");
-    private final Prefix dashT = new Prefix("-t");
-    private final Prefix hatQ = new Prefix("^Q");
 
     @Test
     public void tokenize_emptyArgsString_noValues() {
