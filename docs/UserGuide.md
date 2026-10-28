@@ -100,6 +100,21 @@ Examples:
 
 ### Listing all contacts: `list`
 
+Shows all contacts in their original order. It clears both the active filter and sort,
+and returns the heading to `Original order - N contact(s)`.
+
+Format: `list`
+
+* Use `list` to return to the full, original-order list after `find` or `group`.
+
+### Resetting the displayed list: `reset`
+
+Clears the active filters and sort, then shows all contacts in their original order.
+
+Format: `reset`
+
+### Reading the list heading
+
 The heading above the contact list keeps showing the active filter, order, and result count,
 even after another command such as `view` replaces the command-result message.
 For example, `group t/react` shows `Group: react - Original order - 6 contact(s)` when six contacts match.
@@ -109,19 +124,7 @@ The search heading identifies an active search but does not repeat the search te
 
 Changing the filter replaces its label; filters do not combine in this release.
 Sorting preserves the filter label, and the count updates when contacts change, including to zero.
-`filter starred off` removes the filter label while keeping the sort. `list` clears both the filter and sort
-and returns the heading to `Original order - N contact(s)`.
-
-Shows all contacts in their original order. It also clears any active time sort.
-
-Format: `list`
-
-* Use `list` or `reset` to return to the full, original-order list after `find` or `group`.
-### Resetting the displayed list: `reset`
-
-Clears the active filters and sort, then shows all contacts in their original order.
-
-Format: `reset`
+`filter starred off` removes the filter label while keeping the sort.
 
 ### Sorting contacts by activity time: `sort`
 

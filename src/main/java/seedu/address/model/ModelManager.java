@@ -210,6 +210,7 @@ public class ModelManager implements Model {
 
     @Override
     public void updateFilteredPersonList(Predicate<Person> predicate) {
+        // Compatibility fallback prevents stale labels; filter commands supply explicit descriptions.
         updateFilteredPersonList(predicate, predicate == PREDICATE_SHOW_ALL_PERSONS ? "" : "Filtered contacts");
     }
 
