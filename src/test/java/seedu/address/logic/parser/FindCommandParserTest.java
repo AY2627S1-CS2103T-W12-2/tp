@@ -84,6 +84,14 @@ public class FindCommandParserTest {
     }
 
     @Test
+    public void parse_reservedPrefixInNoteOrEventText_rejectsFormat() {
+        for (String args : List.of(" nt/likes r/java", " ev/likes r/java")) {
+            assertParseFailure(parser, args,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+        }
+    }
+
+    @Test
     public void parse_emptyMalformedOrMixedSearch_rejectsCorrectMessage() {
         for (String args : new String[]{" n/", " t/", " nt/", " ev/Hack ev/", " p/91234567", " unknown/value"}) {
             assertParseFailure(parser, args,

@@ -216,7 +216,9 @@ Typed format: `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`
   At the start of the arguments or after whitespace, these prefixes give `Invalid command format!` with usage,
   even after a valid search field: for example, `find n/aisha e/p0@example.com` is invalid, not a zero-match search.
   Ordinary slash-containing text in typed terms, such as `find ev/ai/ml workshop` or `find nt/c/o NUS`, remains valid.
-* Indexes always refer to the contacts currently displayed. Use `list` or `reset` to return to the full list.
+  This also means a note or event search cannot contain these reserved prefixes after whitespace:
+  `find nt/likes r/java` is rejected even if `r/java` is intended as literal note text.
+* Indexes always refer to the contacts currently displayed. Use `list` to return to the full list.
 
 Examples:
 * `find Aisha Ben` finds contacts named `Aisha Rahman` or `Ben Tan` when both have been added.

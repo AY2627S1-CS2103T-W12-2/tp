@@ -177,6 +177,17 @@ Classes used by multiple components are in the `seedu.address.commons` package.
 
 This section describes some noteworthy details on how certain features are implemented.
 
+### Find input validation
+
+`FindCommandParser` rejects other commands' reserved fields (`e/`, `p/`, `l/`, `d/`, `md/`, `r/`, `f/`)
+at argument/whitespace boundaries before tokenizing supported search fields. Its pattern is built from
+the existing `CliSyntax` and `PhotoCommandParser.PREFIX_FILE` constants, quoting each prefix as literal text.
+This prevents an unsupported field from being absorbed into a preceding term and producing a misleading
+zero-match result. The error is the standard invalid format with find usage; parsing fails before execution,
+so the visible list, selection, saved contacts and undo/redo history remain unchanged.
+Literal slash text such as `c/o`, `ai/ml` and URLs is still accepted within typed terms, but reserved prefixes
+are rejected even when intended as note or event text (for example, `find nt/likes r/java`).
+
 ### Contact activity
 
 Each `Person` carries an `Activity` with its created, last edited and last viewed times (see the [Model component](#model-component) and [Storage component](#storage-component) for the data and file format). The model is the only place that decides when these times change, so every feature records them the same way.
@@ -417,17 +428,11 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
 **Extensions**
 
-* 1a. The user does not provide any search terms, mixes plain and typed input, or supplies a malformed prefix.
+* 1a. The user does not provide any search terms, mixes plain and typed input, supplies a malformed prefix,
+  or uses a field that find does not support (such as `e/` or `p/`).
   * 1a1. LarperBoard displays an error message.
 
     Use case resumes at step 1.
-
-  `FindCommandParser` rejects other commands' reserved fields (`e/`, `p/`, `l/`, `d/`, `md/`, `r/`, `f/`)
-  at argument/whitespace boundaries before tokenizing supported search fields. This prevents an unsupported
-  field from being absorbed into a preceding term and producing a misleading zero-match result. The error is
-  the standard invalid format with find usage; parsing fails before execution, so the visible list, selection,
-  saved contacts and undo/redo history remain unchanged. Literal slash text such as `c/o`, `ai/ml` and URLs
-  is still accepted within typed terms.
 
 * 2a. No contacts match the provided terms.
   * 2a1. LarperBoard shows an empty valid result list.
