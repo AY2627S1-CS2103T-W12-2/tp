@@ -38,8 +38,41 @@ public class MainAppTest {
     private final MainApp app = new MainApp();
 
     @Test
+    public void initModelManager_nullContactEntry_recoversWithEmptyBook() throws Exception {
+        Storage storage = createStorage();
+        Path file = storage.getAddressBookFilePath();
+        Files.createDirectories(file.getParent());
+        String invalidJson = "{\"persons\":[null]}";
+        Files.writeString(file, invalidJson);
+
+        Model model = app.initModelManager(storage, new UserPrefs());
+
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertEquals(invalidJson, Files.readString(file));
+    }
+
+    @Test
     public void version_matchesRelease() {
         assertEquals("v1.4", MainApp.VERSION);
+    }
+
+    @Test
+    public void initModelManager_nullJsonRoot_recoversWithEmptyBook() throws Exception {
+        Storage storage = createStorage();
+        Files.writeString(storage.getAddressBookFilePath(), "null");
+
+        Model model = app.initModelManager(storage, new UserPrefs());
+
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertEquals("null", Files.readString(storage.getAddressBookFilePath()));
+    }
+
+    @Test
+    public void initPrefs_nullJsonRoot_recoversWithDefaults() throws Exception {
+        Path file = testFolder.resolve("null-preferences.json");
+        Files.writeString(file, "null");
+
+        assertEquals(new UserPrefs(), app.initPrefs(new JsonUserPrefsStorage(file)));
     }
 
     @Test

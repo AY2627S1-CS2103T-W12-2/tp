@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static seedu.address.testutil.Assert.assertThrows;
 
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Optional;
@@ -22,6 +23,15 @@ public class JsonUserPrefsStorageTest {
 
     @TempDir
     public Path testFolder;
+
+    @Test
+    public void readUserPrefs_nullRoot_reportsDataErrorAndPreservesFile() throws Exception {
+        Path file = testFolder.resolve("null-preferences.json");
+        Files.writeString(file, "null");
+
+        assertThrows(DataLoadingException.class, () -> new JsonUserPrefsStorage(file).readUserPrefs());
+        assertEquals("null", Files.readString(file));
+    }
 
     @Test
     public void readUserPrefs_nullFilePath_throwsNullPointerException() {
