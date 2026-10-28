@@ -141,19 +141,6 @@ public class SortCommandTest {
         assertEquals(List.of(oldest, newest), model.getFilteredPersonList());
     }
 
-    @Test
-    public void execute_resetAfterSort_restoresOriginalOrder() throws Exception {
-        Person oldest = person("Oldest", "11111111", new Activity(EARLIEST, null, null));
-        Person newest = person("Newest", "22222222", new Activity(NOW, null, null));
-        ModelManager model = modelWith(oldest, newest);
-
-        new SortCommand(SortCriterion.ADDED).execute(model);
-        CommandResult result = new ResetCommand().execute(model);
-
-        assertEquals(ResetCommand.MESSAGE_SUCCESS, result.getFeedbackToUser());
-        assertEquals(List.of(oldest, newest), model.getFilteredPersonList());
-    }
-
     private static ModelManager modelWith(Person... persons) {
         return modelWith(null, persons);
     }

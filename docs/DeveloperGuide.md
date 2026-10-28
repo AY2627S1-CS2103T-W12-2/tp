@@ -263,7 +263,7 @@ index-based command. This ensures that the index a user sees is the contact that
 operate on.
 
 The comparator orders known activity times newest first and unknown times last. It then uses the source address-book
-order as a deterministic tie-breaker. Changing a filter leaves the active sort intact; `list` and `reset` clear both
+order as a deterministic tie-breaker. Changing a filter leaves the active sort intact; `list` clears both
 the filter and sort. A successful `view` replaces the contact with an updated `lastViewedAt`, which automatically causes the
 `SortedList` to reorder when `sort viewed` is active.
 
@@ -819,8 +819,8 @@ Given below are instructions to test the app manually.
 1. Run `sort viewed`, then `view 2`.<br>
    Expected: The viewed contact moves to the top and remains selected in the detail panel.
 
-1. Run `find NAME`, followed by `sort edited`, then `list` and `reset`.<br>
-   Expected: Filtering keeps the active sort; `list` and `reset` restore the full original-order list.
+1. Run `find NAME`, followed by `sort edited`, then `list`.<br>
+   Expected: Filtering keeps the active sort; `list` restores the full original-order list.
 
 ### Contact activity times
 
