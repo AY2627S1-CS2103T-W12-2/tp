@@ -5,6 +5,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.storage.JsonAdaptedPerson.MISSING_FIELD_MESSAGE_FORMAT;
 import static seedu.address.testutil.Assert.assertThrows;
+import static seedu.address.testutil.TypicalNotes.EMOJI;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 
 import java.time.Instant;
@@ -288,6 +289,27 @@ public class JsonAdaptedPersonTest {
         for (Object value : invalidValues) {
             assertThrows(IllegalValueException.class, noteError(), personWithNote(value)::toModelType);
         }
+    }
+
+    @Test
+    public void toModelType_noteOfEmoji_countsEachEmojiAsOneCharacter() throws Exception {
+        String halfOfTheLimitPlusOne = EMOJI.repeat(Note.MAX_LENGTH / 2 + 1);
+        String longest = EMOJI.repeat(Note.MAX_LENGTH);
+
+        assertEquals(new Note(halfOfTheLimitPlusOne), personWithNote(halfOfTheLimitPlusOne).toModelType().getNote());
+        assertEquals(new Note(longest), personWithNote(longest).toModelType().getNote());
+        assertThrows(IllegalValueException.class, noteError(),
+                personWithNote(EMOJI.repeat(Note.MAX_LENGTH + 1))::toModelType);
+    }
+
+    @Test
+    public void toModelType_noteOfEmojiRoundTripThroughJson_isKept() throws Exception {
+        Person person = new PersonBuilder(BENSON).withNote(EMOJI.repeat(Note.MAX_LENGTH)).build();
+
+        String json = JsonUtil.toJsonString(new JsonAdaptedPerson(person));
+        Person loaded = JsonUtil.fromJsonString(json, JsonAdaptedPerson.class).toModelType();
+
+        assertEquals(person, loaded);
     }
 
     @Test

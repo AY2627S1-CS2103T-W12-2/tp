@@ -3,6 +3,7 @@ package seedu.address.ui;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
 import static seedu.address.logic.commands.CommandTestUtil.VALID_LINKEDIN_AMY;
@@ -76,6 +77,16 @@ public class PersonCardTest {
 
     private Label followUp(PersonCard card) {
         return (Label) card.getRoot().lookup("#followUp");
+    }
+
+    @Test
+    public void constructor_card_showsNoPhotoOrPhotoPlaceholder() {
+        Person withPhoto = new PersonBuilder().build().toBuilder().withPhotoPath("photos/face.png").build();
+        PersonCard card = new PersonCard(withPhoto, 1);
+
+        // the photo is shown only in the detail panel, so the list card has no room for either
+        assertNull(card.getRoot().lookup("#photo"));
+        assertNull(card.getRoot().lookup("#photoPlaceholder"));
     }
 
     @Test

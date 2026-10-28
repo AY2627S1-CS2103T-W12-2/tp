@@ -78,10 +78,14 @@ The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDi
 
 The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
 
-`PersonCard` and `PersonDetailPanel` use `ContactPhoto` to display bounded images from validated
-`PhotoStorage` bytes. A single background worker performs file validation and image decoding,
-so building a contact list does not block the JavaFX thread on photo reads. A placeholder is shown
-until loading finishes. Replaced requests and discarded contact cards cancel queued photo work;
+`PersonDetailPanel` uses `ContactPhoto` to display a bounded image from validated `PhotoStorage` bytes. The photo
+is shown only in the detail panel, to the right of the name, in a fixed 160×120 frame (`#photoFrame` in
+`PersonDetailPanel.fxml`); the image is scaled to fit inside it, and the "No photo" placeholder fills the same
+frame, so the layout does not change with the shape of the photo. The name and the frame are in a `GridPane`
+(`#header`); when the header is narrower than 400 pixels (`PersonDetailPanel#isNarrowHeader`), the panel moves
+the frame below the name so that a long name is not squeezed into a narrow column. `PersonCard` shows no photo. A single
+background worker performs file validation and image decoding, so showing a contact does not block the JavaFX
+thread on photo reads. A placeholder is shown until loading finishes. Replaced requests cancel queued photo work;
 an already-running decode can finish, but its stale result is never displayed.
 The detail panel observes
 the viewed person and scrolls vertically to keep full meeting and contact details accessible.
@@ -143,7 +147,7 @@ The `Model` component,
 * does not depend on any of the other three components (as the `Model` represents data entities of the domain, they should make sense on their own without depending on other components)
 * gives every `Person` an immutable `Activity` holding when the person was created, last edited and last viewed. Each time is optional: an unknown time is absent, never invented. `Person#withActivity` copies a person with new activity, and `Person#hasSameDetails` compares two persons while ignoring activity.
 * gives every `Person` a `starred` flag, which is false by default. The `star` and `unstar` commands change it through `Person#toBuilder` and `Model#editPerson`, and the `filter starred` command shows the starred persons by passing `Person#isStarred` to `Model#updateFilteredPersonList`.
-* gives every `Person` an optional free-form `Note` of at most 1000 characters. An empty `Note` means that the person has no note. The `note` command changes it through `Person#toBuilder` and `Model#editPerson`, so the other fields and the activity times are kept, and the last edited time changes only when the note really changes.
+* gives every `Person` an optional free-form `Note` of at most 1000 characters, counted by `Note#countCharacters` as Unicode code points, so an emoji that Java stores as two `char`s counts as one (the command, the parser and the storage all use this one count). An empty `Note` means that the person has no note. The `note` command changes it through `Person#toBuilder` and `Model#editPerson`, so the other fields and the activity times are kept, and the last edited time changes only when the note really changes.
 
 <div markdown="span" class="alert alert-info">:information_source: **Note:** The alternative, arguably more object-oriented, design below keeps a unique list of tags in `AddressBook`, and each `Person` references tags from that list. This lets `AddressBook` maintain one `Tag` object per unique tag instead of each `Person` holding its own `Tag` objects.<br>
 
