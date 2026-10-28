@@ -92,7 +92,7 @@ name, so the same tag always looks the same in the contact list and detail panel
 * `LINKEDIN_HANDLE` is the last part of the contact's LinkedIn profile link (e.g. `john-doe` in `linkedin.com/in/john-doe`). It may contain only letters, digits and hyphens, and must be 3 to 50 characters long.
 * `NAME` must contain 1 to 50 alphanumeric characters and spaces and cannot be blank. Leading and trailing spaces are removed, and repeated whitespace is collapsed.
 * `PHONE` is optional and must contain 3 to 20 digits when supplied.
-* `EMAIL` is optional and must be a valid email address when supplied.
+* `EMAIL` is optional and must be a valid email address of at most 254 characters when supplied.
 * A contact is a duplicate when its name matches an existing contact's name ignoring case and its phone number is the same. A different phone number permits the same name. Duplicate contacts cannot be added.
 * In the contact list, a card shows its tags on a single row. If they do not all fit, the row ends with `+N`, where `N` is the number of tags left out. Use `view INDEX` to see all of a contact's tags.
 
