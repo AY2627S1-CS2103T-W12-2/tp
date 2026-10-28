@@ -11,8 +11,8 @@ public class Email {
 
     private static final String SPECIAL_CHARACTERS = "+_.-";
     private static final int MAX_LENGTH = 254;
-    public static final String MESSAGE_CONSTRAINTS = "Emails should be of the format local-part@domain "
-            + "contain at most 254 characters, and adhere to the following constraints:\n"
+    public static final String MESSAGE_CONSTRAINTS = "Emails should be of the format local-part@domain, "
+            + "contain at most " + MAX_LENGTH + " characters, and adhere to the following constraints:\n"
             + "1. The local-part should only contain alphanumeric characters and these special characters, excluding "
             + "the parentheses, (" + SPECIAL_CHARACTERS + "). The local-part may not start or end with any special "
             + "characters.\n"
@@ -49,7 +49,7 @@ public class Email {
      * Returns true if a given string is a valid email.
      */
     public static boolean isValidEmail(String test) {
-        return test.isEmpty() || test.length() <= MAX_LENGTH && test.matches(VALIDATION_REGEX);
+        return test.isEmpty() || (test.length() <= MAX_LENGTH && test.matches(VALIDATION_REGEX));
     }
 
     @Override

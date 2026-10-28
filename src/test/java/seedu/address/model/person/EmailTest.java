@@ -28,6 +28,14 @@ public class EmailTest {
     }
 
     @Test
+    public void isValidEmail_hyphenatedFinalLabel_acceptsValidLabels() {
+        assertTrue(Email.isValidEmail("a@a-b"));
+        assertTrue(Email.isValidEmail("a@b.c-d"));
+        assertFalse(Email.isValidEmail("a@b.-cd"));
+        assertFalse(Email.isValidEmail("a@b.cd-"));
+    }
+
+    @Test
     public void constructor_invalidEmail_throwsIllegalArgumentException() {
         String invalidEmail = "not-an-email";
         assertThrows(IllegalArgumentException.class, () -> new Email(invalidEmail));
