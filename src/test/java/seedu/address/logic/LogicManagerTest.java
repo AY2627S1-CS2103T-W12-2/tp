@@ -20,6 +20,7 @@ import static seedu.address.testutil.TypicalTimes.NOW;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -429,6 +430,34 @@ public class LogicManagerTest {
 
         assertTrue(logic.getFilteredPersonList().isEmpty());
         assertFalse(model.getAddressBook().getPersonList().get(1).getTags().contains(new Tag("featured")));
+    }
+
+    @Test
+    public void execute_findWithUnsupportedField_preservesStateAndSavedData() throws Exception {
+        model.addPerson(AMY);
+        model.addPerson(BOB);
+        logic.execute("find n/Amy");
+        logic.execute("sort added");
+        logic.execute("view 1");
+        AddressBook contactsBefore = new AddressBook(model.getAddressBook());
+        List<Person> visibleBefore = List.copyOf(model.getFilteredPersonList());
+        Person viewedBefore = model.getViewedPerson().get();
+        String statusBefore = model.getPersonListStatus().get();
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        String savedBefore = Files.readString(dataFile);
+        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
+
+        for (String args : List.of("e/p0@example.com", "n/aisha e/p0@example.com",
+                "n/aisha p/90000000", "n/aisha l/user-0x")) {
+            assertThrows(ParseException.class, expectedMessage, () -> logic.execute("find " + args));
+            assertEquals(contactsBefore, model.getAddressBook());
+            assertEquals(visibleBefore, model.getFilteredPersonList());
+            assertEquals(viewedBefore, model.getViewedPerson().get());
+            assertEquals(statusBefore, model.getPersonListStatus().get());
+            assertEquals(savedBefore, Files.readString(dataFile));
+            assertFalse(model.canUndo());
+            assertFalse(model.canRedo());
+        }
     }
 
     @Test

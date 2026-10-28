@@ -4,6 +4,8 @@ import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 
 import java.util.List;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import seedu.address.logic.commands.FindCommand;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -15,6 +17,14 @@ import seedu.address.model.person.TypedSearchPredicate;
  */
 public class FindCommandParser implements Parser<FindCommand> {
     private static final Pattern PREFIX_LIKE_TOKEN = Pattern.compile("(?:^|\\s)[A-Za-z]+/");
+    // Reserve other commands' fields without rejecting literal text such as c/o, ai/ml or URLs.
+    private static final Pattern UNSUPPORTED_FIELD = Pattern.compile(Stream.of(
+            CliSyntax.PREFIX_EMAIL, CliSyntax.PREFIX_PHONE, CliSyntax.PREFIX_LINKEDIN,
+            CliSyntax.PREFIX_FOLLOW_UP_DATE, CliSyntax.PREFIX_MEETING_DATE, CliSyntax.PREFIX_ROLE,
+            PhotoCommandParser.PREFIX_FILE)
+            .map(Prefix::getPrefix)
+            .map(Pattern::quote)
+            .collect(Collectors.joining("|", "(?:^|\\s)(?:", ")")));
 
     /**
      * Parses the given {@code String} of arguments in the context of the FindCommand
@@ -26,6 +36,10 @@ public class FindCommandParser implements Parser<FindCommand> {
         if (trimmedArgs.isEmpty()) {
             throw new ParseException(
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+        }
+
+        if (UNSUPPORTED_FIELD.matcher(trimmedArgs).find()) {
+            throw invalidFormat();
         }
 
         ArgumentMultimap fields = ArgumentTokenizer.tokenize(args, CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_TAG,

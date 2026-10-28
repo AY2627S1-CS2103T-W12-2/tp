@@ -210,6 +210,12 @@ Typed format: `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`
 * Repeated terms in one field use OR. Different fields use AND. For example, `find n/Alex n/Sam t/hackathon` finds an Alex or Sam contact that also has a `hackathon` tag.
 * Do not mix plain keywords and typed prefixes. The message is `Use either plain keywords or field prefixes in one find command.`
 * Empty terms and malformed prefixes show the standard format-and-usage error.
+* Other command fields (`e/`, `p/`, `l/`, `d/`, `md/`, `r/`, and `f/`) are not supported by `find`.
+  At the start of the arguments or after whitespace, these prefixes give `Invalid command format!` with usage,
+  even after a valid search field: for example, `find n/aisha e/p0@example.com` is invalid, not a zero-match search.
+  Ordinary slash-containing text in typed terms, such as `find ev/ai/ml workshop` or `find nt/c/o NUS`, remains valid.
+  This also means a note or event search cannot contain these reserved prefixes after whitespace:
+  `find nt/likes r/java` is rejected even if `r/java` is intended as literal note text.
 * Indexes always refer to the contacts currently displayed. Use `list` to return to the full list.
 
 Examples:
