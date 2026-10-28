@@ -63,6 +63,9 @@ and `sort name` / `sort starred` from [#128](https://github.com/AY2627S1-CS2103T
 * Put a required `INDEX` first; prefixed parameters can then be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
 
+* Spaces or tabs can separate prefixed parameters, including in pasted commands.
+  The command box converts pasted tabs to spaces before running the command.
+
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored. The `undo` and `redo` commands reject arguments.<br>
   For example, `help 123` is interpreted as `help`.
 

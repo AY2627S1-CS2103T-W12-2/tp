@@ -75,6 +75,14 @@ public class LogicManagerTest {
     }
 
     @Test
+    public void execute_tabSeparatedAddAndEdit_targetTheContact() throws Exception {
+        logic.execute("add\tn/Alice\tp/12345678");
+        assertEquals("Alice", model.getFilteredPersonList().getFirst().getName().fullName);
+        logic.execute("edit 1\tp/87654321");
+        assertEquals("87654321", model.getFilteredPersonList().getFirst().getPhone().value);
+    }
+
+    @Test
     public void execute_invalidCommandFormat_throwsParseException() {
         String invalidCommand = "uicfhmowqewca";
         assertParseException(invalidCommand, MESSAGE_UNKNOWN_COMMAND_WITH_LIST);
