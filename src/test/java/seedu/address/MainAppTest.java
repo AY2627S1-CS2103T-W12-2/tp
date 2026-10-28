@@ -38,6 +38,20 @@ public class MainAppTest {
     private final MainApp app = new MainApp();
 
     @Test
+    public void initModelManager_nullContactEntry_recoversWithEmptyBook() throws Exception {
+        Storage storage = createStorage();
+        Path file = storage.getAddressBookFilePath();
+        Files.createDirectories(file.getParent());
+        String invalidJson = "{\"persons\":[null]}";
+        Files.writeString(file, invalidJson);
+
+        Model model = app.initModelManager(storage, new UserPrefs());
+
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertEquals(invalidJson, Files.readString(file));
+    }
+
+    @Test
     public void version_matchesRelease() {
         assertEquals("v1.4", MainApp.VERSION);
     }
