@@ -218,13 +218,15 @@ Design considerations:
 * **Use current source positions for equal times.** Contacts can be added or replaced while a sort is active. Looking
   up positions in the current address book keeps ties in original order even after those changes.
 
-### Starring contacts
+### Viewed contact selection
 
 The `find`, `group`, and `filter` commands only update the visible-list predicate;
 they do not clear `Model#getViewedPerson()` when a contact is filtered out.
 The detail selection is independent of list membership, including for zero results.
 A subsequent `view` selects by displayed index, while deleting the viewed contact
 or clearing the address book still clears the detail selection.
+
+### Starring contacts
 
 `StarCommand` serves both `star` and `unstar`: `StarCommandParser` is created with `true` or `false` by `AddressBookParser`, so the two commands share one parser and one command class. `FilterCommand` serves `filter starred` and `filter starred off`.
 
