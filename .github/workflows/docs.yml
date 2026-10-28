@@ -15,6 +15,11 @@ on:
 permissions:
   contents: read
 
+concurrency:
+  group: documentation-${{ github.ref }}
+  # Finish an active production deployment before starting another; supersede stale PR builds.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -63,7 +68,7 @@ jobs:
           done
 
       - name: Configure Pages
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         uses: actions/configure-pages@v5
 
       - name: Build Jekyll site
@@ -73,13 +78,13 @@ jobs:
           destination: ./docs/_site
 
       - name: Upload Pages artifact
-        if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+        if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
         uses: actions/upload-pages-artifact@v4
         with:
           path: ./docs/_site
 
   deploy:
-    if: github.event_name == 'push' && github.ref == 'refs/heads/master'
+    if: github.ref == 'refs/heads/master' && github.event_name != 'pull_request'
     needs: build
     runs-on: ubuntu-latest
     permissions:
