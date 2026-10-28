@@ -20,6 +20,7 @@ import static seedu.address.testutil.TypicalTimes.NOW;
 
 import java.io.IOException;
 import java.nio.file.AccessDeniedException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -103,6 +104,20 @@ public class LogicManagerTest {
         assertFalse(result.isShowHelp());
         assertEquals(before, model.getAddressBook());
         assertFalse(model.canUndo());
+    }
+
+    @Test
+    public void execute_helpAndExit_preserveInvalidDataFileUntilList() throws Exception {
+        Path file = temporaryFolder.resolve("addressBook.json");
+        String invalidJson = "{invalid json";
+        Files.writeString(file, invalidJson);
+
+        assertTrue(logic.execute("help").isShowHelp());
+        assertTrue(logic.execute("exit").isExit());
+        assertEquals(invalidJson, Files.readString(file));
+
+        logic.execute("list");
+        assertTrue(new JsonAddressBookStorage(file).readAddressBook().orElseThrow().getPersonList().isEmpty());
     }
 
     @Test

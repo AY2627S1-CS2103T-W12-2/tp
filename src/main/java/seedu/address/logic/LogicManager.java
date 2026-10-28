@@ -66,6 +66,7 @@ public class LogicManager implements Logic {
         }
 
         // Help and exit do not change contact data and must remain available after a save failure.
+        // Only HelpCommand and ExitCommand currently set these action flags.
         if (commandResult.isShowHelp() || commandResult.isExit()) {
             return commandResult;
         }
