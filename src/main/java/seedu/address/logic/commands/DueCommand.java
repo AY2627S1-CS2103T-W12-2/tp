@@ -25,7 +25,7 @@ public class DueCommand extends Command {
         requireNonNull(model);
         // today is read when the command runs, in the clock's zone (Asia/Singapore), and never rescheduled
         LocalDate today = LocalDate.now(model.getClock());
-        model.updateFilteredPersonList(new FollowUpDuePredicate(today));
+        model.updateFilteredPersonList(new FollowUpDuePredicate(today), "Due on/before " + today);
         // set after the filter so that due wins over any sort that was active
         model.sortFilteredPersonList(SortCriterion.DUE);
         return new CommandResult(String.format(MESSAGE_SUCCESS, today, model.getFilteredPersonList().size()));

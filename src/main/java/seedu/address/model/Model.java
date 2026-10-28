@@ -114,6 +114,13 @@ public interface Model {
     void updateFilteredPersonList(Predicate<Person> predicate);
 
     /**
+     * Replaces the filter and its user-facing description together, retaining the active sort.
+     * An empty description denotes the full list; callers should use it only when showing all contacts.
+     * @throws NullPointerException if either argument is null.
+     */
+    void updateFilteredPersonList(Predicate<Person> predicate, String filterDescription);
+
+    /**
      * Sorts the currently filtered list according to {@code sortCriterion}.
      */
     void sortFilteredPersonList(SortCriterion sortCriterion);
@@ -124,7 +131,7 @@ public interface Model {
     void clearPersonListSort();
 
     /**
-     * Returns text that describes the currently visible list's order and size.
+     * Returns text that describes the currently visible list's filter, order and size.
      */
     ReadOnlyStringProperty getPersonListStatus();
 

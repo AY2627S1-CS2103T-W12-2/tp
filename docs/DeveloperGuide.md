@@ -288,6 +288,20 @@ Design considerations:
 * **Use current source positions for equal times.** Contacts can be added or replaced while a sort is active. Looking
   up positions in the current address book keeps ties in original order even after those changes.
 
+### Active filter label
+
+`ModelManager` keeps a display description alongside the active filter predicate. Commands use
+`updateFilteredPersonList(predicate, description)` to replace them together without changing the sort.
+`find` supplies `Find results`, `group` supplies the normalized tag, `filter starred` supplies `Starred only`,
+and `due` supplies its captured cutoff date. The one-argument overload clears the description for
+`PREDICATE_SHOW_ALL_PERSONS` and uses `Filtered contacts` for other predicates, avoiding a stale label.
+
+The read-only `personListStatus` property combines this description with the sort and live result count.
+`PersonListPanel` binds its wrapping heading to that property, so subsequent command feedback does not hide
+the active filter. Filter descriptions are session-only, not JSON fields. `State` includes the description
+alongside the predicate and sort so undo, redo, and failed-save rollback restore consistent feedback.
+This does not change selection rules or implement combined filters from #128.
+
 ### Viewed contact selection
 
 The `find`, `group`, and `filter` commands only update the visible-list predicate;

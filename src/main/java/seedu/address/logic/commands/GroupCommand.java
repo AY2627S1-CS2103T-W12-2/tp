@@ -33,7 +33,7 @@ public class GroupCommand extends Command {
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
-        model.updateFilteredPersonList(predicate);
+        model.updateFilteredPersonList(predicate, "Group: " + tag.tagName);
         return new CommandResult(String.format(MESSAGE_SUCCESS, tag, model.getFilteredPersonList().size()));
     }
 

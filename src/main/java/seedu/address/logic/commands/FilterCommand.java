@@ -43,7 +43,8 @@ public class FilterCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         // TODO #128: combine with the active find/group filter; for now this replaces it, and "off" shows everyone
-        model.updateFilteredPersonList(starredOnly ? Person::isStarred : Model.PREDICATE_SHOW_ALL_PERSONS);
+        model.updateFilteredPersonList(starredOnly ? Person::isStarred : Model.PREDICATE_SHOW_ALL_PERSONS,
+                starredOnly ? "Starred only" : "");
 
         int count = model.getFilteredPersonList().size();
         logger.info("Starred filter " + (starredOnly ? "on" : "off") + ": " + count + " contact(s) shown");

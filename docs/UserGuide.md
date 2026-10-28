@@ -109,6 +109,19 @@ Format: `list`
 * Use `list` to return to the full, original-order list after `find`, `group`, `filter starred`, or `due`.
 * `list` does not clear command history.
 
+### Reading the list heading
+
+The heading above the contact list keeps showing the active filter, order, and result count,
+even after another command such as `view` replaces the command-result message.
+For example, `group t/react` shows `Group: react - Original order - 6 contact(s)` when six contacts match.
+`filter starred` shows `Starred only`, while plain and typed `find` show `Find results`.
+The search heading identifies an active search but does not repeat the search terms.
+`due` shows `Due on/before YYYY-MM-DD`, using the date when the command ran.
+
+Changing the filter replaces its label; filters do not combine in this release.
+Sorting preserves the filter label, and the count updates when contacts change, including to zero.
+`filter starred off` removes the filter label while keeping the sort.
+
 ### Sorting contacts by activity time: `sort`
 
 Sorts the currently displayed contacts by a recorded activity time. The active order and result count are shown above

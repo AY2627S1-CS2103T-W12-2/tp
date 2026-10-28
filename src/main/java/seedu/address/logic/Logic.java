@@ -25,7 +25,7 @@ public interface Logic {
     /** Returns an unmodifiable view of the filtered list of persons */
     ObservableList<Person> getFilteredPersonList();
 
-    /** Returns text that describes the currently visible list's order and size. */
+    /** Returns text that describes the currently visible list's filter, order and size. */
     ReadOnlyStringProperty getPersonListStatus();
 
     /** Returns the person being viewed in the detail panel, which is null if no person is being viewed */
