@@ -28,10 +28,6 @@ public class DueCommand extends Command {
         model.updateFilteredPersonList(new FollowUpDuePredicate(today), "Due on/before " + today);
         // set after the filter so that due wins over any sort that was active
         model.sortFilteredPersonList(SortCriterion.DUE);
-        if (model.getViewedPerson().get() != null
-                && !model.getFilteredPersonList().contains(model.getViewedPerson().get())) {
-            model.setViewedPerson(null);
-        }
         return new CommandResult(String.format(MESSAGE_SUCCESS, today, model.getFilteredPersonList().size()));
     }
 

@@ -1,6 +1,7 @@
 package seedu.address;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
@@ -95,6 +96,7 @@ public class MainAppTest {
         Model model = app.initModelManager(createStorage(), new UserPrefs());
 
         assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertFalse(Files.exists(testFolder.resolve("addressbook.json.bak")));
     }
 
     @Test

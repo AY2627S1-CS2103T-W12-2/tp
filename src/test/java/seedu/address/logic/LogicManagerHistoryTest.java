@@ -15,10 +15,7 @@ import static seedu.address.testutil.TypicalTimes.NOW;
 
 import java.io.IOException;
 import java.nio.file.Path;
-import java.time.Clock;
-import java.time.Instant;
 import java.time.LocalDate;
-import java.time.ZoneId;
 import java.time.temporal.ChronoUnit;
 import java.util.Optional;
 import java.util.Set;
@@ -42,6 +39,7 @@ import seedu.address.model.tag.Tag;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
+import seedu.address.testutil.MutableClock;
 import seedu.address.testutil.PersonBuilder;
 
 public class LogicManagerHistoryTest {
@@ -569,34 +567,5 @@ public class LogicManagerHistoryTest {
 
     private static String addAmy() {
         return "add" + NAME_DESC_AMY + PHONE_DESC_AMY + EMAIL_DESC_AMY;
-    }
-
-    private static class MutableClock extends Clock {
-        private Instant instant;
-        private final ZoneId zone;
-
-        MutableClock(Instant instant, ZoneId zone) {
-            this.instant = instant;
-            this.zone = zone;
-        }
-
-        void advanceSeconds(long seconds) {
-            instant = instant.plusSeconds(seconds);
-        }
-
-        @Override
-        public ZoneId getZone() {
-            return zone;
-        }
-
-        @Override
-        public Clock withZone(ZoneId zone) {
-            return new MutableClock(instant, zone);
-        }
-
-        @Override
-        public Instant instant() {
-            return instant;
-        }
     }
 }

@@ -1,6 +1,7 @@
 package seedu.address.logic.commands;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -84,6 +85,31 @@ public class DueCommandTest {
     }
 
     @Test
+    public void execute_leapDayInSingapore_decidesTodayAcrossFebruaryTwentyNinth() throws Exception {
+        Person dueOnLeapDay = person("Leap", "10000001", LocalDate.of(2028, 2, 29));
+        Person dueNextDay = person("Next", "10000002", LocalDate.of(2028, 3, 1));
+        // 2028-02-28T16:00:00Z is 00:00 on 29 Feb in Singapore, and 2028-02-29T15:59:59Z is still 29 Feb
+        Model startOfLeapDay = modelWith(clockAt("2028-02-28T16:00:00Z"), dueOnLeapDay, dueNextDay);
+        Model endOfLeapDay = modelWith(clockAt("2028-02-29T15:59:59Z"), dueOnLeapDay, dueNextDay);
+        Model afterLeapDay = modelWith(clockAt("2028-02-29T16:00:00Z"), dueOnLeapDay, dueNextDay);
+        Model beforeLeapDay = modelWith(clockAt("2028-02-28T15:59:59Z"), dueOnLeapDay, dueNextDay);
+
+        CommandResult result = new DueCommand().execute(startOfLeapDay);
+        CommandResult endResult = new DueCommand().execute(endOfLeapDay);
+        new DueCommand().execute(afterLeapDay);
+        new DueCommand().execute(beforeLeapDay);
+
+        assertEquals(String.format(DueCommand.MESSAGE_SUCCESS, LocalDate.of(2028, 2, 29), 1),
+                result.getFeedbackToUser());
+        assertEquals(String.format(DueCommand.MESSAGE_SUCCESS, LocalDate.of(2028, 2, 29), 1),
+                endResult.getFeedbackToUser());
+        assertEquals(List.of(dueOnLeapDay), startOfLeapDay.getFilteredPersonList());
+        assertEquals(List.of(dueOnLeapDay), endOfLeapDay.getFilteredPersonList());
+        assertEquals(List.of(dueOnLeapDay, dueNextDay), afterLeapDay.getFilteredPersonList());
+        assertTrue(beforeLeapDay.getFilteredPersonList().isEmpty());
+    }
+
+    @Test
     public void execute_overridesActiveSort() throws Exception {
         Person late = person("Late", "10000001", TODAY);
         Person early = person("Early", "10000002", TODAY.minusDays(9));
@@ -125,7 +151,7 @@ public class DueCommandTest {
     }
 
     @Test
-    public void execute_clearsViewedContactThatIsNotDue() throws Exception {
+    public void execute_keepsViewedContactThatIsNotDue() throws Exception {
         Person notDue = person("NotDue", "10000001", null);
         Person due = person("Due", "10000002", TODAY);
         Model model = modelWith(TypicalTimes.FIXED_CLOCK, notDue, due);
@@ -133,7 +159,8 @@ public class DueCommandTest {
 
         new DueCommand().execute(model);
 
-        assertNull(model.getViewedPerson().get());
+        assertEquals(notDue, model.getViewedPerson().get());
+        assertFalse(model.getFilteredPersonList().contains(notDue));
     }
 
     @Test

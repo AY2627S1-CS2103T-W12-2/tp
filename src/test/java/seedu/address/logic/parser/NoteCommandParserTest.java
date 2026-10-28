@@ -6,6 +6,7 @@ import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailur
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
+import static seedu.address.testutil.TypicalNotes.EMOJI;
 
 import org.junit.jupiter.api.Test;
 
@@ -43,6 +44,16 @@ public class NoteCommandParserTest {
     public void parse_surroundingWhitespace_isTrimmed() {
         assertParseSuccess(parser, "   1   nt/   spaced out   ",
                 new NoteCommand(INDEX_FIRST_PERSON, new Note("spaced out")));
+    }
+
+    @Test
+    public void parse_noteOfEmoji_countsEachEmojiAsOneCharacter() {
+        String longest = EMOJI.repeat(Note.MAX_LENGTH);
+
+        assertParseSuccess(parser, "1 nt/" + longest, new NoteCommand(INDEX_FIRST_PERSON, new Note(longest)));
+        assertParseSuccess(parser, "1 nt/" + EMOJI.repeat(Note.MAX_LENGTH / 2 + 1), new NoteCommand(
+                INDEX_FIRST_PERSON, new Note(EMOJI.repeat(Note.MAX_LENGTH / 2 + 1))));
+        assertParseFailure(parser, "1 nt/" + longest + EMOJI, Note.MESSAGE_TOO_LONG);
     }
 
     @Test
