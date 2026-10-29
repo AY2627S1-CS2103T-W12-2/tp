@@ -96,6 +96,7 @@ public class ParserUtil {
      */
     public static Name parseName(String name) throws ParseException {
         requireNonNull(name);
+        // Name composes accents, so the same name typed on different keyboards is one name
         String normalizedName = name.trim().replaceAll("\\s+", " ");
         if (!Name.isValidName(normalizedName)) {
             throw new ParseException(Name.MESSAGE_CONSTRAINTS);

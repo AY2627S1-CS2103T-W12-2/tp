@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.text.Normalizer;
+
 /**
  * Represents a Person's name in the address book.
  * Guarantees: immutable; is valid as declared in {@link #isValidName(String)}
@@ -10,14 +12,17 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-        "Names must be 1-50 characters: A-Z, a-z, 0-9, spaces, - and '. "
+        "Names must be 1-50 characters: letters, digits, spaces, - and '. "
                 + "Start with a letter or digit.";
 
     /*
-     * The first character of the name must be alphanumeric, so a name cannot start with a space, hyphen or
-     * apostrophe, and " " (a blank string) is not a valid input.
+     * Letters of any language, combining marks (so that an accent typed as a separate character is accepted),
+     * digits, spaces, hyphens and apostrophes (straight or curly). The first character must be a letter or a
+     * digit, so a name cannot start with a space, hyphen or apostrophe, and " " (a blank string) is not valid.
      */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} '-]*";
+    public static final String VALIDATION_REGEX = "[\\p{L}\\p{Nd}][\\p{L}\\p{M}\\p{Nd} '’-]*";
+
+    private static final int MAX_LENGTH = 50;
 
     public final String fullName;
 
@@ -29,14 +34,27 @@ public class Name {
     public Name(String name) {
         requireNonNull(name);
         checkArgument(isValidName(name), MESSAGE_CONSTRAINTS);
-        fullName = name;
+        fullName = normalize(name);
+    }
+
+    /**
+     * Returns {@code text} with its accents composed into single characters (Unicode NFC), so that the same name
+     * typed or pasted in different ways is one name. Names are stored in this form, and search terms for names
+     * are converted to it before matching.
+     */
+    public static String normalize(String text) {
+        return Normalizer.normalize(text, Normalizer.Form.NFC);
     }
 
     /**
      * Returns true if a given string is a valid name.
+     * The rules apply to the composed form of the string, so an accent typed as a separate character is accepted.
+     * The length limit counts characters as a user sees them, so a letter outside the Basic Multilingual Plane
+     * counts once.
      */
     public static boolean isValidName(String test) {
-        return test.matches(VALIDATION_REGEX) && test.length() <= 50;
+        String composed = normalize(test);
+        return composed.matches(VALIDATION_REGEX) && composed.codePointCount(0, composed.length()) <= MAX_LENGTH;
     }
 
     @Override

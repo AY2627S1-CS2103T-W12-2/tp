@@ -18,7 +18,8 @@ public final class TypedSearchPredicate implements Predicate<Person> {
     /** Creates a predicate from the typed terms for each searchable contact field. */
     public TypedSearchPredicate(List<String> nameTerms, List<String> tagTerms, List<String> noteTerms,
             List<String> eventTerms) {
-        this.nameTerms = List.copyOf(nameTerms);
+        // accents are composed like the stored names (see Name), so a pasted accent still finds the contact
+        this.nameTerms = nameTerms.stream().map(Name::normalize).toList();
         this.tagTerms = List.copyOf(tagTerms);
         this.noteTerms = List.copyOf(noteTerms);
         this.eventTerms = List.copyOf(eventTerms);

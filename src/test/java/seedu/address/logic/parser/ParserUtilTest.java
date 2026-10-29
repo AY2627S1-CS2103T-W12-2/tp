@@ -146,8 +146,24 @@ public class ParserUtilTest {
     public void parseName_unsupportedCharacters_throwsParseException() {
         assertThrows(ParseException.class, Name.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseName("-Mary"));
         assertThrows(ParseException.class, Name.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseName("'Al"));
-        assertThrows(ParseException.class, Name.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseName("O’Brien"));
         assertThrows(ParseException.class, Name.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseName("John s/o Raj"));
+        assertThrows(ParseException.class, Name.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseName("Amy 😀"));
+    }
+
+    @Test
+    public void parseName_accentedAndNonEnglishLetters_returnsName() throws Exception {
+        assertEquals(new Name("José"), ParserUtil.parseName("José"));
+        assertEquals(new Name("李明"), ParserUtil.parseName("  李明  "));
+        assertEquals(new Name("O’Brien"), ParserUtil.parseName("O’Brien"));
+    }
+
+    @Test
+    public void parseName_accentTypedAsCombiningCharacter_isComposedSoItIsTheSameName() throws Exception {
+        Name composed = ParserUtil.parseName("José");
+        Name decomposed = ParserUtil.parseName("José");
+
+        assertEquals(composed, decomposed);
+        assertEquals("José", decomposed.fullName);
     }
 
     @Test
