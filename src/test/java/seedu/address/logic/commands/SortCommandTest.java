@@ -14,6 +14,7 @@ import java.util.List;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.commons.core.index.Index;
+import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.model.AddressBook;
 import seedu.address.model.ModelManager;
 import seedu.address.model.SortCriterion;
@@ -59,12 +60,14 @@ public class SortCommandTest {
         Person oldest = person("Oldest", "11111111", new Activity(EARLIEST, null, null));
         Person unknown = person("Unknown", "22222222", Activity.EMPTY);
         Person newest = person("Newest", "33333333", new Activity(NOW, null, null));
-        ModelManager model = modelWith(oldest, unknown, newest);
+        for (String input : List.of("sort added", "sort Added", "sort ADDED")) {
+            ModelManager model = modelWith(oldest, unknown, newest);
 
-        CommandResult result = new SortCommand(SortCriterion.ADDED).execute(model);
+            CommandResult result = new AddressBookParser().parseCommand(input).execute(model);
 
-        assertEquals(String.format(SortCommand.MESSAGE_SUCCESS, "added", 3), result.getFeedbackToUser());
-        assertEquals(List.of(newest, oldest, unknown), model.getFilteredPersonList());
+            assertEquals(String.format(SortCommand.MESSAGE_SUCCESS, "added", 3), result.getFeedbackToUser());
+            assertEquals(List.of(newest, oldest, unknown), model.getFilteredPersonList());
+        }
     }
 
     @Test

@@ -45,9 +45,9 @@ public class ResultDisplayTest {
     public void setFeedbackToUser_showsTheMessage() {
         ResultDisplay display = new ResultDisplay();
 
-        display.setFeedbackToUser("Listed all persons.");
+        display.setFeedbackToUser("Listed all contacts.");
 
-        assertEquals("Listed all persons.", getTextArea(display).getText());
+        assertEquals("Listed all contacts.", getTextArea(display).getText());
     }
 
     @Test

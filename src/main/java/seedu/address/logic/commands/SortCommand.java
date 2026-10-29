@@ -14,7 +14,7 @@ public class SortCommand extends Command {
     public static final String COMMAND_WORD = "sort";
 
     public static final String MESSAGE_USAGE = COMMAND_WORD + ": Sorts the currently displayed contacts.\n"
-            + "Parameters: added|edited|viewed\n"
+            + "Parameters: added|edited|viewed (case-insensitive)\n"
             + "Example: " + COMMAND_WORD + " viewed";
     public static final String MESSAGE_SUCCESS = "Sorted by %1$s (newest first).\n%2$d contact(s) listed!";
 

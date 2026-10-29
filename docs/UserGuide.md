@@ -103,6 +103,7 @@ Examples:
 ### Listing all contacts: `list`
 
 Clears the active contact filter and sort, then shows all contacts in their original order.
+The result message is `Listed all contacts.`, including when the list is empty.
 
 Format: `list`
 
@@ -129,6 +130,8 @@ the contact list.
 
 Format: `sort added|edited|viewed`
 
+* Sort keywords are case-insensitive: `sort Added`, `sort ADDED`, and `sort added` behave the same.
+  The command word remains lowercase: `sort`.
 * `sort added` puts most recently added contacts first.
 * `sort edited` puts most recently edited contacts first.
 * `sort viewed` puts most recently viewed contacts first. Viewing a contact can therefore move it in this list.
@@ -210,6 +213,7 @@ A valid `note` command when the displayed list is empty | `The person list is em
 ### Locating contacts: `find`
 
 Use plain name keywords or typed field prefixes. A valid search may return zero contacts.
+Both forms report `N contact(s) listed!`, where `N` is the number of matches, including zero.
 
 Plain format: `find KEYWORD [MORE_KEYWORDS]…​`
 
