@@ -150,10 +150,13 @@ public class ActiveFilterStatusTest {
         CommandResult shown = logic.execute("add n/Dave p/91234568 t/react");
         assertFalse(shown.getFeedbackToUser().contains(AddCommand.MESSAGE_HIDDEN_BY_FILTER));
         assertEquals("Group: react - Original order - 2 contact(s)", status());
+        assertEquals(List.of(ALICE.getName().fullName, "Dave"), visibleNames());
 
         CommandResult hidden = logic.execute("add n/Erin p/91234569");
         assertTrue(hidden.getFeedbackToUser().endsWith(AddCommand.MESSAGE_HIDDEN_BY_FILTER));
         assertEquals("Group: react - Original order - 2 contact(s)", status());
+        // Dave, who matches, is listed and Erin, who does not, is not
+        assertEquals(List.of(ALICE.getName().fullName, "Dave"), visibleNames());
         assertEquals(4, model.getAddressBook().getPersonList().size());
     }
 
@@ -260,5 +263,9 @@ public class ActiveFilterStatusTest {
 
     private String status() {
         return model.getPersonListStatus().get();
+    }
+
+    private List<String> visibleNames() {
+        return model.getFilteredPersonList().stream().map(person -> person.getName().fullName).toList();
     }
 }
