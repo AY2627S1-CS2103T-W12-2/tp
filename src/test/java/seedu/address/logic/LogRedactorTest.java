@@ -51,6 +51,14 @@ public class LogRedactorTest {
         assertEquals("Meeting [hidden]", LogRedactor.redactCommand("Meeting 1 ev/Private event"));
         assertEquals("FIND [hidden]", LogRedactor.redactCommand("FIND nt/Private note"));
         assertEquals("[hidden]", LogRedactor.redactArguments("NOTE", " 1 nt/private text"));
+        assertEquals("NOTE [hidden]", LogRedactor.redactCommand("NOTE 1 NT/private text"));
+        assertEquals("find [hidden]", LogRedactor.redactCommand("find NT/Private note"));
+        assertEquals("find [hidden]", LogRedactor.redactCommand("find Nt/Private note"));
+        assertEquals("find [hidden]", LogRedactor.redactCommand("find EV/Private event"));
+        assertEquals("find [hidden]", LogRedactor.redactCommand("find n/Alice NT/Private note"));
+        assertEquals("FIND [hidden]", LogRedactor.redactCommand("FIND EV/Private event"));
+        assertEquals("[hidden]", LogRedactor.redactArguments("find", " NT/Private note"));
+        assertEquals("[hidden]", LogRedactor.redactArguments("find", " EV/Private event"));
         assertEquals("FIND Alice", LogRedactor.redactCommand("FIND Alice"));
     }
 
