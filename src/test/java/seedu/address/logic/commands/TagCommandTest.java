@@ -71,7 +71,7 @@ public class TagCommandTest {
     public void execute_existingTag_doesNotReplacePerson() {
         Model expectedModel = new ModelManager(new AddressBook(model.getAddressBook()), new UserPrefs(), FIXED_CLOCK);
         TagCommand command = new TagCommand(INDEX_FIRST_PERSON, Set.of(new Tag("friends")));
-        String expectedMessage = String.format(TagCommand.MESSAGE_SUCCESS, Messages.format(ALICE));
+        String expectedMessage = "Tags unchanged: " + Messages.format(ALICE);
 
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
         assertSame(ALICE, model.getFilteredPersonList().get(INDEX_FIRST_PERSON.getZeroBased()));

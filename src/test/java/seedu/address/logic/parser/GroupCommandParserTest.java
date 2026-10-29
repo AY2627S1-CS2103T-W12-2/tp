@@ -15,6 +15,19 @@ public class GroupCommandParserTest {
     private final GroupCommandParser parser = new GroupCommandParser();
 
     @Test
+    public void parse_missingPrefix_showsSingleTagExample() {
+        assertParseFailure(parser, "private", String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                "Use group t/TAG with one tag, e.g. group t/react."));
+    }
+
+    @Test
+    public void parse_tagLengthBoundary_preservesValidation() {
+        String longestTag = "a".repeat(20);
+        assertParseSuccess(parser, " t/" + longestTag, new GroupCommand(new Tag(longestTag)));
+        assertParseFailure(parser, " t/" + longestTag + "a", Tag.MESSAGE_CONSTRAINTS);
+    }
+
+    @Test
     public void parse_validArgs_returnsGroupCommand() {
         assertParseSuccess(parser, " t/React", new GroupCommand(new Tag("react")));
     }
