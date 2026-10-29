@@ -6,7 +6,7 @@ import static seedu.address.model.Model.PREDICATE_SHOW_ALL_PERSONS;
 import seedu.address.model.Model;
 
 /**
- * Clears the active contact filter and sort, and lists all persons in their original order.
+ * Clears the active contact filter and sort, and lists all contacts in their original order.
  */
 public class ListCommand extends Command {
 

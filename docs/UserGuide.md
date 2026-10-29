@@ -608,8 +608,7 @@ Back up the destination files before replacing them. Undo/redo and command recal
 
 Meeting text counts supplementary characters twice, and an event preview can split a surrogate pair
 when truncated. The pending [Unicode fix](https://github.com/AY2627S1-CS2103T-W12-2/tp/pull/181)
-is not included in v1.4.1. `find` also reports `person(s)` while other list commands say `contact(s)`;
-this wording difference does not change the results.
+is not included in v1.4.1.
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
