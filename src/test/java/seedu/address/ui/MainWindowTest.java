@@ -206,7 +206,8 @@ public class MainWindowTest {
         RecordingLogic logic = new RecordingLogic(newLogic(dataFile));
 
         runOnFxThread(() -> {
-            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile);
+            RecordingHelpWindow helpWindow = new RecordingHelpWindow();
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile, helpWindow);
             mainWindow.fillInnerParts();
             Stage stage = mainWindow.getPrimaryStage();
             assertEquals(0, logic.closeCount.get());
@@ -214,24 +215,7 @@ public class MainWindowTest {
             stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
 
             assertEquals(1, logic.closeCount.get());
-        });
-    }
-
-    @Test
-    public void closeRequest_closesHelpWindow() throws Exception {
-        Path dataFile = temporaryFolder.resolve("addressBook.json");
-        RecordingLogic logic = new RecordingLogic(newLogic(dataFile));
-
-        runOnFxThread(() -> {
-            RecordingHelpWindow helpWindow = new RecordingHelpWindow();
-            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile, helpWindow);
-            mainWindow.fillInnerParts();
-            Stage stage = mainWindow.getPrimaryStage();
-
-            stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
-
-            assertTrue(helpWindow.hideCount.get() > 0, "The help window should be hidden");
-            assertEquals(1, logic.closeCount.get());
+            assertEquals(1, helpWindow.hideCount.get());
         });
     }
 
@@ -249,17 +233,15 @@ public class MainWindowTest {
             // hiding the stage directly skips the close request, so the event is fired by hand
             stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_HIDDEN));
 
-            assertTrue(helpWindow.hideCount.get() > 0, "The help window should be hidden");
+            assertEquals(1, helpWindow.hideCount.get());
+            // only a close request saves the window settings
+            assertEquals(0, logic.closeCount.get());
         });
     }
 
     /** A {@code HelpWindow} that counts how many times it is hidden. */
     private static class RecordingHelpWindow extends HelpWindow {
         private final AtomicInteger hideCount = new AtomicInteger();
-
-        RecordingHelpWindow() {
-            super(new Stage());
-        }
 
         @Override
         public void hide() {
