@@ -3,6 +3,7 @@ package seedu.address.ui;
 import java.nio.file.Path;
 import java.util.logging.Logger;
 
+import javafx.animation.PauseTransition;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.MenuItem;
@@ -11,6 +12,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.util.Duration;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
 import seedu.address.logic.LogRedactor;
@@ -27,11 +29,15 @@ public class MainWindow extends UiPart<Stage> {
 
     private static final String FXML = "MainWindow.fxml";
 
+    /** How long the window stays open after the exit command, so that its message can be read. */
+    private static final Duration EXIT_DELAY = Duration.seconds(1);
+
     private final Logger logger = LogsCenter.getLogger(getClass());
 
     private Stage primaryStage;
     private Logic logic;
     private Path dataFilePath;
+    private PauseTransition exitPause;
 
     // Independent Ui parts residing in this Ui container
     private PersonListPanel personListPanel;
@@ -168,11 +174,26 @@ public class MainWindow extends UiPart<Stage> {
      */
     @FXML
     private void handleExit() {
+        if (exitPause != null) {
+            exitPause.stop();
+        }
         GuiSettings guiSettings = new GuiSettings(primaryStage.getWidth(), primaryStage.getHeight(),
                 (int) primaryStage.getX(), (int) primaryStage.getY());
         logic.setGuiSettings(guiSettings);
         helpWindow.hide();
         primaryStage.hide();
+    }
+
+    /**
+     * Closes the application after {@link #EXIT_DELAY}, so that the result of the exit command can be read.
+     * The command box is disabled meanwhile. The Exit menu item and the close button of the window still close
+     * the application at once.
+     */
+    private void handleExitAfterDelay() {
+        commandBoxPlaceholder.setDisable(true);
+        exitPause = new PauseTransition(EXIT_DELAY);
+        exitPause.setOnFinished(event -> handleExit());
+        exitPause.play();
     }
 
     public PersonListPanel getPersonListPanel() {
@@ -195,7 +216,7 @@ public class MainWindow extends UiPart<Stage> {
             }
 
             if (commandResult.isExit()) {
-                handleExit();
+                handleExitAfterDelay();
             }
 
             return commandResult;
