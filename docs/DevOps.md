@@ -43,7 +43,7 @@ The following commands perform common Gradle tasks.
 This project uses GitHub Actions for CI. Workflow configuration is versioned in `.github/workflows`;
 Pages also requires the repository publishing setting described below.
 
-Java CI runs on pushes to `master`, all pull requests (including stacked PRs), and manual dispatches.
+Java CI runs on pushes to `master`, pull requests targeting `master`, and manual dispatches.
 Feature-branch pushes are checked through their PR, so opening a PR does not duplicate a push build.
 Tag pushes do not start another matrix: release the exact source already verified before tagging.
 New commits supersede older runs for the same PR or branch. A failure on one platform does not
@@ -84,9 +84,9 @@ older documentation. Check the deployed guide after the successful run.
 
 ### Code coverage
 
-Gradle generates JaCoCo XML coverage and JUnit test results. Linux uploads coverage once; each platform uploads its test results through `codecov/codecov-action`. Upload errors fail CI rather than producing a misleading green check.
+As part of CI, Gradle generates JaCoCo coverage reports from the tests, and CI uploads the coverage data to Codecov. Codecov then provides information about test coverage.
 
-For manual Java CI runs, supply the optional PR number to associate Codecov results with that PR. Normal PR runs set this automatically. Coverage-upload and repository-script steps are intentionally skipped on Windows/macOS; tests still run on all three platforms. PR documentation builds intentionally skip deployment, which runs only on `master`.
+However, because Codecov is known to run into intermittent problems (e.g., report upload fails) due to issues on the Codecov service side, the CI is configured to pass even if the Codecov task failed. Therefore, developers are advised to check the code coverage levels periodically and take corrective actions if the coverage level falls below desired levels.
 
 To enable Codecov for forks of this project, follow the steps given in [this se-edu guide](https://se-education.org/guides/tutorials/codecov.html).
 
