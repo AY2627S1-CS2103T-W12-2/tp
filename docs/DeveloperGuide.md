@@ -501,7 +501,8 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 | Must-have | Shipped | user | add a contact | add people quickly |
 | Must-have | Shipped | user | delete unnecessary people | remove people who are no longer relevant to me |
 | Nice-to-have | Shipped | user | edit people's information | correct a mistake without having to delete and re-add the contact |
-| Nice-to-have | Shipped | user | undo my last destructive CLI action | avoid losing important contact information because of a fast typo |
+| Nice-to-have | Shipped (up to 50 saved contact changes per session) | user | undo my last contact change | avoid losing important contact information because of a fast typo |
+| Nice-to-have | Shipped (until a new contact change or app restart) | user | redo an undone contact change | recover a change I still want to keep |
 | Nice-to-have | Shipped | hackathon participant | clear all data or reset my board | start fresh for a brand new hackathon event |
 | Nice-to-have | Shipped | user | group people together | organize everyone I met at a specific track or workshop |
 | Unlikely-to-have | Partial (typed `find` matches part of a name, tag, note or event; plain `find` matches whole name words; no fuzzy or LinkedIn-handle search) | forgetful participant | search contacts using partial text or fuzzy matching | find a person even if I only remember part of their name or handle |
@@ -525,7 +526,8 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 | Nice-to-have | Shipped | power user | bring back a command I typed earlier with the Up and Down arrow keys | fix a typo or repeat a command without typing it all again |
 | Nice-to-have | Deferred | user | set up CLI auto-completion for commands and contact names | run commands faster with Tab completion |
 | Nice-to-have | Partial (`help` shows the User Guide URL with a copy button; no interactive tutorial) | first-time user | run a help/tutorial command with interactive examples | learn key commands within 30 seconds of installing the app |
-| Nice-to-have | Partial (LinkedIn only) | hackathon participant | save social profiles (GitHub, LinkedIn, X, Telegram) under dedicated flags | have direct links to reach out to a person on their preferred platform |
+| Nice-to-have | Shipped | hackathon participant | save a LinkedIn handle on a contact | reach out to a person through their LinkedIn profile |
+| Nice-to-have | Deferred | hackathon participant | save GitHub, X, or Telegram handles under dedicated fields | reach out to a person on their preferred platform |
 | Nice-to-have | Deferred | user | copy a contact's email/social handle to the clipboard from the CLI | quickly paste it into a browser or messaging app |
 | Nice-to-have | Deferred | hackathon participant | import contact details via a short encoded CLI string or QR token | exchange contact information instantly without manual typing |
 | Nice-to-have | Deferred | power user | export my contact list to JSON, CSV, or Markdown | import it into my personal CRM, Notion, or address book |
@@ -563,8 +565,8 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 
 1. User requests to list persons.
 2. LarperBoard shows a list of persons.
-3. User requests to update the selected person's project tags or stack keywords.
-4. LarperBoard replaces the selected person's existing tags with the supplied tags.
+3. User enters `tag INDEX t/TAG [t/TAG]…` for the selected person.
+4. LarperBoard adds the supplied tags to the person's existing tags, storing one lowercase copy of each.
 5. LarperBoard displays the updated person details.
 
    Use case ends.
@@ -589,6 +591,14 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
   * 4a1. LarperBoard shows an error message.
 
     Use case resumes at step 3.
+
+* 4b. All supplied tags are already present, ignoring letter case.
+  * 4b1. LarperBoard reports success without changing the contact, its last-edited time, or undo history.
+
+    Use case ends.
+
+**Implementation note:** `tag` adds tags; `edit INDEX t/TAG` replaces all existing tags with the supplied set.
+`edit INDEX t/` removes every tag. Repeated tags in one command are stored once.
 
 **Use case: Find contacts**
 
@@ -723,6 +733,50 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 
 * 2a. The address book contains no persons.
   * 2a1. LarperBoard displays the confirmation message.
+
+    Use case ends.
+
+**Use case: Undo a saved contact change**
+
+**MSS**
+
+1. User enters `undo` during the same app session as a saved contact change.
+2. LarperBoard restores the preceding contact state, including the displayed list and viewed contact, and saves it.
+3. LarperBoard confirms the undo.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. No undo step is available.
+  * 1a1. LarperBoard reports `Nothing to undo.` without changing contacts.
+
+    Use case ends.
+
+* 2a. Saving the restored state fails.
+  * 2a1. LarperBoard restores the pre-command contacts and both history stacks and reports the save error.
+
+    Use case ends.
+
+**Use case: Redo an undone contact change**
+
+**MSS**
+
+1. User enters `redo` while a redo step remains in the current app session.
+2. LarperBoard reapplies the undone contact state, including the displayed list and viewed contact, and saves it.
+3. LarperBoard confirms the redo.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. No redo step is available, including after a new saved contact change or app restart.
+  * 1a1. LarperBoard reports `Nothing to redo.` without changing contacts.
+
+    Use case ends.
+
+* 2a. Saving the restored state fails.
+  * 2a1. LarperBoard restores the pre-command contacts and both history stacks and reports the save error.
 
     Use case ends.
 

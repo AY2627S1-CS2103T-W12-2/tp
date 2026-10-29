@@ -461,6 +461,9 @@ view time is kept for a contact that survives the undo; restoring a deleted cont
 as a new view. The history is not saved: after closing and reopening LarperBoard, restored contact
 data remains in the JSON file, but no earlier undo steps are available.
 
+For example, `add n/Jane Tan` followed by `undo` removes Jane. A second `undo` reports
+`Nothing to undo.` if there were no earlier contact changes in this session.
+
 ### Redoing an undone contact change: `redo`
 
 Reapplies the most recently undone contact change in the current app session and saves the restored
@@ -474,6 +477,9 @@ A new successful contact change after `undo` clears the redo steps. Failed comma
 changes that leave contacts unchanged, and view or list commands keep them. Photo redo restores the
 saved photo reference; imported image files are retained. Redo history is not available after the
 app is closed and reopened, although the redone contacts remain in the data file.
+
+For example, after `add n/Jane Tan` and `undo`, `redo` restores Jane. Adding a different contact
+before `redo` instead removes that redo step.
 
 ### Exiting the program: `exit`
 
