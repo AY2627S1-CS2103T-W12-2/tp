@@ -14,6 +14,10 @@ box Model MODEL_COLOR_T1
 participant "m:Model" as Model MODEL_COLOR
 end box
 
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
 [-> LogicManager : execute("delete 1")
 activate LogicManager
 
@@ -46,12 +50,19 @@ destroy DeleteCommandParser
 AddressBookParser --> LogicManager : d
 deactivate AddressBookParser
 
+LogicManager -> Model : createSnapshot()
+Model --> LogicManager : before
 LogicManager -> DeleteCommand : execute(m)
 activate DeleteCommand
 
-DeleteCommand -> Model : deletePerson(1)
+DeleteCommand -> Model : getFilteredPersonList()
 activate Model
+Model --> DeleteCommand : displayed contacts
+deactivate Model
 
+DeleteCommand -> DeleteCommand : select person at displayed index 1
+DeleteCommand -> Model : deletePerson(personToDelete)
+activate Model
 Model --> DeleteCommand
 deactivate Model
 
@@ -65,6 +76,17 @@ deactivate CommandResult
 DeleteCommand --> LogicManager : r
 deactivate DeleteCommand
 
-[<--LogicManager
+LogicManager -> Model : getAddressBook()
+Model --> LogicManager : book
+LogicManager -> Storage : saveAddressBook(book)
+alt save succeeds
+    Storage --> LogicManager : saved
+    LogicManager -> Model : recordSuccessfulMutation(before)
+    [<-- LogicManager : r
+else save fails
+    Storage --> LogicManager : IOException
+    LogicManager -> Model : restore(before)
+    [<-- LogicManager : CommandException
+end
 deactivate LogicManager
 @enduml

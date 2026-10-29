@@ -34,17 +34,21 @@ else valid displayed index
         Command -> Target : toBuilder().withFollowUpDate(date).build()
         Target --> Command : edited person (all other fields kept)
         Command -> Model : editPerson(target, edited)
-        Command --> Logic : CommandResult
-        Logic -> Storage : saveAddressBook(model.getAddressBook())
-        alt save succeeds
-            Storage --> Logic : saved
-            Logic -> Model : recordSuccessfulMutation(before)
-            [<-- Logic : CommandResult
-        else save throws IOException
-            Storage --> Logic : IOException
-            Logic -> Model : restore(before)
-            [<-- Logic : CommandException
+        opt edited viewed person leaves the visible list
+            Command -> Model : setViewedPerson(null)
         end
+        Command --> Logic : CommandResult
+    end
+    Logic -> Storage : saveAddressBook(model.getAddressBook())
+    alt save succeeds
+        Storage --> Logic : saved
+        Logic -> Model : recordSuccessfulMutation(before)
+        note right of Model : A no-op adds no history entry.
+        [<-- Logic : CommandResult
+    else save fails
+        Storage --> Logic : IOException
+        Logic -> Model : restore(before)
+        [<-- Logic : CommandException
     end
 end
 @enduml

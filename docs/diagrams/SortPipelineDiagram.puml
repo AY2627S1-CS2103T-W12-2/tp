@@ -24,8 +24,9 @@ User -> SortCommand : sort added
 activate SortCommand
 SortCommand -> ModelManager : sortFilteredPersonList(ADDED)
 activate ModelManager
-ModelManager -> ModelManager : build source-position map
-ModelManager -> SortedList : setComparator(activity, source position)
+ModelManager -> ModelManager : get activity comparator from SortCriterion
+ModelManager -> ModelManager : add address-book indexOf tie-breaker
+ModelManager -> SortedList : setComparator(comparator)
 activate SortedList
 SortedList -> FilteredList : read current filtered contacts
 FilteredList --> SortedList : visible contacts
