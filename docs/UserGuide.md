@@ -360,7 +360,7 @@ Format: `filter starred` or `filter starred off`
 
 * `filter starred` hides every contact that is not starred. If you have not starred anyone, the list is empty.
 * `filter starred off` shows every contact again. [`list`](#listing-all-contacts-list) does the same.
-* The keywords are case-insensitive, so `FILTER Starred OFF` works.
+* The keywords are case-insensitive, so `filter Starred OFF` works.
 * While the filter is on, the list heading shows `Starred only` (see [Reading the list heading](#reading-the-list-heading)).
 * `filter` replaces the current `find`, `group` or `filter` result rather than combining with it.
 * Indexes follow the filtered list, so `unstar 1` removes the star from the first contact you can see.

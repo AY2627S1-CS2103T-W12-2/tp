@@ -97,7 +97,13 @@ for the `+N` label, measured for the actual number of hidden tags), and refits w
 the row's width changes. Hidden tags stay in the row as unmanaged labels so they keep their styling and can be measured
 again. `PersonDetailPanel` is unchanged and wraps all tags.
 
-`CommandBox` also lets the user bring back earlier commands with the Up and Down arrow keys (see [Command history](#command-history)). `HelpWindow` does not explain the commands. It shows the address of the online User Guide (`HelpWindow#USERGUIDE_URL`) with a button to copy it, and `MainWindow#handleHelp` opens it, or brings it to the front if it is already open; the `help` command, the **Help** menu and the F1 accelerator all lead to `handleHelp`. For the `exit` command, `MainWindow#handleExitAfterDelay` waits one second (`EXIT_DELAY`) so that the user can read the result message and then closes the window, and the command box ignores input during the wait. The **Exit** menu item and the close button call `handleExit` directly and close at once.
+`CommandBox` also lets the user bring back earlier commands with the Up and Down arrow keys (see [Command
+history](#command-history)). `HelpWindow` does not explain the commands. It shows the address of the online User Guide
+(`HelpWindow#USERGUIDE_URL`) with a button to copy it, and `MainWindow#handleHelp` opens it, or brings it to the front
+if it is already open; the `help` command, the **Help** menu and the F1 accelerator all lead to `handleHelp`. For the
+`exit` command, `MainWindow#handleExitAfterDelay` waits one second (`EXIT_DELAY`) so that the user can read the result
+message and then closes the window, and the command box ignores input during the wait. The **Exit** menu item and the
+close button call `handleExit` directly and close at once.
 
 The `UI` component,
 
@@ -516,6 +522,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 | Nice-to-have | Shipped | visual learner | distinguish categories with colour codes | visually scan and distinguish categories at a glance |
 | Nice-to-have | Deferred | user | run a stats/summary command (counts by tech stack or event) | get a high-level snapshot of my networking efforts |
 | Nice-to-have | Partial (Up/Down command recall only) | power user | have fast keyboard navigation | navigate and manipulate data at maximum keyboard speed |
+| Nice-to-have | Shipped | power user | bring back a command I typed earlier with the Up and Down arrow keys | fix a typo or repeat a command without typing it all again |
 | Nice-to-have | Deferred | user | set up CLI auto-completion for commands and contact names | run commands faster with Tab completion |
 | Nice-to-have | Partial (`help` shows the User Guide URL with a copy button; no interactive tutorial) | first-time user | run a help/tutorial command with interactive examples | learn key commands within 30 seconds of installing the app |
 | Nice-to-have | Partial (LinkedIn only) | hackathon participant | save social profiles (GitHub, LinkedIn, X, Telegram) under dedicated flags | have direct links to reach out to a person on their preferred platform |
@@ -1284,7 +1291,7 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
    1. Test case: star the 1st and 3rd persons, then `filter starred`<br>
       Expected: The result box shows `Showing only starred contacts.` and `2 contact(s) listed!`. Only those two persons are listed and the list heading shows `Starred only`. `unstar 1` now removes the star from the first listed person.
 
-   1. Test case: `FILTER Starred OFF`<br>
+   1. Test case: `filter Starred OFF`<br>
       Expected: The result box shows `Showing all contacts.` and every person is listed again.
 
    1. Incorrect commands to try: `star`, `star 1 2`, `star 0`, `filter`, `filter foo`, `filter starred extra`<br>
@@ -1306,7 +1313,7 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
       Expected: The command box shows `find Aisha`, `foo`, then the text you had typed before browsing (empty if none).
 
    1. Test case: type `fin` and press **Tab**<br>
-      Expected: The text is not completed. LarperBoard has no Tab completion.
+      Expected: The text is not completed, and focus moves to the next control. LarperBoard has no Tab completion.
 
 ### Help and exit
 
