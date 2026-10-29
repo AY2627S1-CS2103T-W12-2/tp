@@ -106,6 +106,9 @@ public class NoteCommandParserTest {
         assertParseFailure(parser, "1 clear nt/text", format(NoteCommand.MESSAGE_NOT_BOTH));
         // too many parameters: before the prefix, or after clear
         assertParseFailure(parser, "1 2 nt/text", format(NoteCommand.MESSAGE_TOO_MANY_PARAMETERS));
+        // more than two words before the prefix, whether or not the second one is clear
+        assertParseFailure(parser, "1 2 3 nt/text", format(NoteCommand.MESSAGE_TOO_MANY_PARAMETERS));
+        assertParseFailure(parser, "1 clear extra nt/text", format(NoteCommand.MESSAGE_TOO_MANY_PARAMETERS));
         assertParseFailure(parser, "1 clear extra", format(NoteCommand.MESSAGE_TOO_MANY_PARAMETERS));
         // the shape is checked before the index, so a bad index in a wrong shape still gives the format error
         assertParseFailure(parser, "abc", format(NoteCommand.MESSAGE_MISSING_NOTE));
