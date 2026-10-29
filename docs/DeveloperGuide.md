@@ -135,7 +135,7 @@ How the parsing works:
 
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
-* `AddressBookParser#COMMAND_WORDS` is the alphabetical list of every command word that `parseCommand` accepts, and it is what the `Unknown command.` message lists. The list is written out next to the `switch` in `parseCommand`, so a new command word must be added to both. `AddressBookParserTest` scans the command classes for `*COMMAND_WORD` constants and fails if one is missing from the list, and it also checks that every listed word is recognised by the parser.
+* `AddressBookParser#COMMAND_WORDS` is the alphabetical list of every command word that `parseCommand` accepts, and it is what the `Unknown command.` message lists. The list is written out next to the `switch` in `parseCommand`, so a new command word must be added to both. `AddressBookParserTest` scans the command classes for `*COMMAND_WORD` constants and fails if one is missing from the list, and it also checks that every listed word is recognised by the parser. `parseCommand` lower-cases the command word with `Locale.ROOT` before the `switch`, so command words are case-insensitive regardless of the system locale; prefixes such as `n/` are not. `LogRedactor` also compares command words without regard to case, so `NOTE`, `MEETING` and `FIND` are kept out of the log like their lower-case forms.
 
 ### Model component
 
@@ -343,7 +343,7 @@ Design considerations:
 
 `SortCommandParser` trims the argument and normalizes it with `Locale.ROOT` before matching `added`, `edited`,
 or `viewed`. Sort keywords are case-insensitive regardless of the system locale; unsupported keywords and extra
-arguments still produce the invalid-format error with the short sort hint. The command word remains lowercase: `sort`.
+arguments still produce the invalid-format error with the short sort hint.
 
 `SortCommand` passes a `SortCriterion` (`ADDED`, `EDITED`, or `VIEWED`) to `ModelManager`. The model keeps one
 `FilteredList` for the current contacts and wraps it in a `SortedList`, which is the list exposed to the UI and every
@@ -1131,8 +1131,11 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
    1. Test case: `strar 1`<br>
       Expected: No contact is changed. The result box shows `Unknown command.` followed by `Available commands:` and every command word in alphabetical order. The message wraps onto several lines of the result box, with no horizontal scroll bar.
 
-   1. Other unknown commands to try: `foo`, `STAR 1` (command words are case-sensitive)<br>
+   1. Other unknown commands to try: `foo`, `star1`<br>
       Expected: Similar to previous.
+
+   1. Test case: `STAR 1` (command words are not case-sensitive)<br>
+      Expected: Same as `star 1`. The first contact is starred.
 
    1. Test case: `help`<br>
       Expected: The help window opens, as before.
