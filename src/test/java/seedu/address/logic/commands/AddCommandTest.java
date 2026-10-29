@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.Messages;
@@ -49,6 +50,23 @@ public class AddCommandTest {
                 commandResult.getFeedbackToUser());
         // the added person records when it was created
         assertEquals(List.of(validPerson.withActivity(new Activity(NOW, null, null))), modelStub.personsAdded);
+    }
+
+    @Test
+    public void execute_personHiddenByActiveFilter_messageSaysSoAndPersonIsStillAdded() throws Exception {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded() {
+            @Override
+            public ObservableList<Person> getFilteredPersonList() {
+                return FXCollections.observableArrayList(); // the active filter shows nobody
+            }
+        };
+        Person validPerson = new PersonBuilder().build();
+
+        CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
+
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson))
+                + AddCommand.MESSAGE_HIDDEN_BY_FILTER, commandResult.getFeedbackToUser());
+        assertEquals(1, modelStub.personsAdded.size());
     }
 
     @Test
@@ -272,6 +290,11 @@ public class AddCommandTest {
         @Override
         public ReadOnlyAddressBook getAddressBook() {
             return new AddressBook();
+        }
+
+        @Override
+        public ObservableList<Person> getFilteredPersonList() {
+            return FXCollections.observableArrayList(personsAdded); // no filter, so every person is shown
         }
 
         @Override
