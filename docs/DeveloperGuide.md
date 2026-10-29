@@ -277,8 +277,10 @@ Each `Person` carries an `Activity` with its created, last edited and last viewe
   acquire a lock on a companion `.lock` file and compare the current data-file version before replacing it.
   If the serialized save has exactly the same content hash as the current file, it succeeds without replacing
   the file or changing its modification time, and refreshes the copy's known version. This makes identical
-  storage retries harmless, even when another copy already saved that state. A stale copy with different
-  content raises `ConcurrentDataChangeException`, while a copy that cannot acquire the lock raises
+  storage retries harmless, even when another copy already saved that state. Serialization and hash comparison
+  happen in memory before any temporary file is created. A stale copy with different content raises
+  `ConcurrentDataChangeException` before checking data-file write permissions, while a copy that cannot acquire
+  the lock raises
   `DataFileBusyException`. `LogicManager` restores its snapshot and reports a recovery step in either case.
   The lock file may remain after the app exits; the operating system releases its lock when the channel closes.
 * **Display:** the detail panel shows the three times as `yyyy-MM-dd HH:mm` in `Model.DISPLAY_ZONE` (Asia/Singapore), or an em dash (`—`) when a time is not known. The block sits at the bottom of `PersonDetailPanel.fxml`.

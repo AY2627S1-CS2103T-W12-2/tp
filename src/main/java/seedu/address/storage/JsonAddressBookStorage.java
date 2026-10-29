@@ -115,18 +115,25 @@ public class JsonAddressBookStorage {
                     throw new DataFileBusyException();
                 }
                 Optional<String> currentVersion = versionOf(readContents(target));
-                boolean stale = knownVersions.containsKey(target)
-                        && !knownVersions.get(target).equals(currentVersion);
-                knownVersions.put(target, saveUnderLock(addressBook, target, currentVersion, stale));
+                byte[] contents = JsonUtil.toJsonString(new JsonSerializableAddressBook(addressBook))
+                        .getBytes(StandardCharsets.UTF_8);
+                Optional<String> savedVersion = versionOf(Optional.of(contents));
+                // Identical retries and conflicts need no temporary file or data-file write permission.
+                if (!savedVersion.equals(currentVersion)) {
+                    if (knownVersions.containsKey(target) && !knownVersions.get(target).equals(currentVersion)) {
+                        throw new ConcurrentDataChangeException();
+                    }
+                    saveUnderLock(contents, target);
+                }
+                knownVersions.put(target, savedVersion);
             } catch (OverlappingFileLockException e) {
                 throw new DataFileBusyException(e);
             }
         }
     }
 
-    /** Skips identical saves or atomically replaces a current data file while the companion lock is held. */
-    private static Optional<String> saveUnderLock(ReadOnlyAddressBook addressBook, Path target,
-            Optional<String> currentVersion, boolean stale) throws IOException {
+    /** Stages the serialized bytes and atomically replaces the data file while the companion lock is held. */
+    private static void saveUnderLock(byte[] contents, Path target) throws IOException {
         Set<PosixFilePermission> permissions = null;
         if (Files.exists(target)) {
             if (!Files.isWritable(target)) {
@@ -148,20 +155,11 @@ public class JsonAddressBookStorage {
         }
         Path staged = Files.createTempFile(target.getParent(), "addressBook-", ".tmp");
         try {
-            JsonUtil.saveJsonFile(new JsonSerializableAddressBook(addressBook), staged);
+            Files.write(staged, contents);
             if (permissions != null) {
                 Files.setPosixFilePermissions(staged, permissions);
             }
-            Optional<String> savedVersion = versionOf(readContents(staged));
-            // Another copy may already have saved precisely this state. Accept that retry without rewriting.
-            if (savedVersion.equals(currentVersion)) {
-                return currentVersion;
-            }
-            if (stale) {
-                throw new ConcurrentDataChangeException();
-            }
             Files.move(staged, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
-            return savedVersion;
         } finally {
             Files.deleteIfExists(staged);
         }

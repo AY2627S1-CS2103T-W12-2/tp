@@ -170,6 +170,82 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void saveAddressBook_staleReadOnlyTarget_reportsConflictBeforePermissions() throws Exception {
+        Path file = testFolder.resolve("addressBook.json");
+        JsonAddressBookStorage first = new JsonAddressBookStorage(file);
+        JsonAddressBookStorage second = new JsonAddressBookStorage(file);
+        AddressBook original = new AddressBook();
+        original.addPerson(ALICE);
+        first.saveAddressBook(original);
+        second.readAddressBook();
+        AddressBook updated = new AddressBook(original);
+        updated.addPerson(HOON);
+        first.saveAddressBook(updated);
+        byte[] contents = Files.readAllBytes(file);
+        PosixFileAttributeView posix = Files.getFileAttributeView(file, PosixFileAttributeView.class);
+        DosFileAttributeView dos = Files.getFileAttributeView(file, DosFileAttributeView.class);
+        assumeTrue(posix != null || dos != null);
+        Set<PosixFilePermission> permissions = posix == null ? null : posix.readAttributes().permissions();
+        try {
+            if (posix != null) {
+                posix.setPermissions(Set.of(PosixFilePermission.OWNER_READ));
+            } else {
+                dos.setReadOnly(true);
+            }
+            assertThrows(ConcurrentDataChangeException.class, () -> second.saveAddressBook(original));
+            assertArrayEquals(contents, Files.readAllBytes(file));
+        } finally {
+            if (posix != null) {
+                posix.setPermissions(permissions);
+            } else {
+                dos.setReadOnly(false);
+            }
+        }
+    }
+
+    @Test
+    public void saveAddressBook_identicalSaveInReadOnlyFolder_needsNoTemporaryFile() throws Exception {
+        assertSaveInReadOnlyFolder(false);
+    }
+
+    @Test
+    public void saveAddressBook_staleSaveInReadOnlyFolder_reportsConflictWithoutTemporaryFile() throws Exception {
+        assertSaveInReadOnlyFolder(true);
+    }
+
+    private void assertSaveInReadOnlyFolder(boolean stale) throws Exception {
+        Path file = testFolder.resolve("addressBook.json");
+        JsonAddressBookStorage first = new JsonAddressBookStorage(file);
+        JsonAddressBookStorage second = new JsonAddressBookStorage(file);
+        AddressBook original = new AddressBook();
+        original.addPerson(ALICE);
+        first.saveAddressBook(original);
+        second.readAddressBook();
+        if (stale) {
+            AddressBook updated = new AddressBook(original);
+            updated.addPerson(HOON);
+            first.saveAddressBook(updated);
+        }
+        byte[] contents = Files.readAllBytes(file);
+        PosixFileAttributeView posix = Files.getFileAttributeView(testFolder, PosixFileAttributeView.class);
+        assumeTrue(posix != null);
+        Set<PosixFilePermission> permissions = posix.readAttributes().permissions();
+        try {
+            posix.setPermissions(Set.of(PosixFilePermission.OWNER_READ, PosixFilePermission.OWNER_EXECUTE));
+            assumeTrue(!Files.isWritable(testFolder));
+            if (stale) {
+                assertThrows(ConcurrentDataChangeException.class, () -> second.saveAddressBook(original));
+            } else {
+                second.saveAddressBook(original);
+                second.saveAddressBook(original);
+            }
+            assertArrayEquals(contents, Files.readAllBytes(file));
+        } finally {
+            posix.setPermissions(permissions);
+        }
+    }
+
+    @Test
     public void saveAddressBook_otherProcessHoldsLock_reportsBusyWithoutWriting() throws Exception {
         Path file = testFolder.resolve("addressBook.json");
         Path lockFile = testFolder.resolve("addressBook.json.lock");
