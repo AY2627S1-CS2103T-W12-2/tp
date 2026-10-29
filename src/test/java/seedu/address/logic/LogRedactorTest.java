@@ -46,9 +46,19 @@ public class LogRedactorTest {
     }
 
     @Test
+    public void redactCommand_commandWordInAnyLetterCase_stillHidesPersonalText() {
+        assertEquals("NOTE [hidden]", LogRedactor.redactCommand("NOTE 1 nt/private text"));
+        assertEquals("Meeting [hidden]", LogRedactor.redactCommand("Meeting 1 ev/Private event"));
+        assertEquals("FIND [hidden]", LogRedactor.redactCommand("FIND nt/Private note"));
+        assertEquals("[hidden]", LogRedactor.redactArguments("NOTE", " 1 nt/private text"));
+        assertEquals("FIND Alice", LogRedactor.redactCommand("FIND Alice"));
+    }
+
+    @Test
     public void redactCommand_malformedPersonalPrefix_hidesRejectedSearchText() {
         for (String arguments : new String[]{"nt /Private note", "n/Alice ev /Private event", "nt\t/Private"}) {
             assertEquals("find [hidden]", LogRedactor.redactCommand("find " + arguments));
+            assertEquals("FIND [hidden]", LogRedactor.redactCommand("FIND " + arguments));
             assertEquals("[hidden]", LogRedactor.redactArguments("find", " " + arguments));
         }
     }

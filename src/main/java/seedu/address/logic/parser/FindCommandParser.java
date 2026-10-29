@@ -16,8 +16,17 @@ import seedu.address.model.person.TypedSearchPredicate;
  * Parses input arguments and creates a new FindCommand object
  */
 public class FindCommandParser implements Parser<FindCommand> {
+    public static final String MESSAGE_SPACED_PREFIX =
+            "Remove the space before '/': use n/Alice or t/react.";
     private static final Pattern PREFIX_LIKE_TOKEN = Pattern.compile("(?:^|\\s)[A-Za-z]+/");
-    private static final Pattern MALFORMED_SEARCH_FIELD = Pattern.compile("(?:^|\\s)(?:n|t|nt|ev)\\s+/");
+    private static final Pattern MALFORMED_SEARCH_FIELD = Pattern.compile(Stream.of(
+            CliSyntax.PREFIX_NAME, CliSyntax.PREFIX_TAG, CliSyntax.PREFIX_NOTE, CliSyntax.PREFIX_EVENT,
+            CliSyntax.PREFIX_EMAIL, CliSyntax.PREFIX_PHONE, CliSyntax.PREFIX_LINKEDIN,
+            CliSyntax.PREFIX_FOLLOW_UP_DATE, CliSyntax.PREFIX_MEETING_DATE, CliSyntax.PREFIX_ROLE,
+            PhotoCommandParser.PREFIX_FILE)
+            .map(Prefix::getPrefix)
+            .map(prefix -> Pattern.quote(prefix.substring(0, prefix.length() - 1)))
+            .collect(Collectors.joining("|", "(?:^|\\s)(?:", ")\\s+/")));
     // Reserve other commands' fields without rejecting literal text such as c/o, ai/ml or URLs.
     private static final Pattern UNSUPPORTED_FIELD = Pattern.compile(Stream.of(
             CliSyntax.PREFIX_EMAIL, CliSyntax.PREFIX_PHONE, CliSyntax.PREFIX_LINKEDIN,
@@ -39,8 +48,10 @@ public class FindCommandParser implements Parser<FindCommand> {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
 
-        if (UNSUPPORTED_FIELD.matcher(trimmedArgs).find()
-                || MALFORMED_SEARCH_FIELD.matcher(trimmedArgs).find()) {
+        if (MALFORMED_SEARCH_FIELD.matcher(trimmedArgs).find()) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, MESSAGE_SPACED_PREFIX));
+        }
+        if (UNSUPPORTED_FIELD.matcher(trimmedArgs).find()) {
             throw invalidFormat();
         }
 

@@ -15,6 +15,7 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -195,6 +196,30 @@ public class AddressBookParserTest {
     public void parseCommand_unknownCommand_throwsParseException() {
         assertThrows(ParseException.class, MESSAGE_UNKNOWN_COMMAND_WITH_LIST, () ->
                 parser.parseCommand("unknownCommand"));
+    }
+
+    @Test
+    public void parseCommand_commandWordInAnyLetterCase_isAccepted() throws Exception {
+        assertTrue(parser.parseCommand("HELP") instanceof HelpCommand);
+        assertTrue(parser.parseCommand("Help") instanceof HelpCommand);
+        assertTrue(parser.parseCommand("LIST") instanceof ListCommand);
+        assertTrue(parser.parseCommand("   ClEaR  ") instanceof ClearCommand);
+        assertEquals(new StarCommand(INDEX_FIRST_PERSON, true), parser.parseCommand("STAR 1"));
+        assertEquals(new StarCommand(INDEX_FIRST_PERSON, false), parser.parseCommand("UnStar 1"));
+        assertEquals(new FilterCommand(true), parser.parseCommand("FILTER STARRED"));
+        assertEquals(new SortCommand(SortCriterion.ADDED), parser.parseCommand("Sort added"));
+    }
+
+    @Test
+    public void parseCommand_everyCommandWordInUpperCase_isRecognised() {
+        for (String commandWord : COMMAND_WORDS) {
+            try {
+                parser.parseCommand(commandWord.toUpperCase(Locale.ROOT));
+            } catch (ParseException e) {
+                assertFalse(e.getMessage().startsWith(MESSAGE_UNKNOWN_COMMAND),
+                        commandWord.toUpperCase(Locale.ROOT) + " is not recognised");
+            }
+        }
     }
 
     @Test
