@@ -4,8 +4,12 @@ on:
   push:
     branches: [master]
   pull_request:
-    branches: [master]
   workflow_dispatch:
+    inputs:
+      pr_number:
+        description: 'PR number for Codecov when running manually (optional)'
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -50,13 +54,20 @@ jobs:
         uses: codecov/codecov-action@v7
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./build/reports/jacoco/coverage/coverage.xml
+          disable_search: true
+          fail_ci_if_error: true
+          override_commit: ${{ github.event.pull_request.head.sha || github.sha }}
+          override_pr: ${{ github.event.pull_request.number || inputs.pr_number }}
 
-      - name: Upload coverage reports to Codecov
-        uses: codecov/codecov-action@v5
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }}
       - name: Upload test results to Codecov
         if: ${{ !cancelled() }}
-        uses: codecov/test-results-action@v1
+        uses: codecov/codecov-action@v7
         with:
-          token: ${{ secrets.CODECOV_TOKEN }}\n
+          token: ${{ secrets.CODECOV_TOKEN }}
+          report_type: test_results
+          directory: ./build/test-results/test
+          name: tests-${{ matrix.platform }}
+          fail_ci_if_error: true
+          override_commit: ${{ github.event.pull_request.head.sha || github.sha }}
+          override_pr: ${{ github.event.pull_request.number || inputs.pr_number }}
