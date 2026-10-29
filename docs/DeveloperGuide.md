@@ -910,6 +910,13 @@ Given below are instructions to test the app manually.
    1. Relaunch the app by double-clicking the JAR file.<br>
       Expected: The most recent window size and location are retained.
 
+1. Closing the main window while the Help window is open
+
+   1. Run `help` so that the Help window opens.
+
+   1. Close the main window with its title-bar close button.<br>
+      Expected: Both windows close and LarperBoard exits.
+
 1. _{ more test cases …​ }_
 
 ### Activity-time sorting
