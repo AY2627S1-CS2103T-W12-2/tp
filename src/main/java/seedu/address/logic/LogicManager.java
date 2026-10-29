@@ -17,6 +17,8 @@ import seedu.address.logic.parser.AddressBookParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.Model;
 import seedu.address.model.person.Person;
+import seedu.address.storage.ConcurrentDataChangeException;
+import seedu.address.storage.DataFileBusyException;
 import seedu.address.storage.PhotoStorage;
 import seedu.address.storage.Storage;
 
@@ -29,6 +31,12 @@ public class LogicManager implements Logic {
 
     public static final String MESSAGE_SAVE_PERMISSION_ERROR =
             "Could not save contacts. Nothing changed. Allow file/folder writes.";
+
+    public static final String MESSAGE_SAVE_CONFLICT =
+            "Contacts changed in another copy. Nothing changed. Reopen the app before trying again.";
+
+    public static final String MESSAGE_SAVE_BUSY =
+            "Another copy is saving contacts. Nothing changed. Try again.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -74,6 +82,14 @@ public class LogicManager implements Logic {
 
         try {
             storage.saveAddressBook(model.getAddressBook());
+        } catch (ConcurrentDataChangeException e) {
+            logger.log(Level.WARNING, "Restoring model after data conflict", e);
+            model.restore(before);
+            throw new CommandException(MESSAGE_SAVE_CONFLICT, e);
+        } catch (DataFileBusyException e) {
+            logger.log(Level.WARNING, "Restoring model after concurrent save", e);
+            model.restore(before);
+            throw new CommandException(MESSAGE_SAVE_BUSY, e);
         } catch (AccessDeniedException e) {
             logger.log(Level.WARNING, "Restoring model after failed save", e);
             model.restore(before);

@@ -693,12 +693,14 @@ Reattaching the identical image or clearing an absent photo is a no-op. Real sav
 
 ### Saving the data
 
-Successful commands save automatically, except `help` and `exit`. You do not need a save command. If saving fails, contacts and history are restored; check file/folder access and retry. Technical details go to the log.
-
-| Data | Default location |
-|---|---|
-| Contacts | `data/addressbook.json` under the **working folder** (where you launch the app). The status bar shows the path. |
-| Imported photos | `photos/` beside the **JAR**, even when launched from another working folder. Gradle development uses the working folder. |
+LarperBoard automatically saves data after successful commands. You do not need to save manually.
+`help` and `exit` do not write contact data and remain available if the contact data file is read-only.
+If saving fails, the command reports that nothing changed and restores the previous contacts and history.
+Check file/folder access before retrying; technical details are recorded in the log.
+If another open copy changes the same data file, this copy refuses to overwrite it. Reopen LarperBoard
+to load those changes before retrying the command. If another copy is saving at the same moment, retry
+after it finishes. The companion `addressbook.json.lock` file may remain beside the data file; leave it
+in place so open copies can coordinate their saves.
 
 ### Editing the data file
 

@@ -19,9 +19,12 @@ import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 import static seedu.address.testutil.TypicalTimes.NOW;
 
 import java.io.IOException;
+import java.nio.channels.FileChannel;
+import java.nio.channels.FileLock;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -153,6 +156,45 @@ public class LogicManagerTest {
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
         assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, LogicManager.MESSAGE_SAVE_PERMISSION_ERROR);
+    }
+
+    @Test
+    public void execute_secondCopyCannotOverwriteNewerContacts() throws Exception {
+        Path file = temporaryFolder.resolve("shared-addressBook.json");
+        Files.writeString(file, "{\"persons\":[]}");
+        JsonUserPrefsStorage prefs = new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json"));
+        StorageManager firstStorage = new StorageManager(new JsonAddressBookStorage(file), prefs);
+        StorageManager secondStorage = new StorageManager(new JsonAddressBookStorage(file), prefs);
+        Model firstModel = new ModelManager(firstStorage.readAddressBook().orElseThrow(), new UserPrefs(), FIXED_CLOCK);
+        Model secondModel = new ModelManager(secondStorage.readAddressBook().orElseThrow(),
+                new UserPrefs(), FIXED_CLOCK);
+        Logic firstLogic = new LogicManager(firstModel, firstStorage);
+        Logic secondLogic = new LogicManager(secondModel, secondStorage);
+
+        firstLogic.execute("add n/Alice");
+        CommandException error = org.junit.jupiter.api.Assertions.assertThrows(
+                CommandException.class, () -> secondLogic.execute("add n/Bob"));
+
+        assertEquals("Contacts changed in another copy. Nothing changed. Reopen the app before trying again.",
+                error.getMessage());
+        assertEquals("Alice", new JsonAddressBookStorage(file).readAddressBook().orElseThrow()
+                .getPersonList().getFirst().getName().fullName);
+        assertTrue(secondModel.getAddressBook().getPersonList().isEmpty());
+        assertFalse(secondModel.canUndo());
+    }
+
+    @Test
+    public void execute_anotherCopyIsSaving_reportsBusyAndRollsBack() throws Exception {
+        Path lockPath = temporaryFolder.resolve("addressBook.json.lock");
+        try (FileChannel channel = FileChannel.open(lockPath, StandardOpenOption.CREATE, StandardOpenOption.WRITE);
+                FileLock lock = channel.lock()) {
+            CommandException error = org.junit.jupiter.api.Assertions.assertThrows(
+                    CommandException.class, () -> logic.execute("add n/Alice"));
+            assertEquals("Another copy is saving contacts. Nothing changed. Try again.", error.getMessage());
+        }
+        assertTrue(model.getAddressBook().getPersonList().isEmpty());
+        assertFalse(model.canUndo());
+        assertFalse(Files.exists(temporaryFolder.resolve("addressBook.json")));
     }
 
     @Test
