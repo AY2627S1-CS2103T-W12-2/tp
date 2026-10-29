@@ -1119,8 +1119,15 @@ Given below are instructions to test the app manually.
    1. Close the main window with its title-bar close button.<br>
       Expected: Both windows close and LarperBoard exits.
 
-   1. Repeat the first two steps, but exit with File > Exit, and then with the `exit` command.<br>
-      Expected: Both windows close and LarperBoard exits each time.
+   1. Relaunch the app with `java -jar larperboard.jar` and run `help` so that the Help window opens.
+
+   1. Exit with File > Exit.<br>
+      Expected: Both windows close and LarperBoard exits.
+
+   1. Relaunch the app with `java -jar larperboard.jar` and run `help` so that the Help window opens.
+
+   1. Exit with the `exit` command.<br>
+      Expected: Both windows close and LarperBoard exits.
 
    These steps check the user-facing exits. Hiding the main window without a close request, such as from code, cannot
    be done by hand; `MainWindowTest` covers it.
