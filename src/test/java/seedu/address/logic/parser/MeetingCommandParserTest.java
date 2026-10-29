@@ -20,10 +20,11 @@ import seedu.address.model.person.Meeting;
 
 public class MeetingCommandParserTest {
 
-    private static final String INVALID_FORMAT = String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-            MeetingCommand.MESSAGE_USAGE);
-
     private final MeetingCommandParser parser = new MeetingCommandParser();
+
+    private static String format(String hint) {
+        return String.format(MESSAGE_INVALID_COMMAND_FORMAT, hint);
+    }
 
     /*
      * The word clear comes after the index. A command that starts with it has no index, or has the words in the
@@ -31,10 +32,10 @@ public class MeetingCommandParserTest {
      */
     @Test
     public void parse_clearInPlaceOfTheIndex_throwsUsageAndNotInvalidIndex() {
-        assertParseFailure(parser, " clear", INVALID_FORMAT);
-        assertParseFailure(parser, " CLEAR", INVALID_FORMAT);
-        assertParseFailure(parser, " clear 1", INVALID_FORMAT);
-        assertParseFailure(parser, " clear date", INVALID_FORMAT);
+        assertParseFailure(parser, " clear", format(MeetingCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " CLEAR", format(MeetingCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " clear 1", format(MeetingCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " clear date", format(MeetingCommand.MESSAGE_MISSING_INDEX));
     }
 
     @Test
@@ -71,8 +72,8 @@ public class MeetingCommandParserTest {
 
     @Test
     public void parse_unknownFieldName_throwsUsage() {
-        assertParseFailure(parser, " 1 clear DATES", INVALID_FORMAT);
-        assertParseFailure(parser, " 1 clear when", INVALID_FORMAT);
+        assertParseFailure(parser, " 1 clear DATES", format(MeetingCommand.MESSAGE_CLEAR_USAGE));
+        assertParseFailure(parser, " 1 clear when", format(MeetingCommand.MESSAGE_CLEAR_USAGE));
     }
 
     @Test
@@ -83,7 +84,24 @@ public class MeetingCommandParserTest {
         assertParseFailure(parser, " 1 r/" + "x".repeat(81), Meeting.MESSAGE_ROLE);
         assertParseFailure(parser, " 1 md/2026-02-30", MeetingCommandParser.MESSAGE_DATE);
         assertParseFailure(parser, " 1 md/", MeetingCommandParser.MESSAGE_DATE);
-        assertParseFailure(parser, " 1", MeetingCommand.MESSAGE_NO_UPDATE);
+        assertParseFailure(parser, " 1", format(MeetingCommand.MESSAGE_NO_UPDATE));
+    }
+
+    @Test
+    public void parse_wrongShape_givesOneSpecificHint() {
+        assertParseFailure(parser, "", format(MeetingCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " ev/Event", format(MeetingCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " 1 clear ev/Event", format(MeetingCommand.MESSAGE_NOT_BOTH));
+        assertParseFailure(parser, " 1 Mentor", format(MeetingCommand.MESSAGE_WITHOUT_PREFIX));
+        assertParseFailure(parser, " 1 2 ev/Event", format(MeetingCommand.MESSAGE_EXTRA_WORDS));
+        assertParseFailure(parser, " 1 clear event extra", format(MeetingCommand.MESSAGE_CLEAR_USAGE));
+    }
+
+    @Test
+    public void parse_dateAndTextFailures_keepTheirOwnHints() {
+        assertParseFailure(parser, " 1 md/2026-02-30 ev/Event", MeetingCommandParser.MESSAGE_DATE);
+        assertParseFailure(parser, " 1 md/2024-02-29 ev/", Meeting.MESSAGE_EVENT);
+        assertParseFailure(parser, " 1 md/2024-02-29 r/", Meeting.MESSAGE_ROLE);
     }
 
     /** Returns the meeting of the only contact after running {@code args}, starting from {@code meeting}. */

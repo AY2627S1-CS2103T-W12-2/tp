@@ -610,7 +610,7 @@ public class LogicManagerTest {
             logic.execute("meeting 1 ev/" + secret + " r/" + secret);
             assertParseException("meeting 1 " + secret,
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                            MeetingCommand.MESSAGE_USAGE));
+                            MeetingCommand.MESSAGE_WITHOUT_PREFIX));
             assertParseException("meeting 1 ev/" + secret + " ev/duplicate",
                     Messages.getErrorMessageForDuplicatePrefixes(
                             CliSyntax.PREFIX_EVENT));

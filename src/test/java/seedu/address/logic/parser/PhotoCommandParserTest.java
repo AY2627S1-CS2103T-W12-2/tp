@@ -26,13 +26,15 @@ import seedu.address.testutil.PersonBuilder;
 
 public class PhotoCommandParserTest {
 
-    private static final String INVALID_FORMAT = String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-            PhotoCommand.MESSAGE_USAGE);
     private static final String QUOTE_HINT = "Use one f/ path. Quote paths containing \" f/\": "
             + "f/\"my f/portrait.png\"";
 
     @TempDir
     private Path folder;
+
+    private static String format(String hint) {
+        return String.format(MESSAGE_INVALID_COMMAND_FORMAT, hint);
+    }
 
     @Test
     public void parse_quotedPathWithPrefixText_importsTheExactFile() throws Exception {
@@ -71,8 +73,8 @@ public class PhotoCommandParserTest {
     @Test
     public void parse_quotedBlankPathOrMissingIndex_rejectsInvalidFormat() {
         PhotoCommandParser parser = new PhotoCommandParser(new PhotoStorage(folder));
-        assertParseFailure(parser, " 1 f/\" \"", INVALID_FORMAT);
-        assertParseFailure(parser, " clear f/\"portrait.png\"", INVALID_FORMAT);
+        assertParseFailure(parser, " 1 f/\" \"", format(PhotoCommand.MESSAGE_MISSING_PATH));
+        assertParseFailure(parser, " clear f/\"portrait.png\"", format(PhotoCommand.MESSAGE_MISSING_INDEX));
         assertParseFailure(parser, " 0 f/\"portrait.png\"", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
     }
 
@@ -84,17 +86,17 @@ public class PhotoCommandParserTest {
     public void parse_clearInPlaceOfTheIndex_throwsUsageAndNotInvalidIndex() {
         PhotoCommandParser parser = new PhotoCommandParser(new PhotoStorage(folder));
 
-        assertParseFailure(parser, " clear", INVALID_FORMAT);
-        assertParseFailure(parser, " CLEAR", INVALID_FORMAT);
-        assertParseFailure(parser, " clear 1", INVALID_FORMAT);
+        assertParseFailure(parser, " clear", format(PhotoCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " CLEAR", format(PhotoCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " clear 1", format(PhotoCommand.MESSAGE_MISSING_INDEX));
     }
 
     @Test
     public void parse_clearInPlaceOfTheIndexWithDuplicateFile_throwsUsageAndNotDuplicatePrefix() {
         PhotoCommandParser parser = new PhotoCommandParser(new PhotoStorage(folder));
 
-        assertParseFailure(parser, " clear f/a.png f/b.png", INVALID_FORMAT);
-        assertParseFailure(parser, " CLEAR 1 f/a.png f/b.png", INVALID_FORMAT);
+        assertParseFailure(parser, " clear f/a.png f/b.png", format(PhotoCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " CLEAR 1 f/a.png f/b.png", format(PhotoCommand.MESSAGE_MISSING_INDEX));
     }
 
     @Test
@@ -118,6 +120,26 @@ public class PhotoCommandParserTest {
         assertParseFailure(parser, " 1 f/\"my f/portrait.png",
                 QUOTE_HINT);
         assertParseFailure(parser, " 1 f/\"portrait.png", PhotoCommandParser.MESSAGE_UNCLOSED_QUOTE);
+    }
+
+    @Test
+    public void parse_closedQuoteWithTrailingText_reportsExtraText() {
+        PhotoCommandParser parser = new PhotoCommandParser(new PhotoStorage(folder));
+        assertParseFailure(parser, " 1 f/\"portrait.png\" extra", PhotoCommandParser.MESSAGE_AFTER_QUOTE);
+        assertParseFailure(parser, " 1 f/\"portrait.png\"x", PhotoCommandParser.MESSAGE_AFTER_QUOTE);
+    }
+
+    @Test
+    public void parse_wrongShape_givesOneSpecificHint() {
+        PhotoCommandParser parser = new PhotoCommandParser(new PhotoStorage(folder));
+        assertParseFailure(parser, "", format(PhotoCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " f/portrait.png", format(PhotoCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " 1", format(PhotoCommand.MESSAGE_MISSING_PATH));
+        assertParseFailure(parser, " 1 f/", format(PhotoCommand.MESSAGE_MISSING_PATH));
+        assertParseFailure(parser, " 1 clear f/portrait.png", format(PhotoCommand.MESSAGE_NOT_BOTH));
+        assertParseFailure(parser, " 1 portrait.png", format(PhotoCommand.MESSAGE_WITHOUT_PREFIX));
+        assertParseFailure(parser, " 1 2 f/portrait.png", format(PhotoCommand.MESSAGE_EXTRA_WORDS));
+        assertParseFailure(parser, " 1 clear extra", format(PhotoCommand.MESSAGE_EXTRA_WORDS));
     }
 
     @Test

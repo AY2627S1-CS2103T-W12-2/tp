@@ -25,10 +25,10 @@ import seedu.address.storage.Storage;
  */
 public class LogicManager implements Logic {
     public static final String MESSAGE_SAVE_ERROR =
-            "Could not save contacts. Nothing changed. Check the data file and folder, then try again.";
+            "Could not save contacts. Nothing changed. Check file/folder access.";
 
     public static final String MESSAGE_SAVE_PERMISSION_ERROR =
-            "Could not save contacts. Nothing changed. Allow writing to the data file and folder, then try again.";
+            "Could not save contacts. Nothing changed. Allow file/folder writes.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 

@@ -957,7 +957,7 @@ Given below are instructions to test the app manually.
    1. Prerequisites: Close the app and back up `data/addressbook.json`. Start the app. Make the data file read-only: `chmod u-w data/addressbook.json` on macOS or Linux, or `attrib +R data\addressbook.json` in PowerShell.
 
    1. Test case: `view 1`<br>
-      Expected: `Could not save contacts. Nothing changed. Allow writing to the data file and folder, then try again.` The detail panel does not show a new `LAST VIEWED` time.
+      Expected: `Could not save contacts. Nothing changed. Allow file/folder writes.` The detail panel does not show a new `LAST VIEWED` time.
 
    1. Test case: `edit 1 p/90000000`<br>
       Expected: The same error message. The phone number and the times of the contact are unchanged.

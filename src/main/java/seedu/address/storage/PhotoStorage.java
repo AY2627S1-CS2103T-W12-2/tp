@@ -25,13 +25,13 @@ import seedu.address.commons.core.LogsCenter;
 /** Imports and reads bounded local images while keeping every resolved path inside the application folder. */
 public class PhotoStorage {
     public static final String MESSAGE_INVALID =
-            "Choose a valid PNG or JPEG with a matching .png, .jpg, or .jpeg extension.";
+            "Use a valid PNG or JPEG with a matching file extension.";
     public static final String MESSAGE_LIMIT = "Choose a photo up to 5 MiB and 4096×4096 pixels.";
     public static final String MESSAGE_UNREADABLE =
             "Cannot read the photo. Check that the file exists and is readable.";
-    public static final String MESSAGE_PATH = "Use a relative photo path inside the JAR folder, e.g. images/me.png.";
+    public static final String MESSAGE_PATH = "Use a relative path inside the JAR folder, e.g. images/me.png.";
     public static final String MESSAGE_IMPORT =
-            "Cannot copy the photo. Check that photos/ is a writable folder inside the JAR folder.";
+            "Cannot copy the photo. Check photos/ is writable inside the JAR folder.";
     private static final int MAX_BYTES = 5 * 1024 * 1024;
     private static final int MAX_DIMENSION = 4096;
     private static final Logger logger = LogsCenter.getLogger(PhotoStorage.class);
