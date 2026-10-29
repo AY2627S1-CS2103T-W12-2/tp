@@ -112,6 +112,7 @@ Format: `list`
 
 * Use `list` to return to the full, original-order list after `find`, `group`, `filter starred`, or `due`.
 * `list` does not clear command history.
+* No arguments are needed. Extra text, such as `list extra`, is ignored and has the same effect as `list`.
 
 ### Reading the list heading
 
@@ -147,6 +148,13 @@ Examples:
 
 * `sort added` shows the newest contacts first.
 * `sort viewed` followed by `view 2` records that view and may move that contact to the top.
+
+Missing or unsupported criteria, such as `sort` or `sort name`, and extra arguments show:
+
+```text
+Invalid command format!
+Use sort added, sort edited, or sort viewed (case-insensitive).
+```
 
 ### Editing a contact: `edit`
 
@@ -241,9 +249,10 @@ Typed format: `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`
 * Typed terms match partial text and ignore case.
 * Repeated terms in one field use OR. Different fields use AND. For example, `find n/Alex n/Sam t/hackathon` finds an Alex or Sam contact that also has a `hackathon` tag.
 * Do not mix plain keywords and typed prefixes. The message is `Use either plain keywords or field prefixes in one find command.`
-* Empty terms and malformed prefixes show the standard format-and-usage error.
+  followed by `Example: find Alex or find n/Alex t/react.`
+* Empty terms and malformed prefixes show the find syntax hint below.
 * Other command fields (`e/`, `p/`, `l/`, `d/`, `md/`, `r/`, and `f/`) are not supported by `find`.
-  At the start of the arguments or after whitespace, these prefixes give `Invalid command format!` with usage,
+  At the start of the arguments or after whitespace, these prefixes give the same find syntax hint,
   even after a valid search field: for example, `find n/aisha e/p0@example.com` is invalid, not a zero-match search.
   Ordinary slash-containing text in typed terms, such as `find ev/ai/ml workshop` or `find nt/c/o NUS`, remains valid.
   This also means a note or event search cannot contain these reserved prefixes after whitespace:
@@ -254,6 +263,18 @@ Examples:
 * `find Aisha Ben` finds contacts named `Aisha Rahman` or `Ben Tan` when both have been added.
 * `find t/react nt/teammate` finds contacts tagged `react` whose note contains `teammate`.
 * `find ev/hack singapore` finds contacts whose event name contains `hack singapore`.
+
+Missing terms, empty fields (for example, `find n/`), or unsupported fields (for example,
+`find n/Aisha e/private@example.com`) show the following hint without repeating your input:
+
+```text
+Invalid command format!
+Use find KEYWORD [MORE_KEYWORDS] or find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM].
+Supply at least one non-empty term; typed fields may repeat.
+```
+
+An invalid search leaves the current results and viewed contact unchanged. A valid search with no matches
+reports `0 contact(s) listed!`; it is not an error.
 
 ### Grouping contacts by tag: `group`
 
@@ -269,6 +290,14 @@ Format: `group t/TAG`
 Examples:
 * `group t/react`
 * `group t/UI-UX`
+
+If `t/` is missing, the error is `Invalid command format!` followed by
+`Use group t/TAG with one tag, e.g. group t/react.`
+An empty, invalid, or overlong tag reports
+`Tags should contain only letters, digits, hyphens, and plus signs, and be 1 to 20 characters long`.
+Two `t/` fields report `Multiple values specified for the following single-valued field(s): t/`;
+use just one tag. These errors leave the current list and viewed contact unchanged.
+An accepted tag with no matches produces a normal zero-contact result, not an error.
 
 ### Starring important contacts: `star` and `unstar`
 
@@ -346,10 +375,16 @@ If the contact cannot be viewed, LarperBoard shows these errors:
 Input or situation | Message
 -------------------|--------
 A valid `view INDEX` when the displayed list is empty | `The person list is empty.`
-`view 1 2` (more than one index) | `Only one index parameter is accepted.` (with the invalid-format message and usage)
-`view` (missing index) | `Invalid command format!` followed by the command usage
+`view 1 2` (more than one index) | `Invalid command format!`, then `Only one index parameter is accepted.`, then the view hint below
+`view` (missing index) | `Invalid command format!` followed by the view hint below
 `view 0`, `view -1`, `view abc`, or `view 2147483648` (invalid or oversized index) | `The person index provided is invalid.`
 `view 99` when the displayed list is nonempty but has fewer than 99 contacts | `The person index provided is invalid.`
+
+For missing or extra arguments, the usage hint is
+`Use view INDEX with one positive displayed index, e.g. view 1.`
+For an invalid index, choose a number actually shown beside a contact, not the position of a hidden viewed contact.
+If the displayed list is empty, run `list` to show all saved contacts before choosing an index.
+Failed `view` commands do not replace the viewed contact or update its activity time.
 
 ### Clearing all entries: `clear`
 
