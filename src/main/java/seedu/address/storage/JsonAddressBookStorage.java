@@ -114,19 +114,19 @@ public class JsonAddressBookStorage {
                 if (lock == null) {
                     throw new DataFileBusyException();
                 }
-                if (knownVersions.containsKey(target)
-                        && !knownVersions.get(target).equals(versionOf(readContents(target)))) {
-                    throw new ConcurrentDataChangeException();
-                }
-                knownVersions.put(target, saveUnderLock(addressBook, target));
+                Optional<String> currentVersion = versionOf(readContents(target));
+                boolean stale = knownVersions.containsKey(target)
+                        && !knownVersions.get(target).equals(currentVersion);
+                knownVersions.put(target, saveUnderLock(addressBook, target, currentVersion, stale));
             } catch (OverlappingFileLockException e) {
                 throw new DataFileBusyException(e);
             }
         }
     }
 
-    /** Stages and atomically replaces the data file while the companion lock is held. */
-    private static Optional<String> saveUnderLock(ReadOnlyAddressBook addressBook, Path target) throws IOException {
+    /** Skips identical saves or atomically replaces a current data file while the companion lock is held. */
+    private static Optional<String> saveUnderLock(ReadOnlyAddressBook addressBook, Path target,
+            Optional<String> currentVersion, boolean stale) throws IOException {
         Set<PosixFilePermission> permissions = null;
         if (Files.exists(target)) {
             if (!Files.isWritable(target)) {
@@ -153,6 +153,13 @@ public class JsonAddressBookStorage {
                 Files.setPosixFilePermissions(staged, permissions);
             }
             Optional<String> savedVersion = versionOf(readContents(staged));
+            // Another copy may already have saved precisely this state. Accept that retry without rewriting.
+            if (savedVersion.equals(currentVersion)) {
+                return currentVersion;
+            }
+            if (stale) {
+                throw new ConcurrentDataChangeException();
+            }
             Files.move(staged, target, StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING);
             return savedVersion;
         } finally {

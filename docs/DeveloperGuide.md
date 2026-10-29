@@ -275,7 +275,10 @@ Each `Person` carries an `Activity` with its created, last edited and last viewe
   retained on `CommandException` and logged, rather than appended to the displayed message. If the process exits during a save, a stray `addressBook-*.tmp` file may remain beside the data file; it can be deleted safely. If the file system cannot perform an atomic move, saving fails without falling back to an in-place write. An existing symbolic link at the data-file path is replaced by a regular file, leaving its former target unchanged.
 * **Concurrent copies:** `JsonAddressBookStorage` records a SHA-256 version of the exact bytes it loads. Saves
   acquire a lock on a companion `.lock` file and compare the current data-file version before replacing it.
-  A stale copy raises `ConcurrentDataChangeException`, while a copy that cannot acquire the lock raises
+  If the serialized save has exactly the same content hash as the current file, it succeeds without replacing
+  the file or changing its modification time, and refreshes the copy's known version. This makes identical
+  storage retries harmless, even when another copy already saved that state. A stale copy with different
+  content raises `ConcurrentDataChangeException`, while a copy that cannot acquire the lock raises
   `DataFileBusyException`. `LogicManager` restores its snapshot and reports a recovery step in either case.
   The lock file may remain after the app exits; the operating system releases its lock when the channel closes.
 * **Display:** the detail panel shows the three times as `yyyy-MM-dd HH:mm` in `Model.DISPLAY_ZONE` (Asia/Singapore), or an em dash (`—`) when a time is not known. The block sits at the bottom of `PersonDetailPanel.fxml`.

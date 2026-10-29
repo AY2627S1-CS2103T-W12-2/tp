@@ -20,6 +20,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.attribute.DosFileAttributeView;
+import java.nio.file.attribute.FileTime;
 import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.time.Instant;
@@ -101,6 +102,71 @@ public class JsonAddressBookStorageTest {
 
         assertThrows(ConcurrentDataChangeException.class, () -> second.saveAddressBook(secondBook));
         assertEquals(firstBook, new JsonAddressBookStorage(file).readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void saveAddressBook_repeatedIdenticalSave_keepsFileUntouched() throws Exception {
+        Path file = testFolder.resolve("addressBook.json");
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+        AddressBook book = getTypicalAddressBook();
+        storage.saveAddressBook(book);
+        Files.setLastModifiedTime(file, FileTime.fromMillis(1600000000000L));
+        FileTime modified = Files.getLastModifiedTime(file);
+        byte[] contents = Files.readAllBytes(file);
+
+        for (int attempt = 0; attempt < 3; attempt++) {
+            storage.saveAddressBook(book);
+            assertEquals(modified, Files.getLastModifiedTime(file));
+            assertArrayEquals(contents, Files.readAllBytes(file));
+        }
+        try (var entries = Files.list(testFolder)) {
+            assertEquals(Set.of(file, testFolder.resolve("addressBook.json.lock")),
+                    entries.collect(java.util.stream.Collectors.toSet()));
+        }
+    }
+
+    @Test
+    public void saveAddressBook_twoCopiesSaveIdenticalContents_retriesAndNextChangeSucceed() throws Exception {
+        Path file = testFolder.resolve("addressBook.json");
+        JsonAddressBookStorage first = new JsonAddressBookStorage(file);
+        JsonAddressBookStorage second = new JsonAddressBookStorage(file);
+        first.readAddressBook();
+        second.readAddressBook();
+        AddressBook book = new AddressBook();
+        book.addPerson(ALICE);
+        first.saveAddressBook(book);
+        Files.setLastModifiedTime(file, FileTime.fromMillis(1600000000000L));
+        FileTime modified = Files.getLastModifiedTime(file);
+
+        second.saveAddressBook(book);
+        second.saveAddressBook(book);
+        assertEquals(modified, Files.getLastModifiedTime(file));
+        assertEquals(book, new JsonAddressBookStorage(file).readAddressBook().orElseThrow());
+
+        book.addPerson(HOON);
+        second.saveAddressBook(book);
+        assertEquals(book, new JsonAddressBookStorage(file).readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void saveAddressBook_repeatedStaleDifferentSave_preservesOtherCopyChanges() throws Exception {
+        Path file = testFolder.resolve("addressBook.json");
+        JsonAddressBookStorage first = new JsonAddressBookStorage(file);
+        JsonAddressBookStorage second = new JsonAddressBookStorage(file);
+        AddressBook book = new AddressBook();
+        book.addPerson(ALICE);
+        first.saveAddressBook(book);
+        second.readAddressBook();
+        AddressBook updated = new AddressBook(book);
+        updated.addPerson(HOON);
+        first.saveAddressBook(updated);
+        byte[] contents = Files.readAllBytes(file);
+
+        for (int attempt = 0; attempt < 3; attempt++) {
+            assertThrows(ConcurrentDataChangeException.class, () -> second.saveAddressBook(book));
+            assertArrayEquals(contents, Files.readAllBytes(file));
+        }
+        assertEquals(updated, new JsonAddressBookStorage(file).readAddressBook().orElseThrow());
     }
 
     @Test
