@@ -82,6 +82,24 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void saveAddressBook_twoCopiesLoadedMissingFile_secondCannotOverwrite() throws Exception {
+        Path file = testFolder.resolve("new-addressBook.json");
+        JsonAddressBookStorage first = new JsonAddressBookStorage(file);
+        JsonAddressBookStorage second = new JsonAddressBookStorage(file);
+        assertTrue(first.readAddressBook().isEmpty());
+        assertTrue(second.readAddressBook().isEmpty());
+        AddressBook firstBook = new AddressBook();
+        firstBook.addPerson(ALICE);
+        AddressBook secondBook = new AddressBook();
+        secondBook.addPerson(HOON);
+
+        first.saveAddressBook(firstBook);
+
+        assertThrows(ConcurrentDataChangeException.class, () -> second.saveAddressBook(secondBook));
+        assertEquals(firstBook, new JsonAddressBookStorage(file).readAddressBook().orElseThrow());
+    }
+
+    @Test
     public void read_notJsonFormat_exceptionThrown() {
         assertThrows(DataLoadingException.class, () -> readAddressBook("notJsonFormatAddressBook.json"));
     }
@@ -215,7 +233,8 @@ public class JsonAddressBookStorageTest {
 
         assertEquals("keep", Files.readString(sentinel));
         try (var entries = Files.list(testFolder)) {
-            assertEquals(1, entries.count());
+            assertEquals(Set.of(target, testFolder.resolve("addressBook.json.lock")),
+                    entries.collect(java.util.stream.Collectors.toSet()));
         }
     }
 

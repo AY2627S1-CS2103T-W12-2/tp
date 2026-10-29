@@ -264,6 +264,11 @@ Each `Person` carries an `Activity` with its created, last edited and last viewe
 * **A failed save changes nothing.** `LogicManager` takes `Model#createSnapshot()` before it runs a command. If saving the data file then fails, it calls `Model#restore(snapshot)` and shows the error, so the contacts, the viewed contact, the visible-list filter and sort, and the undo and redo stacks are as they were. No created, edited or viewed time is kept. The snapshot is opaque (`Model.Snapshot`) and covers in-memory command changes, not user preferences. `JsonAddressBookStorage` serializes to a temporary file beside the data file, then uses an atomic replacement. It rejects an existing read-only data file and preserves existing POSIX permissions. A failed write or replacement leaves the previous JSON file intact and removes the temporary file.
   User-facing save errors give a short recovery instruction and confirm that nothing changed; the cause is
   retained on `CommandException` and logged, rather than appended to the displayed message. If the process exits during a save, a stray `addressBook-*.tmp` file may remain beside the data file; it can be deleted safely. If the file system cannot perform an atomic move, saving fails without falling back to an in-place write. An existing symbolic link at the data-file path is replaced by a regular file, leaving its former target unchanged.
+* **Concurrent copies:** `JsonAddressBookStorage` records a SHA-256 version of the exact bytes it loads. Saves
+  acquire a lock on a companion `.lock` file and compare the current data-file version before replacing it.
+  A stale copy raises `ConcurrentDataChangeException`, while a copy that cannot acquire the lock raises
+  `DataFileBusyException`. `LogicManager` restores its snapshot and reports a recovery step in either case.
+  The lock file may remain after the app exits; the operating system releases its lock when the channel closes.
 * **Display:** the detail panel shows the three times as `yyyy-MM-dd HH:mm` in `Model.DISPLAY_ZONE` (Asia/Singapore), or an em dash (`—`) when a time is not known. The block sits at the bottom of `PersonDetailPanel.fxml`.
 
 <img src="images/EditActivitySequenceDiagram.png" width="600" />

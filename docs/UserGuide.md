@@ -600,6 +600,10 @@ LarperBoard automatically saves data after successful commands. You do not need 
 `help` and `exit` do not write contact data and remain available if the contact data file is read-only.
 If saving fails, the command reports that nothing changed and restores the previous contacts and history.
 Check file/folder access before retrying; technical details are recorded in the log.
+If another open copy changes the same data file, this copy refuses to overwrite it. Reopen LarperBoard
+to load those changes before retrying the command. If another copy is saving at the same moment, retry
+after it finishes. The companion `addressbook.json.lock` file may remain beside the data file; leave it
+in place so open copies can coordinate their saves.
 
 ### Editing the data file
 
