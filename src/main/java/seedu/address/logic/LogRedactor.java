@@ -43,7 +43,9 @@ public final class LogRedactor {
     }
 
     private static boolean containsPersonalText(String commandWord, String arguments) {
-        return commandWord.equals(NoteCommand.COMMAND_WORD) || commandWord.equals(MeetingCommand.COMMAND_WORD)
-                || commandWord.equals(FindCommand.COMMAND_WORD) && PERSONAL_SEARCH_PREFIX.matcher(arguments).find();
+        return commandWord.equalsIgnoreCase(NoteCommand.COMMAND_WORD)
+                || commandWord.equalsIgnoreCase(MeetingCommand.COMMAND_WORD)
+                || commandWord.equalsIgnoreCase(FindCommand.COMMAND_WORD)
+                && PERSONAL_SEARCH_PREFIX.matcher(arguments).find();
     }
 }

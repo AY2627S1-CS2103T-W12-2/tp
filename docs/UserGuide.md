@@ -54,6 +54,9 @@ and `sort name` / `sort starred` from [#128](https://github.com/AY2627S1-CS2103T
 * Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
+* Command words are not case-sensitive.<br>
+  For example, `list`, `List` and `LIST` all work. Prefixes such as `n/` and `t/` must still be typed in lowercase.
+
 * Items in square brackets are optional.<br>
   For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
 

@@ -194,6 +194,30 @@ public class AddressBookParserTest {
     }
 
     @Test
+    public void parseCommand_commandWordInAnyLetterCase_isAccepted() throws Exception {
+        assertTrue(parser.parseCommand("HELP") instanceof HelpCommand);
+        assertTrue(parser.parseCommand("Help") instanceof HelpCommand);
+        assertTrue(parser.parseCommand("LIST") instanceof ListCommand);
+        assertTrue(parser.parseCommand("   ClEaR  ") instanceof ClearCommand);
+        assertEquals(new StarCommand(INDEX_FIRST_PERSON, true), parser.parseCommand("STAR 1"));
+        assertEquals(new StarCommand(INDEX_FIRST_PERSON, false), parser.parseCommand("UnStar 1"));
+        assertEquals(new FilterCommand(true), parser.parseCommand("FILTER STARRED"));
+        assertEquals(new SortCommand(SortCriterion.ADDED), parser.parseCommand("Sort added"));
+    }
+
+    @Test
+    public void parseCommand_everyCommandWordInUpperCase_isRecognised() {
+        for (String commandWord : COMMAND_WORDS) {
+            try {
+                parser.parseCommand(commandWord.toUpperCase());
+            } catch (ParseException e) {
+                assertFalse(e.getMessage().startsWith(MESSAGE_UNKNOWN_COMMAND),
+                        commandWord.toUpperCase() + " is not recognised");
+            }
+        }
+    }
+
+    @Test
     public void parseCommand_unknownCommand_messageListsTheAvailableCommands() {
         // fully qualified because seedu.address.testutil.Assert.assertThrows, which returns nothing, is imported
         ParseException exception = org.junit.jupiter.api.Assertions.assertThrows(ParseException.class, () ->

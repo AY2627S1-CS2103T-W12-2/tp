@@ -1077,8 +1077,11 @@ Given below are instructions to test the app manually.
    1. Test case: `strar 1`<br>
       Expected: No contact is changed. The result box shows `Unknown command.` followed by `Available commands:` and every command word in alphabetical order. The message wraps onto several lines of the result box, with no horizontal scroll bar.
 
-   1. Other unknown commands to try: `foo`, `STAR 1` (command words are case-sensitive)<br>
+   1. Other unknown commands to try: `foo`, `star1`<br>
       Expected: Similar to previous.
+
+   1. Test case: `STAR 1` (command words are not case-sensitive)<br>
+      Expected: Same as `star 1`. The first contact is starred.
 
    1. Test case: `help`<br>
       Expected: The help window opens, as before.
