@@ -63,6 +63,17 @@ public class LogRedactorTest {
     }
 
     @Test
+    public void redactCommand_malformedPersonalPrefix_hidesRejectedSearchText() {
+        for (String arguments : new String[]{"nt /Private note", "n/Alice ev /Private event", "nt\t/Private",
+            "NT /Private note", "n/Alice Ev /Private event", "EV/Private event", "Nt/Private note"}) {
+            assertEquals("find [hidden]", LogRedactor.redactCommand("find " + arguments));
+            assertEquals("FIND [hidden]", LogRedactor.redactCommand("FIND " + arguments));
+            assertEquals("[hidden]", LogRedactor.redactArguments("find", " " + arguments));
+            assertEquals("[hidden]", LogRedactor.redactArguments("FIND", " " + arguments));
+        }
+    }
+
+    @Test
     public void redactCommand_otherCommands_areUnchanged() {
         assertEquals("note", LogRedactor.redactCommand("note"));
         assertEquals("delete 1", LogRedactor.redactCommand("delete 1"));

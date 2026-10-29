@@ -27,7 +27,7 @@ public class TagCommand extends Command {
             + "Parameters: INDEX (must be a positive integer) t/TAG [t/TAG]...\n"
             + "Example: " + COMMAND_WORD + " 1 t/friends t/colleagues";
 
-    public static final String MESSAGE_SUCCESS = "Updated Person: %1$s";
+    public static final String MESSAGE_SUCCESS = "Updated contact: %1$s";
     public static final String MESSAGE_UNCHANGED = "Tags unchanged: %1$s";
 
     private final Index index;

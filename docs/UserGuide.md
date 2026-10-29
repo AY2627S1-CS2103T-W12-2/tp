@@ -94,6 +94,8 @@ Format: `help`
 
 ### Adding a contact: `add`
 
+A successful add reports `New contact added:` followed by the contact details.
+
 Adds a contact to LarperBoard.
 
 Format: `add n/NAME [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`
@@ -172,6 +174,8 @@ Use sort added, sort edited, or sort viewed (case-insensitive).
 
 ### Editing a contact: `edit`
 
+A successful edit reports `Edited contact:` followed by the contact details. A duplicate edit reports `Another contact has this name and phone number. Choose a different name or phone number.`
+
 Edits an existing contact in LarperBoard.
 
 Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`
@@ -199,7 +203,7 @@ Format: `tag INDEX t/TAG [t/TAG]…​`
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
 * At least one nonempty `t/TAG` is required. A tag must be 1 to 20 characters long and contain only `A`–`Z`, `a`–`z`, digits, hyphens (`-`), or plus signs (`+`).
 * Tags are stored in lowercase. Repeating a tag with different capitalization, or adding a tag the contact already has, keeps only one copy. If every requested tag is already present, the command reports `Tags unchanged:` followed by the contact's details. The last-edited time and undo history stay unchanged.
-* When tags are added, the command reports `Updated Person:` followed by the contact's details.
+* When tags are added, the command reports `Updated contact:` followed by the contact's details.
 * Use `edit INDEX t/TAG` to replace all tags, or `edit INDEX t/` to remove them all.
 
 Examples:
@@ -277,7 +281,7 @@ Typed format: `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`
 * Repeated terms in one field use OR. Different fields use AND. For example, `find n/Alex n/Sam t/hackathon` finds an Alex or Sam contact that also has a `hackathon` tag.
 * Do not mix plain keywords and typed prefixes. The message is `Use either plain keywords or field prefixes in one find command.`
   followed by `Example: find Alex or find n/Alex t/react.`
-* Empty terms and malformed prefixes show the find syntax hint below.
+* Empty terms and malformed prefixes show the find syntax hint below, except a space inside a known prefix (such as `t /react`), which reports `Invalid command format!` followed by `Remove the space before '/': use n/Alice or t/react.`
 * Other command fields (`e/`, `p/`, `l/`, `d/`, `md/`, `r/`, and `f/`) are not supported by `find`.
   At the start of the arguments or after whitespace, these prefixes give the same find syntax hint,
   even after a valid search field: for example, `find n/aisha e/p0@example.com` is invalid, not a zero-match search.
@@ -387,6 +391,8 @@ Input | Message
 
 ### Deleting a contact: `delete`
 
+A successful deletion reports `Deleted contact:` followed by the deleted contact details.
+
 Deletes the specified contact from the displayed list.
 
 Format: `delete INDEX`
@@ -444,6 +450,8 @@ Failed `view` commands do not replace the viewed contact or update its activity 
 
 ### Clearing all entries: `clear`
 
+Clearing a nonempty list reports `All contacts have been cleared!`.
+
 Clears all contacts from LarperBoard.
 
 Format: `clear`
@@ -487,6 +495,8 @@ For example, after `add n/Jane Tan` and `undo`, `redo` restores Jane. Adding a d
 before `redo` instead removes that redo step.
 
 ### Exiting the program: `exit`
+
+The exit message is `Exiting LarperBoard ...`.
 
 Closes LarperBoard when you have finished. You do not need to save first: your contacts are already saved to the data file after every change.
 

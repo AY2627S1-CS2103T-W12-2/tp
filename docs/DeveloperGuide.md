@@ -738,7 +738,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 **Extensions**
 
 * 2a. The address book contains no persons.
-  * 2a1. LarperBoard displays the confirmation message.
+  * 2a1. LarperBoard reports `No contacts to clear.`
 
     Use case ends.
 
@@ -1205,7 +1205,7 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
       Expected: The detail panel shows `CREATED` as the current Singapore time in `yyyy-MM-dd HH:mm` format, `LAST EDITED` as `—`, and `LAST VIEWED` as the current time.
 
    1. Test case: `edit 1 p/91234567`, then `view 1`<br>
-      Expected: The status message of `edit` starts with `Edited person:`. The detail panel now shows `LAST EDITED` as the current time. `CREATED` is unchanged.
+      Expected: The status message of `edit` starts with `Edited contact:`. The detail panel now shows `LAST EDITED` as the current time. `CREATED` is unchanged.
 
    1. Test case: `list`, then `view 2` where the 2nd contact is a sample contact<br>
       Expected: The status message starts with `Now viewing:`. `LAST VIEWED` shows the current time. `CREATED` and `LAST EDITED` stay `—`.
@@ -1221,7 +1221,7 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
       Expected: `At least one field to edit must be provided.` No time changes.
 
    1. Test case: `add n/Activity Test p/91234567` (the same name and phone as the existing contact)<br>
-      Expected: `This person already exists in the address book.` No contact is added and no time changes.
+      Expected: `A contact with this name and phone number already exists. Edit that contact instead.` No contact is added and no time changes.
 
    1. Test case: `view 99` (larger than the list size)<br>
       Expected: `The person index provided is invalid.` The `LAST VIEWED` time of every contact is unchanged.

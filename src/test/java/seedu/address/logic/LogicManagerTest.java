@@ -45,6 +45,7 @@ import seedu.address.logic.commands.SortCommand;
 import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.CliSyntax;
+import seedu.address.logic.parser.FindCommandParser;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
@@ -509,7 +510,13 @@ public class LogicManagerTest {
         Path dataFile = temporaryFolder.resolve("addressBook.json");
         String savedBefore = Files.readString(dataFile);
         String findFormat = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
+        String spacedPrefixFormat = String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                FindCommandParser.MESSAGE_SPACED_PREFIX);
         Map<String, String> failures = Map.ofEntries(
+                Map.entry("find n /Alex", spacedPrefixFormat),
+                Map.entry("find e /x", spacedPrefixFormat),
+                Map.entry("find md /2026", spacedPrefixFormat),
+                Map.entry("find t /", spacedPrefixFormat),
                 Map.entry("find e/p0@example.com", findFormat),
                 Map.entry("find n/aisha e/p0@example.com", findFormat),
                 Map.entry("find n/aisha p/90000000", findFormat),
