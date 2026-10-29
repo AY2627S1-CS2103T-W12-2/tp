@@ -15,6 +15,7 @@ import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Locale;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -213,10 +214,10 @@ public class AddressBookParserTest {
     public void parseCommand_everyCommandWordInUpperCase_isRecognised() {
         for (String commandWord : COMMAND_WORDS) {
             try {
-                parser.parseCommand(commandWord.toUpperCase());
+                parser.parseCommand(commandWord.toUpperCase(Locale.ROOT));
             } catch (ParseException e) {
                 assertFalse(e.getMessage().startsWith(MESSAGE_UNKNOWN_COMMAND),
-                        commandWord.toUpperCase() + " is not recognised");
+                        commandWord.toUpperCase(Locale.ROOT) + " is not recognised");
             }
         }
     }

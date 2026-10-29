@@ -138,7 +138,7 @@ the contact list.
 Format: `sort added|edited|viewed`
 
 * Sort keywords are case-insensitive: `sort Added`, `sort ADDED`, and `sort added` behave the same.
-  The command word remains lowercase: `sort`.
+  So is the command word, so `SORT added` works too.
 * `sort added` puts most recently added contacts first.
 * `sort edited` puts most recently edited contacts first.
 * `sort viewed` puts most recently viewed contacts first. Viewing a contact can therefore move it in this list.
