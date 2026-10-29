@@ -100,6 +100,7 @@ name, so the same tag always looks the same in the contact list and detail panel
 * `PHONE` is optional and must contain 3 to 20 digits when supplied.
 * `EMAIL` is optional and must be a valid email address of at most 254 characters when supplied.
 * A contact is a duplicate when its name matches an existing contact's name ignoring case and its phone number is the same. A different phone number permits the same name. Duplicate contacts cannot be added.
+  LarperBoard reports `A contact with this name and phone number already exists. Edit that contact instead.`
 * In the contact list, a card shows its tags on a single row. If they do not all fit, the row ends with `+N`, where `N` is the number of tags left out. Use `view INDEX` to see all of a contact's tags.
 
 Examples:
@@ -174,6 +175,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…�
 * To remove a contact's LinkedIn handle, enter `l/` without a handle after it.
 * If the supplied values already match the contact, the command reports `Person unchanged:` followed by the
   contact's details. The displayed list, activity times, and undo history stay unchanged.
+* If an edit would give two contacts the same name and phone number, choose a different name or phone number.
 
 Examples:
 * `edit 1 p/91234567 e/johndoe@example.com` changes the 1st contact's phone number and email address to `91234567` and `johndoe@example.com`.
@@ -187,7 +189,7 @@ Format: `tag INDEX t/TAG [t/TAG]…​`
 
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
 * At least one nonempty `t/TAG` is required. A tag must be 1 to 20 characters long and contain only `A`–`Z`, `a`–`z`, digits, hyphens (`-`), or plus signs (`+`).
-* Tags are stored in lowercase. Repeating a tag with different capitalization, or adding a tag the contact already has, keeps only one copy. The command still reports success if every requested tag is already present.
+* Tags are stored in lowercase. Repeating a tag with different capitalization, or adding a tag the contact already has, keeps only one copy. If every requested tag is already present, the command reports `Tags unchanged:` followed by the contact's details.
 * A successful command reports `Updated Person:` followed by the contact's details.
 * Use `edit INDEX t/TAG` to replace all tags, or `edit INDEX t/` to remove them all.
 
@@ -395,6 +397,8 @@ Failed `view` commands do not replace the viewed contact or update its activity 
 Clears all contacts from LarperBoard.
 
 Format: `clear`
+
+If there are no contacts, LarperBoard reports `No contacts to clear.`
 
 ### Undoing a contact change: `undo`
 

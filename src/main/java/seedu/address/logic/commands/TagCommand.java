@@ -28,6 +28,7 @@ public class TagCommand extends Command {
             + "Example: " + COMMAND_WORD + " 1 t/friends t/colleagues";
 
     public static final String MESSAGE_SUCCESS = "Updated Person: %1$s";
+    public static final String MESSAGE_UNCHANGED = "Tags unchanged: %1$s";
 
     private final Index index;
     private final Set<Tag> tagsToAdd;
@@ -57,7 +58,7 @@ public class TagCommand extends Command {
         updatedTags.addAll(tagsToAdd);
 
         if (updatedTags.equals(personToUpdate.getTags())) {
-            return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(personToUpdate)));
+            return new CommandResult(String.format(MESSAGE_UNCHANGED, Messages.format(personToUpdate)));
         }
 
         Person updatedPerson = personToUpdate.toBuilder().withTags(updatedTags).build();
