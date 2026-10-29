@@ -374,6 +374,12 @@ the active filter. Filter descriptions are session-only, not JSON fields. `State
 alongside the predicate and sort so undo, redo, and failed-save rollback restore consistent feedback.
 This does not change selection rules or implement combined filters from #128.
 
+Only `find`, `group`, `filter`, `due` and `list` change the filter, and only `sort`, `due` and `list` change the
+sort. `Model#addPerson` touches neither, so adding a contact while a filter is active keeps the filter and updates
+the count; the new contact is listed only if it matches. This is the same as for `edit`, `tag` and the other
+commands that change a contact. Because the filter is part of the saved `State`, `undo` and `redo` of an add
+restore the contact list, the filter label and the count together.
+
 ### Viewed contact selection
 
 The `find`, `group`, `filter`, `due`, `sort`, and `list` commands only update the visible-list predicate or sort;
