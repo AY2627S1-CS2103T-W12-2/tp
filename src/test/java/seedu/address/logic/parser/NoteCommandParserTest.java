@@ -109,8 +109,13 @@ public class NoteCommandParserTest {
         assertParseFailure(parser, "abc some text", format(NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX));
     }
 
+    /**
+     * Pins the wording of the hints and keeps them short. The 70-character budget only guards against verbose
+     * hints; it does not show how the text is laid out. {@code ResultDisplayTest} checks that the complete
+     * messages fit the result box without scrolling at the minimum window width.
+     */
     @Test
-    public void hints_haveTheAgreedWordingAndFitOnOneLine() {
+    public void hints_haveTheAgreedWordingAndStayWithinACharacterBudget() {
         assertEquals("Add the contact's INDEX: note INDEX nt/NOTE or note INDEX clear.",
                 NoteCommand.MESSAGE_MISSING_INDEX);
         assertEquals("Add nt/NOTE, or use: note INDEX clear.", NoteCommand.MESSAGE_MISSING_NOTE);
