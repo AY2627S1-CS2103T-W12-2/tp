@@ -97,6 +97,14 @@ for the `+N` label, measured for the actual number of hidden tags), and refits w
 the row's width changes. Hidden tags stay in the row as unmanaged labels so they keep their styling and can be measured
 again. `PersonDetailPanel` is unchanged and wraps all tags.
 
+`CommandBox` also lets the user bring back earlier commands with the Up and Down arrow keys (see [Command
+history](#command-history)). `HelpWindow` does not explain the commands. It shows the address of the online User Guide
+(`HelpWindow#USERGUIDE_URL`) with a button to copy it, and `MainWindow#handleHelp` opens it, or brings it to the front
+if it is already open; the `help` command, the **Help** menu and the F1 accelerator all lead to `handleHelp`. For the
+`exit` command, `MainWindow#handleExitAfterDelay` waits one second (`EXIT_DELAY`) so that the user can read the result
+message and then closes the window, and the command box ignores input during the wait. The **Exit** menu item and the
+close button call `handleExit` directly and close at once.
+
 The `UI` component,
 
 * executes user commands using the `Logic` component.
@@ -514,6 +522,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 | Nice-to-have | Shipped | visual learner | distinguish categories with colour codes | visually scan and distinguish categories at a glance |
 | Nice-to-have | Deferred | user | run a stats/summary command (counts by tech stack or event) | get a high-level snapshot of my networking efforts |
 | Nice-to-have | Partial (Up/Down command recall only) | power user | have fast keyboard navigation | navigate and manipulate data at maximum keyboard speed |
+| Nice-to-have | Shipped | power user | bring back a command I typed earlier with the Up and Down arrow keys | fix a typo or repeat a command without typing it all again |
 | Nice-to-have | Deferred | user | set up CLI auto-completion for commands and contact names | run commands faster with Tab completion |
 | Nice-to-have | Partial (`help` shows the User Guide URL with a copy button; no interactive tutorial) | first-time user | run a help/tutorial command with interactive examples | learn key commands within 30 seconds of installing the app |
 | Nice-to-have | Partial (LinkedIn only) | hackathon participant | save social profiles (GitHub, LinkedIn, X, Telegram) under dedicated flags | have direct links to reach out to a person on their preferred platform |
@@ -684,10 +693,21 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 
 **MSS**
 
-1. User requests usage instructions.
-2. LarperBoard displays instructions for the available commands.
+1. User requests help (by the `help` command, the **Help** menu or the F1 key).
+2. LarperBoard opens the help window, which shows the address of the online User Guide and a button to copy it.
+3. User copies the address and reads the User Guide in a web browser.
 
    Use case ends.
+
+**Extensions**
+
+* 1a. The help window is already open.
+  * 1a1. LarperBoard brings the open help window to the front instead of opening a second one.
+
+    Use case ends.
+
+* 1b. The user types extra text after `help`, e.g. `help 123`.
+  * 1b1. LarperBoard ignores the extra text and continues from step 2.
 
 **Use case: Clear all persons**
 
@@ -853,6 +873,119 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 
     Use case ends.
 
+**Use case: Set or clear a note**
+
+**MSS**
+
+1. User requests to set a note on a person in the displayed list, giving the person's index and the note text.
+2. LarperBoard saves the note, replacing any earlier note, and shows a message that the note was saved.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user asks to clear the note instead, with `note INDEX clear`.
+  * 1a1. LarperBoard removes the note and shows a message that the note was cleared.
+
+    Use case ends.
+
+* 1b. The index is invalid, or the note is blank, too long, or the command is malformed.
+  * 1b1. LarperBoard shows an error message that names the one thing to correct and leaves the person as it was.
+
+    Use case ends.
+
+* 2a. The new note is the same as the old one, or there is no note to clear.
+  * 2a1. LarperBoard shows a message that nothing was changed.
+
+    Use case ends.
+
+**Use case: Star or unstar a person**
+
+**MSS**
+
+1. User requests to star a person in the displayed list, giving the person's index.
+2. LarperBoard marks the person as starred, shows a ★ on their card and detail panel, and shows a message that the person was starred.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user asks to remove the star instead, with `unstar INDEX`.
+  * 1a1. LarperBoard removes the star and shows a message that the star was removed.
+
+    Use case ends.
+
+* 1b. The index is missing, extra or invalid.
+  * 1b1. LarperBoard shows an error message that names the one thing to correct.
+
+    Use case ends.
+
+* 2a. The person is already starred (or, for `unstar`, is not starred).
+  * 2a1. LarperBoard shows a message that nothing was changed.
+
+    Use case ends.
+
+**Use case: Show only starred persons**
+
+**MSS**
+
+1. User requests to show only starred persons with `filter starred`.
+2. LarperBoard shows the starred persons, labels the list `Starred only`, and shows how many persons are listed.
+3. User requests to show all persons again with `filter starred off` (or `list`).
+4. LarperBoard shows all persons.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The keyword is missing or is not `starred`, or there is extra text.
+  * 1a1. LarperBoard shows an error message that gives the two valid forms and does not change the list.
+
+    Use case ends.
+
+* 2a. No person is starred.
+  * 2a1. LarperBoard shows an empty list and a message that 0 contacts are listed.
+
+    Use case resumes at step 3.
+
+**Use case: Recall a previous command**
+
+**MSS**
+
+1. User selects the command box and presses the Up arrow key.
+2. LarperBoard puts the previous command into the command box.
+3. User edits the command if needed and submits it.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. No command has been submitted in this session.
+  * 1a1. LarperBoard leaves the command box as it is.
+
+    Use case ends.
+
+* 2a. The user presses the Up or Down arrow key again.
+  * 2a1. LarperBoard shows the next older or newer command, up to the 50 most recent. After the newest, it shows the text the user had typed before browsing.
+
+    Use case resumes at step 3.
+
+**Use case: Exit the application**
+
+**MSS**
+
+1. User requests to exit, with the `exit` command.
+2. LarperBoard shows a message that it is exiting, then closes its window after about one second. The contacts are already saved.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user chooses **Exit** from the **File** menu or closes the window with its close button.
+  * 1a1. LarperBoard closes at once, without the one-second pause.
+
+    Use case ends.
+
 ### Non-functional requirements
 
 1. **Environment**: Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
@@ -864,7 +997,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 7. **Usability**: All features should be usable with the keyboard alone, so that the user does not need to reach for the mouse in the middle of a conversation.
 8. **Usability**: A new contact should be recordable with a single command, without the user having to respond to follow-up prompts.
 9. **Usability**: When a command is rejected, the error message should state what was wrong and show the correct command format.
-10. **Offline use**: Should not require an internet connection for any feature.
+10. **Offline use**: Should not require an internet connection for any feature of the application. Only reading the online User Guide, whose address the help window shows, needs one.
 11. **Privacy**: Should store contact data only on the user's computer, and should not send it to any remote server.
 12. **Data**: Should save changes automatically after every command that modifies data, without requiring a separate save command.
 13. **Data**: The _data file_ should be a human-editable text file, so that advanced users can view and edit their contacts without using LarperBoard.
@@ -881,6 +1014,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 * **Archive**: Hiding a contact from the active list without deleting it, so that it can be brought back later. Not available in LarperBoard and not planned for v1.5
 * **CLI (Command Line Interface)**: A way of using an application by typing text commands instead of clicking buttons
 * **Command**: A line of text typed into the command box that tells LarperBoard to do something, e.g. adding or deleting a contact
+* **Command history**: The latest 50 commands submitted in the current session, which the user can bring back with the Up and Down arrow keys. It is kept in memory only and is not saved in the _data file_. This is not Tab completion, which LarperBoard does not have
 * **Contact**: A person whose details are saved in LarperBoard, such as a teammate, mentor, recruiter or fellow participant met at a hackathon
 * **Cracked**: Slang for being highly skilled, used to describe the participants a user wants to remember and keep in touch with
 * **Data file**: The file on the user's computer where LarperBoard saves all contacts, stored in JSON format
@@ -893,8 +1027,8 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 * **Index**: The position number of a contact in the list currently shown, starting from 1, used to refer to that contact in a command
 * **Mainstream OS**: Windows, Linux, Unix, or macOS
 * **MSS (Main Success Scenario)**: The steps of a use case in which everything goes as expected, as opposed to its extensions, which cover failures and alternative paths
-* **Note**: Free-form text attached to a contact to record the context in which they were met, e.g. "Met at booth 4"
-* **Starred contact**: A contact that the user has marked as high priority so that they stand out from the rest
+* **Note**: Free-form text of up to 1000 characters attached to a contact to record the context in which they were met, e.g. "Met at booth 4". It is set or cleared with the `note` command and shown in the detail panel
+* **Starred contact**: A contact that the user has marked as important with the `star` command, shown with a ★. The `filter starred` command lists only these contacts
 * **Tag**: A short keyword attached to a contact, such as a project or tech stack keyword, used to remember and find them later
 * **Tech stack**: The set of technologies, such as programming languages and frameworks, that a contact works with or used in their project
 
@@ -1149,6 +1283,78 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
       Expected: Similar to previous.
 
 1. _{ more test cases …​ }_
+
+### Notes
+
+1. Setting, replacing and clearing a note
+
+   1. Prerequisites: List all persons using the `list` command, with at least two persons in the list.
+
+   1. Test case: `note 1 nt/Met at the AI track`<br>
+      Expected: The result box shows `Saved the note for NAME.` The note is not on the contact card, but `view 1` shows it in the detail panel. Repeating the same command shows `The note for NAME is already that text. Nothing was changed.`
+
+   1. Test case: `note 1 CLEAR`<br>
+      Expected: The result box shows `Cleared the note for NAME.` Repeating it shows `NAME has no note to clear. Nothing was changed.`
+
+   1. Test cases: `note 1 nt/` followed by 1000 characters, then by 1001 characters, then by only spaces<br>
+      Expected: The first is saved. The others show `Note must be at most 1000 characters.` and `Note cannot be blank. Use 'note INDEX clear' to remove it.`
+
+   1. Incorrect commands to try: `note`, `note 1`, `note 1 some text`, `note 1 2 nt/hi`, `note 1 clear nt/hi`, `note 0 nt/hi`<br>
+      Expected: No note is changed. The result box shows `Invalid command format!` with one hint that fits the mistake, or `The person index provided is invalid.` for `note 0 nt/hi`, as listed in the User Guide.
+
+### Starring and showing only starred contacts
+
+1. Starring, unstarring and filtering
+
+   1. Prerequisites: List all persons using the `list` command, with at least three persons in the list and none starred.
+
+   1. Test case: `star 1`<br>
+      Expected: The result box shows `Starred NAME.` and a ★ appears on the first card. Repeating it shows `NAME is already starred. Nothing was changed.`
+
+   1. Test case: `unstar 1`<br>
+      Expected: The result box shows `Removed the star from NAME.` and the ★ disappears. Repeating it shows `NAME is not starred. Nothing was changed.`
+
+   1. Test case: star the 1st and 3rd persons, then `filter starred`<br>
+      Expected: The result box shows `Showing only starred contacts.` and `2 contact(s) listed!`. Only those two persons are listed and the list heading shows `Starred only`. `unstar 1` now removes the star from the first listed person.
+
+   1. Test case: `filter Starred OFF`<br>
+      Expected: The result box shows `Showing all contacts.` and every person is listed again.
+
+   1. Incorrect commands to try: `star`, `star 1 2`, `star 0`, `filter`, `filter foo`, `filter starred extra`<br>
+      Expected: Nothing changes. The result box shows `Invalid command format!` with one hint, or `The person index provided is invalid.` for `star 0`, as listed in the User Guide.
+
+### Recalling previous commands
+
+1. Browsing the command history
+
+   1. Prerequisites: Launch the app so that the history is empty, and click in the command box.
+
+   1. Test case: press **Up**<br>
+      Expected: Nothing happens.
+
+   1. Test case: submit `list`, `find Aisha` and `foo` (an unknown command), then press **Up** three times<br>
+      Expected: The command box shows `foo`, `find Aisha`, then `list`. A command that failed is remembered too.
+
+   1. Test case: press **Down** three times<br>
+      Expected: The command box shows `find Aisha`, `foo`, then the text you had typed before browsing (empty if none).
+
+   1. Test case: type `fin` and press **Tab**<br>
+      Expected: The text is not completed, and focus moves to the next control. LarperBoard has no Tab completion.
+
+### Help and exit
+
+1. Opening help
+
+   1. Test cases: `help`, the **Help** menu, and the **F1** key<br>
+      Expected: The help window shows the address of the online User Guide and a **Copy URL** button. `help` also shows `Opened help window.` in the result box. Running `help` again brings the open window to the front and opens no second one.
+
+1. Exiting
+
+   1. Test case: `exit`<br>
+      Expected: The result box shows the exit message and the window closes after about one second. The command box does not accept typing meanwhile. After relaunching, the contacts are as they were.
+
+   1. Test cases: **File** → **Exit**, and the window's close button<br>
+      Expected: The window closes at once.
 
 ### Unknown commands
 
