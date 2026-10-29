@@ -10,14 +10,17 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-        "Names must be 1-50 characters: A-Z, a-z, 0-9, spaces, - and '. "
+        "Names must be 1-50 characters: letters, digits, spaces, - and '. "
                 + "Start with a letter or digit.";
 
     /*
-     * The first character of the name must be alphanumeric, so a name cannot start with a space, hyphen or
-     * apostrophe, and " " (a blank string) is not a valid input.
+     * Letters of any language, combining marks (so that an accent typed as a separate character is accepted),
+     * digits, spaces, hyphens and apostrophes (straight or curly). The first character must be a letter or a
+     * digit, so a name cannot start with a space, hyphen or apostrophe, and " " (a blank string) is not valid.
      */
-    public static final String VALIDATION_REGEX = "[\\p{Alnum}][\\p{Alnum} '-]*";
+    public static final String VALIDATION_REGEX = "[\\p{L}\\p{Nd}][\\p{L}\\p{M}\\p{Nd} '’-]*";
+
+    private static final int MAX_LENGTH = 50;
 
     public final String fullName;
 
@@ -34,9 +37,11 @@ public class Name {
 
     /**
      * Returns true if a given string is a valid name.
+     * The length limit counts characters as a user sees them, so a letter outside the Basic Multilingual Plane
+     * counts once.
      */
     public static boolean isValidName(String test) {
-        return test.matches(VALIDATION_REGEX) && test.length() <= 50;
+        return test.matches(VALIDATION_REGEX) && test.codePointCount(0, test.length()) <= MAX_LENGTH;
     }
 
     @Override

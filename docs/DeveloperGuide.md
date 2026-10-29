@@ -1454,18 +1454,21 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
 
 ### Contact names
 
-1. Adding names with hyphens and apostrophes
+1. Adding names with punctuation and non-English letters
 
    1. Prerequisites: List all persons using the `list` command.
 
    1. Test case: `add n/Mary-Jane O'Neil`<br>
       Expected: The contact is added with the name `Mary-Jane O'Neil`. `find Mary-Jane` finds it, and `find Mary` does not (a hyphenated name is one word for a plain `find`), but `find n/Mary` does.
 
-   1. Test case: `add n/-Al` and `edit 1 n/'Al`<br>
-      Expected: Nothing is changed. The result box shows `Names must be 1-50 characters: A-Z, a-z, 0-9, spaces, - and '. Start with a letter or digit.`
+   1. Test cases: `add n/José Tan` and `add n/李明`<br>
+      Expected: Both contacts are added and shown with their characters intact in the list and in the detail panel. `find José` finds the first, `find Jose` does not, and `find n/李` finds the second. Close and relaunch the app: both names are still correct.
 
    1. Test case: `add n/O’Brien` (with a curly apostrophe, as pasted from a phone or chat app)<br>
-      Expected: The same message as in the previous case, so the user has to type a straight apostrophe `'` instead.
+      Expected: The contact is added, the same as with a straight apostrophe.
+
+   1. Test cases: `add n/-Al`, `edit 1 n/'Al`, `add n/John s/o Raj` and `add n/Amy 😀`<br>
+      Expected: Nothing is changed. The result box shows `Names must be 1-50 characters: letters, digits, spaces, - and '. Start with a letter or digit.`
 
 ### Unknown commands
 

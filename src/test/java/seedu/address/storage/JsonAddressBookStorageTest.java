@@ -114,6 +114,25 @@ public class JsonAddressBookStorageTest {
     }
 
     @Test
+    public void readAndSaveAddressBook_withAccentedAndNonEnglishNames_namesSurviveReload() throws Exception {
+        Path filePath = testFolder.resolve("TempNamesAddressBook.json");
+        AddressBook original = new AddressBook();
+        original.addPerson(new PersonBuilder(ALICE).withName("José O’Brien-Müller").build());
+        original.addPerson(new PersonBuilder(HOON).withName("李明").build());
+        JsonAddressBookStorage storage = new JsonAddressBookStorage(filePath);
+
+        storage.saveAddressBook(original, filePath);
+        AddressBook readBack = new AddressBook(storage.readAddressBook(filePath).get());
+
+        assertEquals(original, readBack);
+        assertEquals("José O’Brien-Müller", readBack.getPersonList().get(0).getName().fullName);
+        assertEquals("李明", readBack.getPersonList().get(1).getName().fullName);
+        // the file is UTF-8, so the names can be read back by other tools
+        String json = Files.readString(filePath, java.nio.charset.StandardCharsets.UTF_8);
+        assertTrue(json.contains("李明"));
+    }
+
+    @Test
     public void readAndSaveAddressBook_withNote_noteSurvivesReload() throws Exception {
         Path filePath = testFolder.resolve("TempNoteAddressBook.json");
         Person withNote = new PersonBuilder(ALICE).withNote("Met at booth 4, wants a React teammate").build();

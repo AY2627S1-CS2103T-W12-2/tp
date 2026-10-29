@@ -87,6 +87,10 @@ public class PersonTest {
         Person editedBob = new PersonBuilder(BOB).withName(VALID_NAME_BOB.toLowerCase()).build();
         assertTrue(BOB.isSamePerson(editedBob));
 
+        // accented name differs in case, all other attributes same -> returns true
+        Person jose = new PersonBuilder(BOB).withName("José").build();
+        assertTrue(jose.isSamePerson(new PersonBuilder(BOB).withName("JOSÉ").build()));
+
         // name has trailing spaces, all other attributes same -> returns false
         String nameWithTrailingSpaces = VALID_NAME_BOB + " ";
         editedBob = new PersonBuilder(BOB).withName(nameWithTrailingSpaces).build();

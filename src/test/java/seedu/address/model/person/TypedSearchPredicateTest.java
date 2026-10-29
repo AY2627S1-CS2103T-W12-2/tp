@@ -25,6 +25,16 @@ public class TypedSearchPredicateTest {
     }
 
     @Test
+    public void test_nonEnglishNamesMatchPartOfTheNameIgnoringCase() {
+        PersonBuilder jose = new PersonBuilder().withName("José Tan");
+        PersonBuilder liMing = new PersonBuilder().withName("李明");
+
+        assertTrue(new TypedSearchPredicate(List.of("OSÉ"), List.of(), List.of(), List.of()).test(jose.build()));
+        assertTrue(new TypedSearchPredicate(List.of("李"), List.of(), List.of(), List.of()).test(liMing.build()));
+        assertFalse(new TypedSearchPredicate(List.of("李"), List.of(), List.of(), List.of()).test(jose.build()));
+    }
+
+    @Test
     public void test_missingOptionalFieldsDoNotMatchRequestedTerms() {
         Person withoutOptionalFields = new PersonBuilder().withName("Alex Tan").build();
 
