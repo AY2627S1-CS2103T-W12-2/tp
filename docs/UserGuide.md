@@ -448,7 +448,9 @@ Format: `followup INDEX d/YYYY-MM-DD` or `followup INDEX clear`
 * `clear` can be typed in any letter case.
 * The date must be a real calendar date in exactly `YYYY-MM-DD` format. Leap days such as `2028-02-29` are accepted; `2027-02-29` is not.
 * A successful command reports `Follow-up date for NAME set to DATE.` or `Follow-up date cleared for NAME.`
-* Setting the date a contact already has, or clearing a date that is not set, only reports `Follow-up date unchanged.` It does not change the last-edited time or add an undo step.
+* Setting the date a contact already has reports `NAME already has follow-up date DATE. Nothing was changed.`
+* Clearing a date that is not set reports `NAME has no follow-up date to clear. Nothing was changed.`
+* Neither case changes the last-edited time or adds an undo step.
 * A real change counts as an edit of the contact and sets its last-edited time. You can reverse it with `undo`.
 * The contact card shows `Follow up: DATE`. Once the date is before today (Singapore time), the card shows `Follow up: DATE (Overdue)` and the whole line turns red and bold. A date that is today is not overdue. The card is drawn when the list is shown, so it does not change at midnight until the list is next refreshed.
 * `view INDEX` shows the full date in the detail panel.
@@ -462,7 +464,7 @@ If the follow-up date cannot be set, LarperBoard shows these errors and leaves t
 
 Input or situation | Message
 -------------------|--------
-`followup 1 d/2026-02-30`, `followup 1 d/2027-02-29`, `followup 1 d/2026-1-5`, or `followup 1 d/` (date that is not real or not in `YYYY-MM-DD` format) | `Date must be a real date in YYYY-MM-DD format.`
+`followup 1 d/2026-02-30`, `followup 1 d/2027-02-29`, `followup 1 d/2026-1-5`, or `followup 1 d/` (date that is not real or not in `YYYY-MM-DD` format) | `Enter a real follow-up date as YYYY-MM-DD, e.g. 2026-10-25.`
 `followup 0 d/2026-10-25`, `followup abc clear`, or `followup 2147483648 clear` (invalid or oversized index) | `The person index provided is invalid.`
 `followup 99 d/2026-10-25` when the displayed list has fewer than 99 contacts, or any `followup` with an index when the displayed list is empty | `The person index provided is invalid.`
 `followup`, `followup 1`, `followup 1 clear d/2026-10-25`, or `followup 1 2 d/2026-10-25` | `Invalid command format!` followed by the command usage
