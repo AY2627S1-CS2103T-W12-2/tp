@@ -24,13 +24,16 @@ public class NoteCommand extends Command {
 
     public static final String KEYWORD_CLEAR = "clear";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Sets, replaces or clears the note of the person identified by the index number used in the "
-            + "displayed person list.\n"
-            + "Parameters: INDEX (must be a positive integer) " + PREFIX_NOTE + "NOTE\n"
-            + "            or INDEX " + KEYWORD_CLEAR + " to remove the note\n"
-            + "Examples: " + COMMAND_WORD + " 1 " + PREFIX_NOTE + "Met at the AI track, wants a React teammate\n"
-            + "          " + COMMAND_WORD + " 1 " + KEYWORD_CLEAR;
+    public static final String MESSAGE_USAGE = "Use: " + COMMAND_WORD + " INDEX " + PREFIX_NOTE + "NOTE or "
+            + COMMAND_WORD + " INDEX " + KEYWORD_CLEAR + ".";
+    public static final String MESSAGE_MISSING_INDEX = "Add the contact's INDEX: " + COMMAND_WORD + " INDEX "
+            + PREFIX_NOTE + "NOTE or " + COMMAND_WORD + " INDEX " + KEYWORD_CLEAR + ".";
+    public static final String MESSAGE_MISSING_NOTE = "Add " + PREFIX_NOTE + "NOTE, or use: " + COMMAND_WORD
+            + " INDEX " + KEYWORD_CLEAR + ".";
+    public static final String MESSAGE_NOTE_WITHOUT_PREFIX = "Put the note after " + PREFIX_NOTE + ": "
+            + COMMAND_WORD + " INDEX " + PREFIX_NOTE + "NOTE.";
+    public static final String MESSAGE_TOO_MANY_PARAMETERS = "Too many parameters. " + MESSAGE_USAGE;
+    public static final String MESSAGE_NOT_BOTH = "Use " + PREFIX_NOTE + "NOTE or " + KEYWORD_CLEAR + ", not both.";
 
     public static final String MESSAGE_SET_SUCCESS = "Saved the note for %1$s.";
     public static final String MESSAGE_CLEAR_SUCCESS = "Cleared the note for %1$s.";

@@ -560,7 +560,7 @@ public class LogicManagerTest {
         try {
             logic.execute("note 1 nt/" + secret);
             assertParseException("note 1 " + secret,
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE));
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX));
             assertParseException("note 1 nt/" + (secret + " ").repeat(100), Note.MESSAGE_TOO_LONG);
             assertCommandException("note 9 nt/" + secret, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         } finally {
