@@ -11,7 +11,10 @@ import static seedu.address.testutil.TypicalPersons.HOON;
 import static seedu.address.testutil.TypicalPersons.IDA;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.AccessDeniedException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,6 +24,7 @@ import java.nio.file.attribute.PosixFileAttributeView;
 import java.nio.file.attribute.PosixFilePermission;
 import java.time.Instant;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -97,6 +101,32 @@ public class JsonAddressBookStorageTest {
 
         assertThrows(ConcurrentDataChangeException.class, () -> second.saveAddressBook(secondBook));
         assertEquals(firstBook, new JsonAddressBookStorage(file).readAddressBook().orElseThrow());
+    }
+
+    @Test
+    public void saveAddressBook_otherProcessHoldsLock_reportsBusyWithoutWriting() throws Exception {
+        Path file = testFolder.resolve("addressBook.json");
+        Path lockFile = testFolder.resolve("addressBook.json.lock");
+        String executable = System.getProperty("os.name").startsWith("Windows") ? "java.exe" : "java";
+        Path java = Path.of(System.getProperty("java.home"), "bin", executable);
+        Path testClasses = Path.of(StorageLockHolder.class.getProtectionDomain().getCodeSource()
+                .getLocation().toURI());
+        Process holder = new ProcessBuilder(java.toString(), "-cp", testClasses.toString(),
+                StorageLockHolder.class.getName(), lockFile.toString()).redirectErrorStream(true).start();
+        try {
+            BufferedReader output = new BufferedReader(new InputStreamReader(holder.getInputStream(),
+                    StandardCharsets.UTF_8));
+            assertEquals("LOCKED", output.readLine());
+            JsonAddressBookStorage storage = new JsonAddressBookStorage(file);
+            assertThrows(DataFileBusyException.class, () -> storage.saveAddressBook(new AddressBook()));
+            assertFalse(Files.exists(file));
+        } finally {
+            holder.getOutputStream().close();
+            if (!holder.waitFor(10, TimeUnit.SECONDS)) {
+                holder.destroyForcibly();
+                holder.waitFor();
+            }
+        }
     }
 
     @Test
