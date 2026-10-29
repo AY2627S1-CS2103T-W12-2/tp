@@ -3,31 +3,42 @@ layout: page
 title: Documentation guide
 ---
 
-**Setting up and maintaining the project website:**
+## Edit a guide
 
-* We use [**Jekyll**](https://jekyllrb.com/) to manage documentation.
-* The `docs/` folder is used for documentation.
-* To learn how to set up and maintain the project website, follow the guide [_[se-edu/guides] **Using Jekyll for project documentation**_](https://se-education.org/guides/tutorials/jekyll.html).
-* Note these points when adapting the documentation to a different project/product:
-  * The 'Site-wide settings' section of the page linked above has information on how to update site-wide elements such as the top navigation bar.
-  * :bulb: In addition to updating content files, you might have to update the config files `docs/_config.yml` and `docs/_sass/minima/_base.scss`. The latter contains a reference to `AB-3` that is used when converting documentation pages to PDF format.
-* If you are using IntelliJ for editing documentation files, you can consider enabling 'soft wrapping' for `*.md` files, as explained in [_[se-edu/guides] **Intellij IDEA: Useful settings**_](https://se-education.org/guides/tutorials/intellijUsefulSettings.html#enabling-soft-wrapping)
+1. Choose the reader: users need commands; developers need files, steps, and checks.
+1. Put the task and a working example first. Explain only the rules needed to use or change it safely.
+1. Use numbered steps for a procedure, bullets for independent rules, and a small table for comparisons.
+1. Keep one source for shared rules. Link to field limits, data recovery, or tests instead of repeating them under each command.
+1. Verify behavior against merged code. Describe unmerged changes as pending; do not call them released.
+1. Check links, render the page, and run `./.github/run-checks.sh` before opening a PR.
 
+Follow the [Google developer documentation style guide](https://developers.google.com/style) and [SE-EDU Markdown conventions](https://se-education.org/guides/conventions/markdown.html). Use plain language, sentence-case headings, blank lines before lists, `1.` for each numbered source item, and `*` for bullets. Do not hard-wrap prose at a fixed line length.
 
-**Style guidance:**
+## Choose the page
 
-* Follow the [**_Google developer documentation style guide_**](https://developers.google.com/style).
+| Content | Location |
+|---|---|
+| Task instructions and command examples | `UserGuide.md` |
+| Setup, code paths, and change procedures | `DeveloperGuide.md`, `SettingUp.md` |
+| JSON fields and recovery | `DataFormat.md` |
+| User stories and use cases | `Requirements.md` |
+| Reproducible UI/storage checks | `ManualTesting.md` |
+| Build, CI, and release | `DevOps.md` |
 
-* Also relevant is the [_[se-edu/guides] **Markdown coding standard**_](https://se-education.org/guides/conventions/markdown.html)
+Keep the main guides short. Supporting pages should add reference detail, not duplicate the guide. Preserve existing anchors when moving sections so old links still lead somewhere useful.
 
-**Diagrams:**
+## Preview the site
 
-* See the [_[se-edu/guides] **Using PlantUML**_](https://se-education.org/guides/tutorials/plantUml.html)
-* The undo and redo diagrams in the Developer Guide are rendered from `docs/diagrams/*.puml` to SVG during the
-  documentation workflow. Edit the PlantUML sources; the generated SVGs are not committed.
-* Publish the guide with the repository's Pages source set to **GitHub Actions**. The branch-based Pages build does not
-  run the diagram-rendering step.
+1. Install a current Ruby and Bundler compatible with `docs/Gemfile.lock`.
+1. From `docs/`, run `bundle install`, then `bundle exec jekyll serve --baseurl /tp`.
+1. Open `http://127.0.0.1:4000/tp/`. Check desktop and narrow layouts, tables, command blocks, links, and images.
 
-**Converting a document to the PDF format:**
+The Documentation workflow builds PRs without publishing. Production publishing runs from `master`; Pages must use **GitHub Actions** as its source. See [DevOps](DevOps.md#documentation-deployment).
 
-* See the guide [_[se-edu/guides] **Saving web documents as PDF files**_](https://se-education.org/guides/tutorials/savingPdf.html)
+## Edit a diagram
+
+1. Change its `.puml` source in `docs/diagrams`.
+1. Render and inspect it with [PlantUML](https://se-education.org/guides/tutorials/plantUml.html).
+1. Keep the guide's image synchronized. The workflow generates the four undo/redo SVGs; other committed images need their own updated render.
+
+For PDF output, follow [Saving web documents as PDF](https://se-education.org/guides/tutorials/savingPdf.html).

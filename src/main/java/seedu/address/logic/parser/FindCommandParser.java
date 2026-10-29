@@ -17,6 +17,7 @@ import seedu.address.model.person.TypedSearchPredicate;
  */
 public class FindCommandParser implements Parser<FindCommand> {
     private static final Pattern PREFIX_LIKE_TOKEN = Pattern.compile("(?:^|\\s)[A-Za-z]+/");
+    private static final Pattern MALFORMED_SEARCH_FIELD = Pattern.compile("(?:^|\\s)(?:n|t|nt|ev)\\s+/");
     // Reserve other commands' fields without rejecting literal text such as c/o, ai/ml or URLs.
     private static final Pattern UNSUPPORTED_FIELD = Pattern.compile(Stream.of(
             CliSyntax.PREFIX_EMAIL, CliSyntax.PREFIX_PHONE, CliSyntax.PREFIX_LINKEDIN,
@@ -38,7 +39,8 @@ public class FindCommandParser implements Parser<FindCommand> {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         }
 
-        if (UNSUPPORTED_FIELD.matcher(trimmedArgs).find()) {
+        if (UNSUPPORTED_FIELD.matcher(trimmedArgs).find()
+                || MALFORMED_SEARCH_FIELD.matcher(trimmedArgs).find()) {
             throw invalidFormat();
         }
 

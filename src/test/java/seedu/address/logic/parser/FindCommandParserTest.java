@@ -92,6 +92,19 @@ public class FindCommandParserTest {
     }
 
     @Test
+    public void parse_spaceInsideSearchPrefix_rejectsFormat() {
+        for (String prefix : List.of("n", "t", "nt", "ev")) {
+            for (String gap : List.of(" ", "\t", "  ")) {
+                for (String args : List.of(" " + prefix + gap + "/Alice",
+                        " n/Alice " + prefix + gap + "/react")) {
+                    assertParseFailure(parser, args,
+                            String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+                }
+            }
+        }
+    }
+
+    @Test
     public void parse_emptyMalformedOrMixedSearch_rejectsCorrectMessage() {
         for (String args : new String[]{" n/", " t/", " nt/", " ev/Hack ev/", " p/91234567", " unknown/value"}) {
             assertParseFailure(parser, args,

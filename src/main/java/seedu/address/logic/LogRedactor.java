@@ -16,7 +16,7 @@ import seedu.address.logic.commands.NoteCommand;
 public final class LogRedactor {
 
     public static final String HIDDEN = "[hidden]";
-    private static final Pattern PERSONAL_SEARCH_PREFIX = Pattern.compile("(?:^|\\s)(?:ev|nt)/");
+    private static final Pattern PERSONAL_SEARCH_PREFIX = Pattern.compile("(?:^|\\s)(?:ev|nt)\\s*/");
 
     private LogRedactor() {}
 
