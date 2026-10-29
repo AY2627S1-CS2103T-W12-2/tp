@@ -47,7 +47,7 @@ The following provides a quick overview of the main components and their interac
 
 **Main components of the architecture**
 
-**`Main`** (consisting of classes [`Main`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
+**`Main`** (consisting of classes [`Main`](https://github.com/AY2627S1-CS2103T-W12-2/tp/blob/master/src/main/java/seedu/address/Main.java) and [`MainApp`](https://github.com/AY2627S1-CS2103T-W12-2/tp/blob/master/src/main/java/seedu/address/MainApp.java)) is in charge of the app launch and shut down.
 * At app launch, it initializes the other components in the correct sequence, and connects them up with each other.
 * At shut down, it shuts down the other components and invokes cleanup methods where necessary.
 
@@ -79,13 +79,13 @@ The sections below give more details of each component.
 
 ### UI component
 
-The **API** of this component is specified in [`Ui.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/Ui.java)
+The **API** of this component is specified in [`Ui.java`](https://github.com/AY2627S1-CS2103T-W12-2/tp/blob/master/src/main/java/seedu/address/ui/Ui.java)
 
 ![Structure of the UI Component](images/UiClassDiagram.png)
 
 The UI consists of a `MainWindow` and its parts, such as `CommandBox`, `ResultDisplay`, `PersonListPanel`, `PersonDetailPanel`, and `StatusBarFooter`. All of these, including `MainWindow`, inherit from the abstract `UiPart` class, which captures common behavior among classes that represent visible GUI parts.
 
-The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/ui/MainWindow.java).
+The `UI` component uses the JavaFX UI framework. The layouts of these UI parts are defined in matching `.fxml` files in `src/main/resources/view`. For example, [`MainWindow.fxml`](https://github.com/AY2627S1-CS2103T-W12-2/tp/blob/master/src/main/resources/view/MainWindow.fxml) specifies the layout of [`MainWindow`](https://github.com/AY2627S1-CS2103T-W12-2/tp/blob/master/src/main/java/seedu/address/ui/MainWindow.java).
 
 `PersonDetailPanel` uses `ContactPhoto` to display a bounded image from validated `PhotoStorage` bytes. The photo
 is shown only in the detail panel, to the right of the name, in a fixed 160×120 frame (`#photoFrame` in
@@ -123,7 +123,7 @@ The `UI` component,
 
 ### Logic component
 
-**API** : [`Logic.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/logic/Logic.java)
+**API** : [`Logic.java`](https://github.com/AY2627S1-CS2103T-W12-2/tp/blob/master/src/main/java/seedu/address/logic/Logic.java)
 
 Here's a (partial) class diagram of the `Logic` component:
 
@@ -156,7 +156,7 @@ How the parsing works:
 
 ### Model component
 
-**API** : [`Model.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/model/Model.java)
+**API** : [`Model.java`](https://github.com/AY2627S1-CS2103T-W12-2/tp/blob/master/src/main/java/seedu/address/model/Model.java)
 
 <img src="images/ModelClassDiagram.png" width="800" />
 
@@ -242,7 +242,7 @@ command-text history.
 
 Validation: event/role use `String.length()` (80 UTF-16 code units); dates are real `YYYY-MM-DD` values, years 0001–9999. `JsonAdaptedPerson` treats absent/null fields as missing, rejects invalid types without coercion, names the invalid field, and omits empty context.
 
-Event search uses `TypedSearchPredicate`: partial case-insensitive matches, OR within fields, AND across fields. Missing events match only if no event term was given. Cards show 32 UTF-16 code units; details show full context. The pending Unicode fix #181 is not in v1.4.1.
+Event search uses `TypedSearchPredicate`: partial case-insensitive matches, OR within fields, AND across fields. Missing events match only if no event term was given. Cards show 32 UTF-16 code units; details show full context. PR #181 was closed without merging; the meeting Unicode limitation remains in v1.5.
 
 Tests cover 80/81-character and leap-date boundaries, partial/all clears, no-ops, malformed/old JSON, round trips, filtered indexes, search, UI, rollback, and undo.
 
@@ -1348,7 +1348,7 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
 
 1. A malformed `followUpDate` or time in the data file
 
-   1. Prerequisites: Close the app and back up `data/addressbook.json`. Run the app from a terminal so that the log is printed, or open `addressbook.log` in the folder you ran it from afterwards.
+   1. Prerequisites: Close the app and back up `data/addressbook.json`. Run the app from a terminal so that the log is printed, or open `addressbook.log.0` in the folder you ran it from afterwards.
 
    1. Test case: add `"followUpDate" : "2026-02-30"` to a contact and start the app<br>
       Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` The data file on disk is not changed by `help` or `exit`. A successful command other than these (even `list`) saves the empty list over it.

@@ -1,9 +1,13 @@
 ---
 layout: page
-title: John Doe's Project Portfolio Page
+title: Inherited portfolio template
 ---
 
-### Project: AddressBook Level 3
+> This is the inherited SE-EDU example, not a LarperBoard team member’s portfolio.
+> Its example contributions and statistics are not claims about this project.
+> See [About Us](../AboutUs.html) for the actual team.
+
+### Example project: AddressBook Level 3
 
 AddressBook - Level 3 is a desktop address book application used for teaching Software Engineering principles. The user interacts with it using a CLI, and it has a GUI created with JavaFX. It is written in Java, and has about 10 kLoC.
 
