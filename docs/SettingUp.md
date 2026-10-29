@@ -42,7 +42,7 @@ If you plan to use IntelliJ IDEA (highly recommended):
 1. **Set up CI**
 
    This project includes GitHub Actions configuration files in `.github/workflows`. Java CI runs on
-   pushes to `master`, all pull requests (including stacked PRs), and manual dispatches. Open a PR to test a
+   pushes to `master`, pull requests targeting `master`, and manual dispatches. Open a PR to test a
    feature branch. See [CI and Pages setup](DevOps.md#continuous-integration-ci) for runner and
    documentation deployment settings.
 
