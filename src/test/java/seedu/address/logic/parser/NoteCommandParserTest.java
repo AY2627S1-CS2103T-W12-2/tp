@@ -94,6 +94,9 @@ public class NoteCommandParserTest {
         assertParseFailure(parser, "", format(NoteCommand.MESSAGE_MISSING_INDEX));
         // the arguments after the command word start with a space, as they do when typed in the app
         assertParseFailure(parser, " nt/text", format(NoteCommand.MESSAGE_MISSING_INDEX));
+        // a lone clear has the operation but not the index, in any letter case
+        assertParseFailure(parser, "clear", format(NoteCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " CLEAR ", format(NoteCommand.MESSAGE_MISSING_INDEX));
         // an index on its own
         assertParseFailure(parser, "1", format(NoteCommand.MESSAGE_MISSING_NOTE));
         // text without the prefix, or one word that is not clear

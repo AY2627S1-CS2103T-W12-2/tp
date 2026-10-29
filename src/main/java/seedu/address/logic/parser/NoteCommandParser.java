@@ -31,13 +31,14 @@ public class NoteCommandParser implements Parser<NoteCommand> {
         String[] words = argMultimap.getPreamble().isBlank()
                 ? new String[0] : argMultimap.getPreamble().strip().split("\\s+");
         boolean hasNotePrefix = argMultimap.getValue(PREFIX_NOTE).isPresent();
+        boolean firstWordIsClear = words.length >= 1 && words[0].equalsIgnoreCase(NoteCommand.KEYWORD_CLEAR);
         boolean secondWordIsClear = words.length >= 2 && words[1].equalsIgnoreCase(NoteCommand.KEYWORD_CLEAR);
 
         boolean isSetForm = hasNotePrefix && words.length == 1;
         boolean isClearForm = !hasNotePrefix && words.length == 2 && secondWordIsClear;
         if (!isSetForm && !isClearForm) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                    describeMistake(words.length, hasNotePrefix, secondWordIsClear)));
+                    describeMistake(words.length, hasNotePrefix, firstWordIsClear, secondWordIsClear)));
         }
 
         // the index comes first in both forms, and is checked before the note
@@ -48,10 +49,12 @@ public class NoteCommandParser implements Parser<NoteCommand> {
 
     /**
      * Returns the hint that fits the mistake in arguments that are neither {@code INDEX nt/NOTE} nor
-     * {@code INDEX clear}. {@code wordCount} is the number of words before the {@code nt/} prefix.
+     * {@code INDEX clear}. {@code wordCount} is the number of words before the {@code nt/} prefix. A lone
+     * {@code clear} has the operation but not the index, so it gets the hint for a missing index.
      */
-    private static String describeMistake(int wordCount, boolean hasNotePrefix, boolean secondWordIsClear) {
-        if (wordCount == 0) {
+    private static String describeMistake(int wordCount, boolean hasNotePrefix, boolean firstWordIsClear,
+            boolean secondWordIsClear) {
+        if (wordCount == 0 || (wordCount == 1 && firstWordIsClear)) {
             return NoteCommand.MESSAGE_MISSING_INDEX;
         }
         if (hasNotePrefix && wordCount == 2 && secondWordIsClear) {
