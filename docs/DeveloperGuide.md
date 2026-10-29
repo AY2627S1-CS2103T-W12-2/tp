@@ -17,6 +17,15 @@ title: Developer Guide
 
 Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
+To run and trace your first command:
+
+1. Use JDK 25 and open a terminal in the repository root.
+1. Run `./gradlew run` (Windows: `gradlew.bat run`).
+1. In the app, run `add n/Test Contact`, `find Test`, then `view 1`.
+1. Trace `CommandBox` → `LogicManager.execute` → `AddressBookParser` → the command parser → `Command.execute(Model)`.
+1. Before a PR, run `./gradlew clean check coverage`, then `./.github/run-checks.sh`. CI also checks Javadoc and builds the JAR.
+
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Design**
@@ -171,16 +180,15 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-W12-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
 <img src="images/StorageClassDiagram.png" width="550" />
 
-The `Storage` component,
+`StorageManager` reads and saves model objects:
 
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* keeps photo file access in the separate `PhotoStorage` class. Commands import validated PNG/JPEG files into the application-folder `photos/` directory; `ContactPhoto` reads validated image bytes through the same service. Imported assets are retained for history restoration.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
-* depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+* Contacts: `JsonAddressBookStorage` reads/writes JSON; `JsonUserPrefsStorage` handles preferences.
+* Photos: `PhotoStorage` imports validated PNG/JPEG files into `photos/` beside the JAR and supplies validated bytes to `ContactPhoto`. Assets remain available for undo/redo.
+* Storage depends on model classes to convert their objects to/from JSON.
 * saves a person's activity as optional `createdAt`, `lastEditedAt` and `lastViewedAt` fields in `addressbook.json`. Each is a whole-second ISO-8601 UTC timestamp written exactly as `2026-10-17T04:12:33Z`. A missing or `null` field loads as an absent time, so data files from v1.3 still load. A value with a fraction of a second, an offset other than `Z`, surrounding spaces or any other format makes the file fail to load with `Invalid contact data: '<field>' must be an ISO-8601 UTC timestamp.`, naming the field (`createdAt`, `lastEditedAt` or `lastViewedAt`). `JsonAdaptedPerson.INVALID_FIELD_MESSAGE_FORMAT` holds this message pattern so other fields use the same wording.
 * saves a person's follow-up date as an optional `followUpDate` string in `addressbook.json`, written as `2026-10-25`. A missing or `null` field loads as no follow-up date, so older data files still load. A value that is not a real `YYYY-MM-DD` date, including a non-string value, makes the file fail to load with `Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.`
 * saves whether a person is starred as an optional `starred` boolean in `addressbook.json`. A missing or `null` field loads as not starred, so older data files still load. Any other value, such as a string or a number, makes the file fail to load with `Invalid contact data: 'starred' must be true or false.` The field is kept as an `Object` in `JsonAdaptedPerson` so that such a value reaches this message instead of a generic Jackson error.
@@ -223,56 +231,35 @@ command-text history.
 
 ### Meeting context implementation
 
-The sequence below shows a partial meeting update, the no-op path, and rollback when saving fails.
-The `createSnapshot`, `restore`, and `recordSuccessfulMutation` calls show shared existing
-snapshot/history behavior from #108 and #131/#132, rather than functionality implemented by #130.
+`Person` holds an optional immutable `Meeting`; `toBuilder()` preserves it.
 
 ![Meeting context implementation](images/MeetingUpdateSequenceDiagram.png)
 
-`Meeting` is an immutable optional value held by `Person` and copied by `Person.toBuilder()`.
-`MeetingCommandParser` validates the displayed index, duplicate prefixes, strict real dates, nonblank
-text bounds, and explicit clear grammar. In v1.4.1, event/role bounds count UTF-16 code units
-with `String.length()`; supplementary characters count twice. `MeetingCommand` merges only supplied fields, then calls
-`Model.editPerson` using a complete copy. Same-value updates return without mutation. Logic saves
-before recording history, restoring its snapshot on failed saves. Existing snapshots therefore retain
-meeting fields without a separate history mechanism. Setting, replacing, and clearing individual or
-all meeting fields each create one undo step when they change the contact.
+1. `MeetingCommandParser` validates the displayed index, duplicate prefixes, clear syntax, text bounds, and real dates.
+1. `MeetingCommand` merges supplied fields. Omitted fields stay unchanged; same-value updates return without mutation.
+1. A real update uses a complete builder copy and `Model.editPerson`.
+1. `LogicManager` saves before recording history. Failed saves restore the snapshot, so every real set/replace/clear uses the shared history mechanism.
 
-`JsonAdaptedPerson` accepts absent/null meeting fields for older data, validates present JSON types
-without coercion, and reports the exact offending meeting field. Empty context is omitted on save.
-`FindCommandParser` creates a `TypedSearchPredicate` for `n/`, `t/`, `nt/` and `ev/` terms.
-It matches partial event names without case sensitivity, using OR within one field and AND across
-different fields. An absent event matches only when no event terms were supplied.
-The card bounds its event cue to 32 UTF-16 code units, and the detail panel scrolls vertically.
-A pending Unicode fix in #181 is not part of v1.4.1.
+Validation: event/role use `String.length()` (80 UTF-16 code units); dates are real `YYYY-MM-DD` values, years 0001–9999. `JsonAdaptedPerson` treats absent/null fields as missing, rejects invalid types without coercion, names the invalid field, and omits empty context.
 
-Tests cover strict/leap dates, 80/81-character bounds, partial updates and individual/all clears,
-old/malformed JSON and round trips, filtered targeting, no-ops, event search, UI, and rollback/undo.
+Event search uses `TypedSearchPredicate`: partial case-insensitive matches, OR within fields, AND across fields. Missing events match only if no event term was given. Cards show 32 UTF-16 code units; details show full context. The pending Unicode fix #181 is not in v1.4.1.
+
+Tests cover 80/81-character and leap-date boundaries, partial/all clears, no-ops, malformed/old JSON, round trips, filtered indexes, search, UI, rollback, and undo.
 
 ### Contact photo implementation
 
-The sequence below shows photo validation/import, the identical-image no-op, and model rollback when saving fails.
+`Person.photoPath` is a relative reference preserved by builder copies, equality, and detail comparison.
 
 ![Contact photo implementation](images/PhotoImportSequenceDiagram.png)
 
-`Person.photoPath` is an optional relative reference; complete builder copies, equality and detail
-comparison preserve it. `PhotoCommandParser` validates syntax; `PhotoCommand` validates the displayed
-index before any import, retains all fields via `toBuilder()`, and delegates real changes to
-`Model.editPerson`. Existing LogicManager save/snapshot handling supplies rollback and history.
-Each successful attach, replace, or clear creates one undo step. Imported assets remain available
-for restoration; undo and redo change references without recreating or deleting image files.
+1. `PhotoCommandParser` reads one path or clear form. `PhotoCommand` validates the displayed index **before importing**.
+1. `PhotoStorage` confines the source and managed `photos/` directory to the JAR folder (working folder during Gradle development); tests inject a temporary root.
+1. It rejects absolute paths, parent components, and symlink escapes; reads at most 5 MiB plus one byte; checks type/dimensions before decoding; and generates collision-safe copy names.
+1. A real attach/replace/clear uses `toBuilder()` and `Model.editPerson`. Shared logic saves, rolls back failures, and records one undo step. An identical image is a no-op.
 
-`PhotoStorage` derives its root from the running JAR's code location (working folder during Gradle
-development); tests inject a temporary root. It rejects absolute paths, parent components and real-path
-symlink escapes; reads at most 5 MiB plus one byte; checks image type and dimensions before bounded
-decoding; and copies into a confined `photos/` directory with collision-safe generated names.
-No user path or stored URI is passed directly to JavaFX. UI rendering uses validated bytes and a
-placeholder with logging on failure. Missing/malformed optional references do not block contact loading.
-Assets are deliberately retained after mutation or failed saves to avoid breaking history.
+The UI decodes validated bytes, never raw paths/URIs. Invalid references show a placeholder and warning without blocking contacts. Assets survive replacement, clear, deletion, and failed saves so undo/redo can restore references.
 
-Tests cover traversal and symlink escapes (including the managed directory), corrupt/type/size/dimension
-cases, copies and no-ops, filtered indexes, JSON compatibility/round trips, rollback and undo restoration.
-Verify the packaged JAR at 1280×720/150% with attach/replace/clear, reload and retained assets.
+Tests cover traversal/symlink escapes (including `photos/`), corrupt/type/size/dimension failures, copies, no-ops, filtered indexes, JSON compatibility, save rollback, and undo. Check the packaged JAR at 1280×720/150% with attach/replace/clear and reload.
 
 ### Contact activity
 
@@ -492,7 +479,7 @@ Data archiving is deferred. It is not available in LarperBoard and not planned f
 * can type fast and is comfortable with CLI commands (e.g. a computer science student)
 * prefers desktop apps over other types of applications
 
-**Value proposition**: LarperBoard helps hackathon participants build a network that they can still use after the event. Using one short typed command on the laptop that is already open, the user records a new contact together with the detail that will jog their memory later, such as what the person is building, their tech stack and where they were met. Contacts can be grouped by hackathon and team, searched by these details, and exported for follow-up. This is faster than saving contacts on a phone in the middle of an event, and more useful afterwards than a generic address book, which records who someone is but not how or where they were met. All data is stored locally, so LarperBoard works without an internet connection.
+**Value proposition**: LarperBoard helps hackathon participants build a network that they can still use after the event. Using one short typed command on the laptop that is already open, the user records a new contact together with the detail that will jog their memory later, such as what the person is building, their tech stack and where they were met. Contacts can be grouped by hackathon and team, searched by these details, and used to plan follow-ups. There is no contact export command; automatic JSON saving is separate. This is faster than saving contacts on a phone in the middle of an event, and more useful afterwards than a generic address book, which records who someone is but not how or where they were met. All data is stored locally, so LarperBoard works without an internet connection.
 
 ### User stories
 
@@ -524,7 +511,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 | Nice-to-have | Shipped | hackathon participant | set a follow-up date on a contact | remember by when I wanted to get back to them |
 | Nice-to-have | Shipped | hackathon participant | list the contacts whose follow-up date has arrived, earliest first | see who I should contact today without scanning my whole list |
 | Must-have | Shipped | user | display a detailed view of a single contact card | read all notes, links, and tags in one clean view |
-| Nice-to-have | Shipped | user | view images | remember the projects people have created |
+| Nice-to-have | Shipped | user | attach, replace, clear, and view one local photo per contact | remember the person or their project |
 | Nice-to-have | Deferred | CLI user | view contact summaries in a clean, formatted ASCII table | browse my address book without messy text wrapping |
 | Nice-to-have | Shipped | visual learner | distinguish categories with colour codes | visually scan and distinguish categories at a glance |
 | Nice-to-have | Deferred | user | run a stats/summary command (counts by tech stack or event) | get a high-level snapshot of my networking efforts |
@@ -540,6 +527,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 | Must-have | Shipped | offline user | have all data stored locally | use the app without an internet connection at crowded venues |
 | Nice-to-have | Deferred | hackathon participant | archive or hide contacts I don't need anymore | avoid being distracted by people I no longer need to see in my active list |
 | Nice-to-have | Shipped (same name and phone) | hackathon participant | be flagged when I try to add someone who is already in my list | avoid accidentally creating two separate entries for the same person met at different events |
+| Nice-to-have | Shipped | hackathon participant | record, update, and clear meeting event, date, and role | remember where and how I met a contact |
 
 ### Use cases
 
@@ -1045,6 +1033,34 @@ The user enters `group t/TAG` to display contacts with a selected tag.
   * 1a1. LarperBoard closes at once, without the one-second pause.
 
     Use case ends.
+
+**Use case: Record meeting context**
+
+**MSS**
+
+1. User chooses a displayed contact and supplies meeting fields or a clear form.
+1. LarperBoard validates and merges supplied fields, preserving omitted fields.
+1. LarperBoard saves and confirms the change.
+
+**Extensions**
+
+* Invalid index, duplicate fields, blank/long text, or invalid date: explain the error without changing the contact.
+* Same values or clearing absent context: no change to activity or history.
+* Save failure: restore the contact, selection, filters, and history.
+
+**Use case: Attach, replace, or clear a contact photo**
+
+**MSS**
+
+1. User chooses a displayed contact and supplies a relative image path or clear form.
+1. LarperBoard validates/imports the image, or removes the reference.
+1. LarperBoard saves and confirms the change; imported assets stay available for undo/redo.
+
+**Extensions**
+
+* Unsafe path, unreadable/invalid image, or exceeded limits: reject without changing the contact.
+* Identical current image or clearing an absent photo: no activity/history change.
+* Save failure: restore the model and history; an unused imported asset can remain.
 
 ### Non-functional requirements
 
