@@ -20,7 +20,9 @@ public class FollowUpCommand extends Command {
             + "Example: " + COMMAND_WORD + " 1 d/2026-10-25";
     public static final String MESSAGE_SET_SUCCESS = "Follow-up date for %1$s set to %2$s.";
     public static final String MESSAGE_CLEARED = "Follow-up date cleared for %1$s.";
-    public static final String MESSAGE_UNCHANGED = "Follow-up date unchanged.";
+    public static final String MESSAGE_SAME_DATE = "%1$s already has follow-up date %2$s. Nothing was changed.";
+    public static final String MESSAGE_NO_DATE_TO_CLEAR = "%1$s has no follow-up date to clear. Nothing was changed.";
+    public static final String MESSAGE_INVALID_DATE = "Enter a real follow-up date as YYYY-MM-DD, e.g. 2026-10-25.";
 
     private final Index index;
     private final LocalDate date;
@@ -38,15 +40,17 @@ public class FollowUpCommand extends Command {
             throw new CommandException(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         }
         Person target = model.getFilteredPersonList().get(index.getZeroBased());
+        String name = target.getName().fullName;
         if (Objects.equals(target.getFollowUpDate().orElse(null), date)) {
-            return new CommandResult(MESSAGE_UNCHANGED);
+            return new CommandResult(date == null
+                    ? String.format(MESSAGE_NO_DATE_TO_CLEAR, name)
+                    : String.format(MESSAGE_SAME_DATE, name, date));
         }
         boolean editsViewedPerson = target.equals(model.getViewedPerson().get());
         model.editPerson(target, target.toBuilder().withFollowUpDate(date).build());
         if (editsViewedPerson && !model.getFilteredPersonList().contains(model.getViewedPerson().get())) {
             model.setViewedPerson(null);
         }
-        String name = target.getName().fullName;
         return new CommandResult(date == null
                 ? String.format(MESSAGE_CLEARED, name)
                 : String.format(MESSAGE_SET_SUCCESS, name, date));

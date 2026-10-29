@@ -114,11 +114,13 @@ Examples:
 ### Listing all contacts: `list`
 
 Clears the active contact filter and sort, then shows all contacts in their original order.
+The result message is `Listed all contacts.`, including when the list is empty.
 
 Format: `list`
 
 * Use `list` to return to the full, original-order list after `find`, `group`, `filter starred`, or `due`.
 * `list` does not clear command history.
+* No arguments are needed. Extra text, such as `list extra`, is ignored and has the same effect as `list`.
 
 ### Reading the list heading
 
@@ -140,6 +142,8 @@ the contact list.
 
 Format: `sort added|edited|viewed`
 
+* Sort keywords are case-insensitive: `sort Added`, `sort ADDED`, and `sort added` behave the same.
+  The command word remains lowercase: `sort`.
 * `sort added` puts most recently added contacts first.
 * `sort edited` puts most recently edited contacts first.
 * `sort viewed` puts most recently viewed contacts first. Viewing a contact can therefore move it in this list.
@@ -152,6 +156,13 @@ Examples:
 
 * `sort added` shows the newest contacts first.
 * `sort viewed` followed by `view 2` records that view and may move that contact to the top.
+
+Missing or unsupported criteria, such as `sort` or `sort name`, and extra arguments show:
+
+```text
+Invalid command format!
+Use sort added, sort edited, or sort viewed (case-insensitive).
+```
 
 ### Editing a contact: `edit`
 
@@ -237,6 +248,15 @@ A valid `note` command when the displayed list is empty | `The person list is em
 ### Locating contacts: `find`
 
 Use plain name keywords or typed field prefixes. A valid search may return zero contacts.
+Both forms report `N contact(s) listed!`, where `N` is the number of matches, including zero.
+
+Aspect | Plain `find Han` | Typed `find n/Han`
+-------|------------------|-------------------
+Searches | Names only | Names `n/`, tags `t/`, notes `nt/`, event names `ev/`
+Matching | Whole words: does **not** find `Hans Gruber` | Partial text: **does** find `Hans Gruber`
+Several terms | Any keyword matches (OR) | OR within one field, AND across fields
+Letter case | Ignored | Ignored
+Cannot search | Phone, email, LinkedIn handle, meeting date or role, follow-up date, photo | Same
 
 Plain format: `find KEYWORD [MORE_KEYWORDS]…​`
 
@@ -249,9 +269,10 @@ Typed format: `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`
 * Typed terms match partial text and ignore case.
 * Repeated terms in one field use OR. Different fields use AND. For example, `find n/Alex n/Sam t/hackathon` finds an Alex or Sam contact that also has a `hackathon` tag.
 * Do not mix plain keywords and typed prefixes. The message is `Use either plain keywords or field prefixes in one find command.`
-* Empty terms and malformed prefixes show the standard format-and-usage error.
+  followed by `Example: find Alex or find n/Alex t/react.`
+* Empty terms and malformed prefixes show the find syntax hint below.
 * Other command fields (`e/`, `p/`, `l/`, `d/`, `md/`, `r/`, and `f/`) are not supported by `find`.
-  At the start of the arguments or after whitespace, these prefixes give `Invalid command format!` with usage,
+  At the start of the arguments or after whitespace, these prefixes give the same find syntax hint,
   even after a valid search field: for example, `find n/aisha e/p0@example.com` is invalid, not a zero-match search.
   Ordinary slash-containing text in typed terms, such as `find ev/ai/ml workshop` or `find nt/c/o NUS`, remains valid.
   This also means a note or event search cannot contain these reserved prefixes after whitespace:
@@ -262,6 +283,18 @@ Examples:
 * `find Aisha Ben` finds contacts named `Aisha Rahman` or `Ben Tan` when both have been added.
 * `find t/react nt/teammate` finds contacts tagged `react` whose note contains `teammate`.
 * `find ev/hack singapore` finds contacts whose event name contains `hack singapore`.
+
+Missing terms, empty fields (for example, `find n/`), or unsupported fields (for example,
+`find n/Aisha e/private@example.com`) show the following hint without repeating your input:
+
+```text
+Invalid command format!
+Use find KEYWORD [MORE_KEYWORDS] or find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM].
+Supply at least one non-empty term; typed fields may repeat.
+```
+
+An invalid search leaves the current results and viewed contact unchanged. A valid search with no matches
+reports `0 contact(s) listed!`; it is not an error.
 
 ### Grouping contacts by tag: `group`
 
@@ -277,6 +310,14 @@ Format: `group t/TAG`
 Examples:
 * `group t/react`
 * `group t/UI-UX`
+
+If `t/` is missing, the error is `Invalid command format!` followed by
+`Use group t/TAG with one tag, e.g. group t/react.`
+An empty, invalid, or overlong tag reports
+`Tags should contain only letters, digits, hyphens, and plus signs, and be 1 to 20 characters long`.
+Two `t/` fields report `Multiple values specified for the following single-valued field(s): t/`;
+use just one tag. These errors leave the current list and viewed contact unchanged.
+An accepted tag with no matches produces a normal zero-contact result, not an error.
 
 ### Starring important contacts: `star` and `unstar`
 
@@ -383,10 +424,16 @@ If the contact cannot be viewed, LarperBoard shows these errors:
 Input or situation | Message
 -------------------|--------
 A valid `view INDEX` when the displayed list is empty | `The person list is empty.`
-`view 1 2` (more than one index) | `Only one index parameter is accepted.` (with the invalid-format message and usage)
-`view` (missing index) | `Invalid command format!` followed by the command usage
+`view 1 2` (more than one index) | `Invalid command format!`, then `Only one index parameter is accepted.`, then the view hint below
+`view` (missing index) | `Invalid command format!` followed by the view hint below
 `view 0`, `view -1`, `view abc`, or `view 2147483648` (invalid or oversized index) | `The person index provided is invalid.`
 `view 99` when the displayed list is nonempty but has fewer than 99 contacts | `The person index provided is invalid.`
+
+For missing or extra arguments, the usage hint is
+`Use view INDEX with one positive displayed index, e.g. view 1.`
+For an invalid index, choose a number actually shown beside a contact, not the position of a hidden viewed contact.
+If the displayed list is empty, run `list` to show all saved contacts before choosing an index.
+Failed `view` commands do not replace the viewed contact or update its activity time.
 
 ### Clearing all entries: `clear`
 
@@ -453,7 +500,21 @@ Examples:
 * Submit `find Aisha` and then `view 1`. Press **Up** once to bring back `view 1`, and press **Up** again to bring back `find Aisha`.
 * Type `tag 1 t/` without submitting it, press **Up** to bring back an earlier command, then press **Down** to get `tag 1 t/` back.
 
+### Choosing between `meeting`, `followup` and `due`
+
+Command | Use it to | Date prefix | Example
+--------|-----------|-------------|--------
+`meeting` | Record where, when and in what role you met a contact (looks back) | `md/` (meeting date) | `meeting 1 ev/Hack Singapore md/2026-10-20 r/Mentor`
+`followup` | Set the date you plan to contact them again (looks ahead) | `d/` (follow-up date) | `followup 1 d/2026-10-27`
+`due` | List contacts whose follow-up date is today or earlier | none | `due`
+
+* The meeting date and the follow-up date are separate. Setting one never changes the other.
+* `due` looks only at follow-up dates, so a meeting date alone never makes a contact due.
+* `ev/` and `r/` belong to `meeting`. `ev/` also works in `find`.
+
 ### Recording meeting context: `meeting`
+
+Records where, when and in what role you met a contact, so that you can remember the context later and find them with `find ev/`. To plan when to contact them again, use [`followup`](#setting-a-follow-up-date-followup). See [Choosing between `meeting`, `followup` and `due`](#choosing-between-meeting-followup-and-due).
 
 ![Meeting feature at 1280×720](images/meeting-v1.4.1.png)
 
@@ -519,7 +580,9 @@ Format: `followup INDEX d/YYYY-MM-DD` or `followup INDEX clear`
 * `clear` can be typed in any letter case.
 * The date must be a real calendar date in exactly `YYYY-MM-DD` format. Leap days such as `2028-02-29` are accepted; `2027-02-29` is not.
 * A successful command reports `Follow-up date for NAME set to DATE.` or `Follow-up date cleared for NAME.`
-* Setting the date a contact already has, or clearing a date that is not set, only reports `Follow-up date unchanged.` It does not change the last-edited time or add an undo step.
+* Setting the date a contact already has reports `NAME already has follow-up date DATE. Nothing was changed.`
+* Clearing a date that is not set reports `NAME has no follow-up date to clear. Nothing was changed.`
+* Neither case changes the last-edited time or adds an undo step.
 * A real change counts as an edit of the contact and sets its last-edited time. You can reverse it with `undo`.
 * The contact card shows `Follow up: DATE`. Once the date is before today (Singapore time), the card shows `Follow up: DATE (Overdue)` and the whole line turns red and bold. A date that is today is not overdue. The card is drawn when the list is shown, so it does not change at midnight until the list is next refreshed.
 * `view INDEX` shows the full date in the detail panel.
@@ -533,7 +596,7 @@ If the follow-up date cannot be set, LarperBoard shows these errors and leaves t
 
 Input or situation | Message
 -------------------|--------
-`followup 1 d/2026-02-30`, `followup 1 d/2027-02-29`, `followup 1 d/2026-1-5`, or `followup 1 d/` (date that is not real or not in `YYYY-MM-DD` format) | `Date must be a real date in YYYY-MM-DD format.`
+`followup 1 d/2026-02-30`, `followup 1 d/2027-02-29`, `followup 1 d/2026-1-5`, or `followup 1 d/` (date that is not real or not in `YYYY-MM-DD` format) | `Enter a real follow-up date as YYYY-MM-DD, e.g. 2026-10-25.`
 `followup 0 d/2026-10-25`, `followup abc clear`, or `followup 2147483648 clear` (invalid or oversized index) | `The person index provided is invalid.`
 `followup 99 d/2026-10-25` when the displayed list has fewer than 99 contacts, or any `followup` with an index when the displayed list is empty | `The person index provided is invalid.`
 `followup`, `followup 1`, `followup 1 clear d/2026-10-25`, or `followup 1 2 d/2026-10-25` | `Invalid command format!` followed by the command usage
@@ -556,7 +619,7 @@ Format: `due`
 * `due` does not clear the detail panel, even if the contact you are viewing is not due.
 * The due-date order stays active for later `find`, `group` and `filter` commands, and the line above the list says `Sorted by due`, until you run `sort ...` or `list`.
 * No contact being due is a normal result: the list is empty and the message ends with `0 contact(s) listed!`.
-* Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date from the due list removes that contact from it.
+* Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date from the due list removes that contact from it. Setting a date after today does the same. If you were viewing that contact, the detail panel goes back to `No contact selected`. If you were viewing a different contact, the panel stays on it.
 * `list` shows all contacts again in their original order.
 * Any text typed after `due` is ignored.
 
@@ -692,8 +755,7 @@ Back up the destination files before replacing them. Undo/redo and command recal
 
 Meeting text counts supplementary characters twice, and an event preview can split a surrogate pair
 when truncated. The pending [Unicode fix](https://github.com/AY2627S1-CS2103T-W12-2/tp/pull/181)
-is not included in v1.4.1. `find` also reports `person(s)` while other list commands say `contact(s)`;
-this wording difference does not change the results.
+is not included in v1.4.1.
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
@@ -727,3 +789,21 @@ Action | Format, Examples
 **Unstar** | `unstar INDEX`<br> e.g., `unstar 1`
 **View** | `view INDEX`<br> e.g., `view 1`
 **Recall previous command** | Press **Up** or **Down** in the command box. See [Recalling previous commands](#recalling-previous-commands-up-and-down-arrows)
+
+### Prefix cheat sheet
+
+Prefix | Means | Used by
+-------|-------|--------
+`n/` | Name | `add`, `edit`, `find`
+`p/` | Phone | `add`, `edit`
+`e/` | Email | `add`, `edit`
+`l/` | LinkedIn handle | `add`, `edit`
+`t/` | Tag | `add`, `edit`, `tag`, `group`, `find`
+`nt/` | Note | `note`, `find`
+`ev/` | Meeting event | `meeting`, `find`
+`md/` | Meeting date | `meeting`
+`r/` | Meeting role | `meeting`
+`d/` | Follow-up date | `followup`
+`f/` | Photo file path | `photo`
+
+`find` accepts only `n/`, `t/`, `nt/` and `ev/`. The other prefixes in this table give `Invalid command format!` when they start a word. See [Locating contacts](#locating-contacts-find).
