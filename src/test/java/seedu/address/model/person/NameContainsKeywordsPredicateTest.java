@@ -73,6 +73,17 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_hyphenatedName_isOneWord() {
+        PersonBuilder jane = new PersonBuilder().withName("Mary-Jane O'Brien");
+
+        // the whole hyphenated or apostrophe word must be given
+        assertTrue(new NameContainsKeywordsPredicate(List.of("mary-jane")).test(jane.build()));
+        assertTrue(new NameContainsKeywordsPredicate(List.of("O'Brien")).test(jane.build()));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Mary")).test(jane.build()));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Brien")).test(jane.build()));
+    }
+
+    @Test
     public void toStringMethod() {
         List<String> keywords = List.of("keyword1", "keyword2");
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(keywords);

@@ -2,6 +2,7 @@ package seedu.address.logic;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.Locale;
 import java.util.regex.Pattern;
 
 import seedu.address.logic.commands.FindCommand;
@@ -16,7 +17,8 @@ import seedu.address.logic.commands.NoteCommand;
 public final class LogRedactor {
 
     public static final String HIDDEN = "[hidden]";
-    private static final Pattern PERSONAL_SEARCH_PREFIX = Pattern.compile("(?:^|\\s)(?:ev|nt)/");
+    private static final Pattern PERSONAL_SEARCH_PREFIX =
+            Pattern.compile("(?:^|\\s)(?:ev|nt)\\s*/", Pattern.CASE_INSENSITIVE);
 
     private LogRedactor() {}
 
@@ -43,7 +45,10 @@ public final class LogRedactor {
     }
 
     private static boolean containsPersonalText(String commandWord, String arguments) {
-        return commandWord.equals(NoteCommand.COMMAND_WORD) || commandWord.equals(MeetingCommand.COMMAND_WORD)
-                || commandWord.equals(FindCommand.COMMAND_WORD) && PERSONAL_SEARCH_PREFIX.matcher(arguments).find();
+        // normalised like AddressBookParser, so every spelling the parser accepts is redacted
+        String word = commandWord.toLowerCase(Locale.ROOT);
+        return word.equals(NoteCommand.COMMAND_WORD)
+                || word.equals(MeetingCommand.COMMAND_WORD)
+                || (word.equals(FindCommand.COMMAND_WORD) && PERSONAL_SEARCH_PREFIX.matcher(arguments).find());
     }
 }

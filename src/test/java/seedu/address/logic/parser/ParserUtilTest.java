@@ -136,6 +136,21 @@ public class ParserUtilTest {
     }
 
     @Test
+    public void parseName_hyphenAndApostrophe_returnsName() throws Exception {
+        assertEquals(new Name("Mary-Jane"), ParserUtil.parseName("Mary-Jane"));
+        assertEquals(new Name("O'Brien"), ParserUtil.parseName("  O'Brien  "));
+        assertEquals(new Name("Nur-Aisyah binte Ahmad"), ParserUtil.parseName("Nur-Aisyah   binte Ahmad"));
+    }
+
+    @Test
+    public void parseName_unsupportedCharacters_throwsParseException() {
+        assertThrows(ParseException.class, Name.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseName("-Mary"));
+        assertThrows(ParseException.class, Name.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseName("'Al"));
+        assertThrows(ParseException.class, Name.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseName("O’Brien"));
+        assertThrows(ParseException.class, Name.MESSAGE_CONSTRAINTS, () -> ParserUtil.parseName("John s/o Raj"));
+    }
+
+    @Test
     public void parseName_tooLong_throwsParseException() {
         assertThrows(ParseException.class, () -> ParserUtil.parseName("a".repeat(51)));
     }

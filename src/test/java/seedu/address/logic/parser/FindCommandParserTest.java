@@ -17,6 +17,22 @@ public class FindCommandParserTest {
     private FindCommandParser parser = new FindCommandParser();
 
     @Test
+    public void parse_invalidSyntax_showsSupportedFieldsAndNonEmptyTermRequirement() {
+        String hint = "Use find KEYWORD [MORE_KEYWORDS] or find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM].\n"
+                + "Supply at least one non-empty term; typed fields may repeat.";
+        for (String args : List.of("", "n/", "ev/", "n/Alice nt/", "n/Alice e/private@example.com")) {
+            assertParseFailure(parser, " " + args, String.format(MESSAGE_INVALID_COMMAND_FORMAT, hint));
+        }
+    }
+
+    @Test
+    public void parse_mixedModes_showsConcreteAlternativesWithoutEchoingInput() {
+        assertParseFailure(parser, "private n/secret",
+                "Use either plain keywords or field prefixes in one find command.\n"
+                        + "Example: find Alex or find n/Alex t/react.");
+    }
+
+    @Test
     public void parse_emptyArg_throwsParseException() {
         assertParseFailure(parser, "     ", String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
     }
@@ -88,6 +104,19 @@ public class FindCommandParserTest {
         for (String args : List.of(" nt/likes r/java", " ev/likes r/java")) {
             assertParseFailure(parser, args,
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+        }
+    }
+
+    @Test
+    public void parse_spaceInsideSearchPrefix_rejectsFormat() {
+        for (String prefix : List.of("n", "t", "nt", "ev", "e", "p", "l", "d", "md", "r", "f")) {
+            for (String gap : List.of(" ", "\t", "  ")) {
+                for (String args : List.of(" " + prefix + gap + "/Alice",
+                        " n/Alice " + prefix + gap + "/react")) {
+                    assertParseFailure(parser, args,
+                            String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommandParser.MESSAGE_SPACED_PREFIX));
+                }
+            }
         }
     }
 

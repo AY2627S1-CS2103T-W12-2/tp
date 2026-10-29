@@ -19,6 +19,15 @@ public class SortCommandParserTest {
     private final SortCommandParser parser = new SortCommandParser();
 
     @Test
+    public void parse_invalidCriterion_showsOnlyAcceptedCriteria() {
+        String expected = String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                "Use sort added, sort edited, or sort viewed (case-insensitive).");
+        for (String args : List.of("", "name", "due", "added viewed", "private")) {
+            assertParseFailure(parser, args, expected);
+        }
+    }
+
+    @Test
     public void parse_validArgs_returnsSortCommand() {
         assertParseSuccess(parser, " added ", new SortCommand(SortCriterion.ADDED));
         assertParseSuccess(parser, "edited", new SortCommand(SortCriterion.EDITED));

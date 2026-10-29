@@ -17,6 +17,15 @@ title: Developer Guide
 
 Refer to the guide [_Setting up and getting started_](SettingUp.md).
 
+To run and trace your first command:
+
+1. Use JDK 25 and open a terminal in the repository root.
+1. Run `./gradlew run` (Windows: `gradlew.bat run`).
+1. In the app, run `add n/Test Contact`, `find Test`, then `view 1`.
+1. Trace `CommandBox` → `LogicManager.execute` → `AddressBookParser` → the command parser → `Command.execute(Model)`.
+1. Before a PR, run `./gradlew clean check coverage`, then `./.github/run-checks.sh`. CI also checks Javadoc and builds the JAR.
+
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Design**
@@ -97,6 +106,14 @@ for the `+N` label, measured for the actual number of hidden tags), and refits w
 the row's width changes. Hidden tags stay in the row as unmanaged labels so they keep their styling and can be measured
 again. `PersonDetailPanel` is unchanged and wraps all tags.
 
+`CommandBox` also lets the user bring back earlier commands with the Up and Down arrow keys (see [Command
+history](#command-history)). `HelpWindow` does not explain the commands. It shows the address of the online User Guide
+(`HelpWindow#USERGUIDE_URL`) with a button to copy it, and `MainWindow#handleHelp` opens it, or brings it to the front
+if it is already open; the `help` command, the **Help** menu and the F1 accelerator all lead to `handleHelp`. For the
+`exit` command, `MainWindow#handleExitAfterDelay` waits one second (`EXIT_DELAY`) so that the user can read the result
+message and then closes the window, and the command box ignores input during the wait. The **Exit** menu item and the
+close button call `handleExit` directly and close at once.
+
 The `UI` component,
 
 * executes user commands using the `Logic` component.
@@ -135,7 +152,7 @@ How the parsing works:
 
 * When called upon to parse a user command, the `AddressBookParser` class creates an `XYZCommandParser` (`XYZ` is a placeholder for the specific command name, e.g., `AddCommandParser`). The parser uses the other classes shown above to parse the user command and create an `XYZCommand` object (e.g., `AddCommand`). The `AddressBookParser` returns that object as a `Command` object.
 * All `XYZCommandParser` classes, such as `AddCommandParser` and `DeleteCommandParser`, implement the `Parser` interface so they can be treated similarly where appropriate, for example during testing.
-* `AddressBookParser#COMMAND_WORDS` is the alphabetical list of every command word that `parseCommand` accepts, and it is what the `Unknown command.` message lists. The list is written out next to the `switch` in `parseCommand`, so a new command word must be added to both. `AddressBookParserTest` scans the command classes for `*COMMAND_WORD` constants and fails if one is missing from the list, and it also checks that every listed word is recognised by the parser.
+* `AddressBookParser#COMMAND_WORDS` is the alphabetical list of every command word that `parseCommand` accepts, and it is what the `Unknown command.` message lists. The list is written out next to the `switch` in `parseCommand`, so a new command word must be added to both. `AddressBookParserTest` scans the command classes for `*COMMAND_WORD` constants and fails if one is missing from the list, and it also checks that every listed word is recognised by the parser. `parseCommand` lower-cases the command word with `Locale.ROOT` before the `switch`, so command words are case-insensitive regardless of the system locale; prefixes such as `n/` are not. `LogRedactor` also compares command words and personal search prefixes (`nt/`, `ev/`) without regard to case, so `NOTE`, `MEETING`, `FIND`, and rejected searches such as `find NT/...` or `find EV/...` are kept out of the log like their lower-case forms.
 
 ### Model component
 
@@ -163,16 +180,15 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-W12-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
 <img src="images/StorageClassDiagram.png" width="550" />
 
-The `Storage` component,
+`StorageManager` reads and saves model objects:
 
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* keeps photo file access in the separate `PhotoStorage` class. Commands import validated PNG/JPEG files into the application-folder `photos/` directory; `ContactPhoto` reads validated image bytes through the same service. Imported assets are retained for history restoration.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
-* depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+* Contacts: `JsonAddressBookStorage` reads/writes JSON; `JsonUserPrefsStorage` handles preferences.
+* Photos: `PhotoStorage` imports validated PNG/JPEG files into `photos/` beside the JAR and supplies validated bytes to `ContactPhoto`. Assets remain available for undo/redo.
+* Storage depends on model classes to convert their objects to/from JSON.
 * saves a person's activity as optional `createdAt`, `lastEditedAt` and `lastViewedAt` fields in `addressbook.json`. Each is a whole-second ISO-8601 UTC timestamp written exactly as `2026-10-17T04:12:33Z`. A missing or `null` field loads as an absent time, so data files from v1.3 still load. A value with a fraction of a second, an offset other than `Z`, surrounding spaces or any other format makes the file fail to load with `Invalid contact data: '<field>' must be an ISO-8601 UTC timestamp.`, naming the field (`createdAt`, `lastEditedAt` or `lastViewedAt`). `JsonAdaptedPerson.INVALID_FIELD_MESSAGE_FORMAT` holds this message pattern so other fields use the same wording.
 * saves a person's follow-up date as an optional `followUpDate` string in `addressbook.json`, written as `2026-10-25`. A missing or `null` field loads as no follow-up date, so older data files still load. A value that is not a real `YYYY-MM-DD` date, including a non-string value, makes the file fail to load with `Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.`
 * saves whether a person is starred as an optional `starred` boolean in `addressbook.json`. A missing or `null` field loads as not starred, so older data files still load. Any other value, such as a string or a number, makes the file fail to load with `Invalid contact data: 'starred' must be true or false.` The field is kept as an `Object` in `JsonAdaptedPerson` so that such a value reaches this message instead of a generic Jackson error.
@@ -199,58 +215,51 @@ so the visible list, selection, saved contacts and undo/redo history remain unch
 Literal slash text such as `c/o`, `ai/ml` and URLs is still accepted within typed terms, but reserved prefixes
 are rejected even when intended as note or event text (for example, `find nt/likes r/java`).
 
+### Search and list command feedback
+
+`FindCommand`, `SortCommand`, `GroupCommand`, and `ViewCommand` provide short `MESSAGE_USAGE` hints
+instead of repeating feature descriptions on invalid syntax. Parsers retain the shared
+`Messages.MESSAGE_INVALID_COMMAND_FORMAT` wrapper. Find's hint lists the supported fields and requires
+a non-empty term; mixed plain/typed input gets two concrete alternative commands, without echoing user input.
+Validation order, supported inputs, displayed-index targeting, and selection behavior are unchanged.
+
+Group tag limits still come from `Tag.MESSAGE_CONSTRAINTS`, and duplicate fields use the shared message.
+View still uses `ParserUtil.parseDisplayedIndex` and the common invalid-index, multiple-index, and empty-list
+messages. These command-specific hints reuse the shared wording in `Messages` rather than redefining it.
+`list` has no argument-validation error: it continues to ignore extra text, clears the filter/sort, and keeps
+command-text history.
+
 ### Meeting context implementation
 
-The sequence below shows a partial meeting update, the no-op path, and rollback when saving fails.
-The `createSnapshot`, `restore`, and `recordSuccessfulMutation` calls show shared existing
-snapshot/history behavior from #108 and #131/#132, rather than functionality implemented by #130.
+`Person` holds an optional immutable `Meeting`; `toBuilder()` preserves it.
 
 ![Meeting context implementation](images/MeetingUpdateSequenceDiagram.png)
 
-`Meeting` is an immutable optional value held by `Person` and copied by `Person.toBuilder()`.
-`MeetingCommandParser` validates the displayed index, duplicate prefixes, strict real dates, nonblank
-text bounds, and explicit clear grammar. In v1.4.1, event/role bounds count UTF-16 code units
-with `String.length()`; supplementary characters count twice. `MeetingCommand` merges only supplied fields, then calls
-`Model.editPerson` using a complete copy. Same-value updates return without mutation. Logic saves
-before recording history, restoring its snapshot on failed saves. Existing snapshots therefore retain
-meeting fields without a separate history mechanism. Setting, replacing, and clearing individual or
-all meeting fields each create one undo step when they change the contact.
+1. `MeetingCommandParser` validates the displayed index, duplicate prefixes, clear syntax, text bounds, and real dates.
+1. `MeetingCommand` merges supplied fields. Omitted fields stay unchanged; same-value updates return without mutation.
+1. A real update uses a complete builder copy and `Model.editPerson`.
+1. `LogicManager` saves before recording history. Failed saves restore the snapshot, so every real set/replace/clear uses the shared history mechanism.
 
-`JsonAdaptedPerson` accepts absent/null meeting fields for older data, validates present JSON types
-without coercion, and reports the exact offending meeting field. Empty context is omitted on save.
-`FindCommandParser` creates a `TypedSearchPredicate` for `n/`, `t/`, `nt/` and `ev/` terms.
-It matches partial event names without case sensitivity, using OR within one field and AND across
-different fields. An absent event matches only when no event terms were supplied.
-The card bounds its event cue to 32 UTF-16 code units, and the detail panel scrolls vertically.
-A pending Unicode fix in #181 is not part of v1.4.1.
+Validation: event/role use `String.length()` (80 UTF-16 code units); dates are real `YYYY-MM-DD` values, years 0001–9999. `JsonAdaptedPerson` treats absent/null fields as missing, rejects invalid types without coercion, names the invalid field, and omits empty context.
 
-Tests cover strict/leap dates, 80/81-character bounds, partial updates and individual/all clears,
-old/malformed JSON and round trips, filtered targeting, no-ops, event search, UI, and rollback/undo.
+Event search uses `TypedSearchPredicate`: partial case-insensitive matches, OR within fields, AND across fields. Missing events match only if no event term was given. Cards show 32 UTF-16 code units; details show full context. The pending Unicode fix #181 is not in v1.4.1.
+
+Tests cover 80/81-character and leap-date boundaries, partial/all clears, no-ops, malformed/old JSON, round trips, filtered indexes, search, UI, rollback, and undo.
 
 ### Contact photo implementation
 
-The sequence below shows photo validation/import, the identical-image no-op, and model rollback when saving fails.
+`Person.photoPath` is a relative reference preserved by builder copies, equality, and detail comparison.
 
 ![Contact photo implementation](images/PhotoImportSequenceDiagram.png)
 
-`Person.photoPath` is an optional relative reference; complete builder copies, equality and detail
-comparison preserve it. `PhotoCommandParser` validates syntax; `PhotoCommand` validates the displayed
-index before any import, retains all fields via `toBuilder()`, and delegates real changes to
-`Model.editPerson`. Existing LogicManager save/snapshot handling supplies rollback and history.
-Each successful attach, replace, or clear creates one undo step. Imported assets remain available
-for restoration; undo and redo change references without recreating or deleting image files.
+1. `PhotoCommandParser` reads one path or clear form. `PhotoCommand` validates the displayed index **before importing**.
+1. `PhotoStorage` confines the source and managed `photos/` directory to the JAR folder (working folder during Gradle development); tests inject a temporary root.
+1. It rejects absolute paths, parent components, and symlink escapes; reads at most 5 MiB plus one byte; checks type/dimensions before decoding; and generates collision-safe copy names.
+1. A real attach/replace/clear uses `toBuilder()` and `Model.editPerson`. Shared logic saves, rolls back failures, and records one undo step. An identical image is a no-op.
 
-`PhotoStorage` derives its root from the running JAR's code location (working folder during Gradle
-development); tests inject a temporary root. It rejects absolute paths, parent components and real-path
-symlink escapes; reads at most 5 MiB plus one byte; checks image type and dimensions before bounded
-decoding; and copies into a confined `photos/` directory with collision-safe generated names.
-No user path or stored URI is passed directly to JavaFX. UI rendering uses validated bytes and a
-placeholder with logging on failure. Missing/malformed optional references do not block contact loading.
-Assets are deliberately retained after mutation or failed saves to avoid breaking history.
+The UI decodes validated bytes, never raw paths/URIs. Invalid references show a placeholder and warning without blocking contacts. Assets survive replacement, clear, deletion, and failed saves so undo/redo can restore references.
 
-Tests cover traversal and symlink escapes (including the managed directory), corrupt/type/size/dimension
-cases, copies and no-ops, filtered indexes, JSON compatibility/round trips, rollback and undo restoration.
-Verify the packaged JAR at 1280×720/150% with attach/replace/clear, reload and retained assets.
+Tests cover traversal/symlink escapes (including `photos/`), corrupt/type/size/dimension failures, copies, no-ops, filtered indexes, JSON compatibility, save rollback, and undo. Check the packaged JAR at 1280×720/150% with attach/replace/clear and reload.
 
 ### Contact activity
 
@@ -333,8 +342,8 @@ Design considerations:
 ### Activity-time sorting
 
 `SortCommandParser` trims the argument and normalizes it with `Locale.ROOT` before matching `added`, `edited`,
-or `viewed`. Sort keywords are case-insensitive regardless of the system locale; unsupported keywords and extra
-arguments still produce the format-and-usage error. The command word remains lowercase: `sort`.
+or `viewed`. Sort keywords are case-insensitive regardless of the system locale; unsupported keywords (such as `name` or `due`), missing arguments, and extra
+arguments still produce the invalid-format error with the short sort hint.
 
 `SortCommand` passes a `SortCriterion` (`ADDED`, `EDITED`, or `VIEWED`) to `ModelManager`. The model keeps one
 `FilteredList` for the current contacts and wraps it in a `SortedList`, which is the list exposed to the UI and every
@@ -370,13 +379,19 @@ the active filter. Filter descriptions are session-only, not JSON fields. `State
 alongside the predicate and sort so undo, redo, and failed-save rollback restore consistent feedback.
 This does not change selection rules or implement combined filters from #128.
 
+Only `find`, `group`, `filter`, `due` and `list` change the filter, and only `sort`, `due` and `list` change the
+sort. `Model#addPerson` touches neither, so adding a contact while a filter is active keeps the filter and updates
+the count; the new contact is listed only if it matches. This is the same as for `edit`, `tag` and the other
+commands that change a contact. Because the filter is part of the saved `State`, `undo` and `redo` of an add
+restore the contact list, the filter label and the count together.
+
 ### Viewed contact selection
 
-The `find`, `group`, and `filter` commands only update the visible-list predicate;
+The `find`, `group`, `filter`, `due`, `sort`, and `list` commands only update the visible-list predicate or sort;
 they do not clear `Model#getViewedPerson()` when a contact is filtered out.
 The detail selection is independent of list membership, including for zero results.
 A subsequent `view` selects by displayed index, while deleting the viewed contact
-or clearing the address book still clears the detail selection.
+or clearing the address book clears the detail selection. When the viewed contact is edited by `FollowUpCommand`, `MeetingCommand`, `StarCommand`, or `EditCommand` so that it leaves the visible list, the command clears the viewed contact (leaving a hidden viewed contact when editing a different contact is tracked in #227).
 
 ### Starring contacts
 
@@ -469,7 +484,7 @@ Data archiving is deferred. It is not available in LarperBoard and not planned f
 * can type fast and is comfortable with CLI commands (e.g. a computer science student)
 * prefers desktop apps over other types of applications
 
-**Value proposition**: LarperBoard helps hackathon participants build a network that they can still use after the event. Using one short typed command on the laptop that is already open, the user records a new contact together with the detail that will jog their memory later, such as what the person is building, their tech stack and where they were met. Contacts can be grouped by hackathon and team, searched by these details, and exported for follow-up. This is faster than saving contacts on a phone in the middle of an event, and more useful afterwards than a generic address book, which records who someone is but not how or where they were met. All data is stored locally, so LarperBoard works without an internet connection.
+**Value proposition**: LarperBoard helps hackathon participants build a network that they can still use after the event. Using one short typed command on the laptop that is already open, the user records a new contact together with the detail that will jog their memory later, such as what the person is building, their tech stack and where they were met. Contacts can be grouped by hackathon and team, searched by these details, and used to plan follow-ups. There is no contact export command; automatic JSON saving is separate. This is faster than saving contacts on a phone in the middle of an event, and more useful afterwards than a generic address book, which records who someone is but not how or where they were met. All data is stored locally, so LarperBoard works without an internet connection.
 
 ### User stories
 
@@ -484,12 +499,13 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 | Must-have | Shipped | user | add a contact | add people quickly |
 | Must-have | Shipped | user | delete unnecessary people | remove people who are no longer relevant to me |
 | Nice-to-have | Shipped | user | edit people's information | correct a mistake without having to delete and re-add the contact |
-| Nice-to-have | Shipped | user | undo my last destructive CLI action | avoid losing important contact information because of a fast typo |
+| Nice-to-have | Shipped (up to 50 saved contact changes per session) | user | undo my last contact change | avoid losing important contact information because of a fast typo |
+| Nice-to-have | Shipped (until a new contact change or app restart) | user | redo an undone contact change | recover a change I still want to keep |
 | Nice-to-have | Shipped | hackathon participant | clear all data or reset my board | start fresh for a brand new hackathon event |
 | Nice-to-have | Shipped | user | group people together | organize everyone I met at a specific track or workshop |
-| Unlikely-to-have | Partial (typed `find` matches part of a name, tag, note or event; plain `find` matches whole words; no fuzzy match) | forgetful participant | search contacts using partial text or fuzzy matching | find a person even if I only remember part of their name or handle |
-| Nice-to-have | Partial (sort by added, edited or viewed time only) | user | sort people by keywords | easily find people using keywords |
-| Unlikely-to-have | Partial (`filter starred`, `group`, and typed `find` with AND across fields; no saved or arbitrary queries) | power user | filter contacts | execute complex queries on my network |
+| Unlikely-to-have | Partial (typed `find` matches part of a name, tag, note or event; plain `find` matches whole name words; no fuzzy or LinkedIn-handle search) | forgetful participant | search contacts using partial text or fuzzy matching | find a person even if I only remember part of their name or handle |
+| Nice-to-have | Partial (sort by added, edited or viewed time only; no arbitrary keyword sort) | user | sort people by keywords | easily find people using keywords |
+| Unlikely-to-have | Partial (`filter starred`, `group`, `due`, and typed `find` with AND across fields; filters replace one another; no saved or arbitrary queries) | power user | filter contacts | execute complex queries on my network |
 | Must-have | Shipped | hackathon participant | attach project tags or stack keywords | remember what tech stack or project a participant is cracked at |
 | Nice-to-have | Shipped | forgetful participant | add rapid freeform notes (e.g., "Met at booth 4") | remember the context when following up after the event |
 | Nice-to-have | Shipped | hackathon participant | mark high-priority contacts with a "starred" flag | easily filter and focus on standout individuals |
@@ -500,20 +516,23 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 | Nice-to-have | Shipped | hackathon participant | set a follow-up date on a contact | remember by when I wanted to get back to them |
 | Nice-to-have | Shipped | hackathon participant | list the contacts whose follow-up date has arrived, earliest first | see who I should contact today without scanning my whole list |
 | Must-have | Shipped | user | display a detailed view of a single contact card | read all notes, links, and tags in one clean view |
-| Nice-to-have | Shipped | user | view images | remember the projects people have created |
+| Nice-to-have | Shipped | user | attach, replace, clear, and view one local photo per contact | remember the person or their project |
 | Nice-to-have | Deferred | CLI user | view contact summaries in a clean, formatted ASCII table | browse my address book without messy text wrapping |
 | Nice-to-have | Shipped | visual learner | distinguish categories with colour codes | visually scan and distinguish categories at a glance |
 | Nice-to-have | Deferred | user | run a stats/summary command (counts by tech stack or event) | get a high-level snapshot of my networking efforts |
 | Nice-to-have | Partial (Up/Down command recall only) | power user | have fast keyboard navigation | navigate and manipulate data at maximum keyboard speed |
+| Nice-to-have | Shipped | power user | bring back a command I typed earlier with the Up and Down arrow keys | fix a typo or repeat a command without typing it all again |
 | Nice-to-have | Deferred | user | set up CLI auto-completion for commands and contact names | run commands faster with Tab completion |
 | Nice-to-have | Partial (`help` shows the User Guide URL with a copy button; no interactive tutorial) | first-time user | run a help/tutorial command with interactive examples | learn key commands within 30 seconds of installing the app |
-| Nice-to-have | Partial (LinkedIn only) | hackathon participant | save social profiles (GitHub, LinkedIn, X, Telegram) under dedicated flags | have direct links to reach out to a person on their preferred platform |
+| Nice-to-have | Shipped | hackathon participant | save a LinkedIn handle on a contact | reach out to a person through their LinkedIn profile |
+| Nice-to-have | Deferred | hackathon participant | save GitHub, X, or Telegram handles under dedicated fields | reach out to a person on their preferred platform |
 | Nice-to-have | Deferred | user | copy a contact's email/social handle to the clipboard from the CLI | quickly paste it into a browser or messaging app |
 | Nice-to-have | Deferred | hackathon participant | import contact details via a short encoded CLI string or QR token | exchange contact information instantly without manual typing |
 | Nice-to-have | Deferred | power user | export my contact list to JSON, CSV, or Markdown | import it into my personal CRM, Notion, or address book |
 | Must-have | Shipped | offline user | have all data stored locally | use the app without an internet connection at crowded venues |
 | Nice-to-have | Deferred | hackathon participant | archive or hide contacts I don't need anymore | avoid being distracted by people I no longer need to see in my active list |
 | Nice-to-have | Shipped (same name and phone) | hackathon participant | be flagged when I try to add someone who is already in my list | avoid accidentally creating two separate entries for the same person met at different events |
+| Nice-to-have | Shipped | hackathon participant | record, update, and clear meeting event, date, and role | remember where and how I met a contact |
 
 ### Use cases
 
@@ -545,8 +564,8 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 
 1. User requests to list persons.
 2. LarperBoard shows a list of persons.
-3. User requests to update the selected person's project tags or stack keywords.
-4. LarperBoard replaces the selected person's existing tags with the supplied tags.
+3. User enters `tag INDEX t/TAG [t/TAG]…` for the selected person.
+4. LarperBoard adds the supplied tags to the person's existing tags, storing one lowercase copy of each.
 5. LarperBoard displays the updated person details.
 
    Use case ends.
@@ -572,12 +591,20 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 
     Use case resumes at step 3.
 
+* 4b. All supplied tags are already present, ignoring letter case.
+  * 4b1. LarperBoard reports success without changing the contact, its last-edited time, or undo history.
+
+    Use case ends.
+
+**Implementation note:** `tag` adds tags; `edit INDEX t/TAG` replaces all existing tags with the supplied set.
+`edit INDEX t/` removes every tag. Repeated tags in one command are stored once.
+
 **Use case: Find contacts**
 
 **MSS**
 
 1. User requests to find contacts using plain name keywords or typed search terms.
-2. LarperBoard performs a case-insensitive search. Plain name keywords use OR; repeated typed terms within one field use OR and terms across fields use AND.
+2. LarperBoard performs a case-insensitive search and replaces the active filter while preserving any active sort and the viewed contact. Plain name keywords match whole words using OR; typed `n/`, `t/`, `nt/`, and `ev/` terms match partial text using OR within one field and AND across fields.
 3. LarperBoard displays the matching contacts and reports `N contact(s) listed!`, where `N` is the number of matches.
 
    Use case ends.
@@ -602,7 +629,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 **MSS**
 
 1. User requests to group contacts by one tag.
-2. LarperBoard filters the displayed contact list to contacts with the specified tag, ignoring tag letter case.
+2. LarperBoard replaces the active filter with contacts having the specified tag (ignoring tag letter case), while preserving any active sort and the viewed contact.
 3. LarperBoard displays the selected tag and the number of matching contacts.
 4. User enters `list` to return to the full contact list.
 
@@ -610,7 +637,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 
 **Extensions**
 
-* 1a. The user omits the tag or provides an invalid tag.
+* 1a. The user omits `t/TAG`, includes extra text before `t/`, provides an invalid tag, or supplies multiple `t/` fields.
   * 1a1. LarperBoard displays an error message.
 
     Use case resumes at step 1.
@@ -660,7 +687,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 **MSS**
 
 1. User requests to list all persons.
-2. LarperBoard displays all persons and their contact details.
+2. LarperBoard clears the active filter and sort, and displays all persons in their original order while retaining the viewed contact.
 
    Use case ends.
 
@@ -675,10 +702,21 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 
 **MSS**
 
-1. User requests usage instructions.
-2. LarperBoard displays instructions for the available commands.
+1. User requests help (by the `help` command, the **Help** menu or the F1 key).
+2. LarperBoard opens the help window, which shows the address of the online User Guide and a button to copy it.
+3. User copies the address and reads the User Guide in a web browser.
 
    Use case ends.
+
+**Extensions**
+
+* 1a. The help window is already open.
+  * 1a1. LarperBoard brings the open help window to the front instead of opening a second one.
+
+    Use case ends.
+
+* 1b. The user types extra text after `help`, e.g. `help 123`.
+  * 1b1. LarperBoard ignores the extra text and continues from step 2.
 
 **Use case: Clear all persons**
 
@@ -693,7 +731,51 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 **Extensions**
 
 * 2a. The address book contains no persons.
-  * 2a1. LarperBoard displays the confirmation message.
+  * 2a1. LarperBoard reports `No contacts to clear.`
+
+    Use case ends.
+
+**Use case: Undo a saved contact change**
+
+**MSS**
+
+1. User enters `undo` during the same app session as a saved contact change.
+2. LarperBoard restores the preceding contact state, including the displayed list and viewed contact, and saves it.
+3. LarperBoard confirms the undo.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. No undo step is available.
+  * 1a1. LarperBoard reports `Nothing to undo.` without changing contacts.
+
+    Use case ends.
+
+* 2a. Saving the restored state fails.
+  * 2a1. LarperBoard restores the pre-command contacts and both history stacks and reports the save error.
+
+    Use case ends.
+
+**Use case: Redo an undone contact change**
+
+**MSS**
+
+1. User enters `redo` while a redo step remains in the current app session.
+2. LarperBoard reapplies the undone contact state, including the displayed list and viewed contact, and saves it.
+3. LarperBoard confirms the redo.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. No redo step is available, including after a new saved contact change or app restart.
+  * 1a1. LarperBoard reports `Nothing to redo.` without changing contacts.
+
+    Use case ends.
+
+* 2a. Saving the restored state fails.
+  * 2a1. LarperBoard restores the pre-command contacts and both history stacks and reports the save error.
 
     Use case ends.
 
@@ -755,7 +837,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 1. User requests to list persons.
 2. LarperBoard shows a list of persons.
 3. User requests to view the full details of a specific person by index.
-4. LarperBoard opens and updates the detailed view panel showing all stored attributes (full name, phone, email, LinkedIn handle, and categorised tag chips with colour codes) of the selected person.
+4. LarperBoard updates the contact's last-viewed time, saves the address book, and shows the selected person's full details in the detail panel (name, ★ when starred, photo or placeholder, phone, email, LinkedIn handle, sorted colour-coded tags, note, meeting event/date/role, follow-up date, and created/last-edited/last-viewed times in Singapore time, using `-` for absent fields and `—` for unknown times).
 
    Use case ends.
 
@@ -777,7 +859,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
     Use case resumes at step 2.
 
 * 3c. The given index causes integer overflow.
-  * 3c1. LarperBoard displays a message stating the provided index is too large.
+  * 3c1. LarperBoard displays `The person index provided is invalid.`, as for other invalid displayed indexes.
 
     Use case resumes at step 2.
 
@@ -844,6 +926,147 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 
     Use case ends.
 
+**Use case: Set or clear a note**
+
+**MSS**
+
+1. User requests to set a note on a person in the displayed list, giving the person's index and the note text.
+2. LarperBoard saves the note, replacing any earlier note, and shows a message that the note was saved.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user asks to clear the note instead, with `note INDEX clear`.
+  * 1a1. LarperBoard removes the note and shows a message that the note was cleared.
+
+    Use case ends.
+
+* 1b. The index is invalid, or the note is blank, too long, or the command is malformed.
+  * 1b1. LarperBoard shows an error message that names the one thing to correct and leaves the person as it was.
+
+    Use case ends.
+
+* 2a. The new note is the same as the old one, or there is no note to clear.
+  * 2a1. LarperBoard shows a message that nothing was changed.
+
+    Use case ends.
+
+**Use case: Star or unstar a person**
+
+**MSS**
+
+1. User requests to star a person in the displayed list, giving the person's index.
+2. LarperBoard marks the person as starred, shows a ★ on their card and detail panel, and shows a message that the person was starred.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user asks to remove the star instead, with `unstar INDEX`.
+  * 1a1. LarperBoard removes the star and shows a message that the star was removed.
+
+    Use case ends.
+
+* 1b. The index is missing, extra or invalid.
+  * 1b1. LarperBoard shows an error message that names the one thing to correct.
+
+    Use case ends.
+
+* 2a. The person is already starred (or, for `unstar`, is not starred).
+  * 2a1. LarperBoard shows a message that nothing was changed.
+
+    Use case ends.
+
+**Use case: Show only starred persons**
+
+**MSS**
+
+1. User requests to show only starred persons with `filter starred`.
+2. LarperBoard shows the starred persons, labels the list `Starred only`, and shows how many persons are listed.
+3. User requests to show all persons again with `filter starred off` (or `list`).
+4. LarperBoard shows all persons.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The keyword is missing or is not `starred`, or there is extra text.
+  * 1a1. LarperBoard shows an error message that gives the two valid forms and does not change the list.
+
+    Use case ends.
+
+* 2a. No person is starred.
+  * 2a1. LarperBoard shows an empty list and a message that 0 contacts are listed.
+
+    Use case resumes at step 3.
+
+**Use case: Recall a previous command**
+
+**MSS**
+
+1. User selects the command box and presses the Up arrow key.
+2. LarperBoard puts the previous command into the command box.
+3. User edits the command if needed and submits it.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. No command has been submitted in this session.
+  * 1a1. LarperBoard leaves the command box as it is.
+
+    Use case ends.
+
+* 2a. The user presses the Up or Down arrow key again.
+  * 2a1. LarperBoard shows the next older or newer command, up to the 50 most recent. After the newest, it shows the text the user had typed before browsing.
+
+    Use case resumes at step 3.
+
+**Use case: Exit the application**
+
+**MSS**
+
+1. User requests to exit, with the `exit` command.
+2. LarperBoard shows a message that it is exiting, then closes its window after about one second. The contacts are already saved.
+
+   Use case ends.
+
+**Extensions**
+
+* 1a. The user chooses **Exit** from the **File** menu or closes the window with its close button.
+  * 1a1. LarperBoard closes at once, without the one-second pause.
+
+    Use case ends.
+
+**Use case: Record meeting context**
+
+**MSS**
+
+1. User chooses a displayed contact and supplies meeting fields or a clear form.
+1. LarperBoard validates and merges supplied fields, preserving omitted fields.
+1. LarperBoard saves and confirms the change.
+
+**Extensions**
+
+* Invalid index, duplicate fields, blank/long text, or invalid date: explain the error without changing the contact.
+* Same values or clearing absent context: no change to activity or history.
+* Save failure: restore the contact, selection, filters, and history.
+
+**Use case: Attach, replace, or clear a contact photo**
+
+**MSS**
+
+1. User chooses a displayed contact and supplies a relative image path or clear form.
+1. LarperBoard validates/imports the image, or removes the reference.
+1. LarperBoard saves and confirms the change; imported assets stay available for undo/redo.
+
+**Extensions**
+
+* Unsafe path, unreadable/invalid image, or exceeded limits: reject without changing the contact.
+* Identical current image or clearing an absent photo: no activity/history change.
+* Save failure: restore the model and history; an unused imported asset can remain.
+
 ### Non-functional requirements
 
 1. **Environment**: Should work on any _mainstream OS_ as long as it has Java `25` or above installed.
@@ -855,7 +1078,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 7. **Usability**: All features should be usable with the keyboard alone, so that the user does not need to reach for the mouse in the middle of a conversation.
 8. **Usability**: A new contact should be recordable with a single command, without the user having to respond to follow-up prompts.
 9. **Usability**: When a command is rejected, the error message should state what was wrong and show the correct command format.
-10. **Offline use**: Should not require an internet connection for any feature.
+10. **Offline use**: Should not require an internet connection for any feature of the application. Only reading the online User Guide, whose address the help window shows, needs one.
 11. **Privacy**: Should store contact data only on the user's computer, and should not send it to any remote server.
 12. **Data**: Should save changes automatically after every command that modifies data, without requiring a separate save command.
 13. **Data**: The _data file_ should be a human-editable text file, so that advanced users can view and edit their contacts without using LarperBoard.
@@ -872,6 +1095,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 * **Archive**: Hiding a contact from the active list without deleting it, so that it can be brought back later. Not available in LarperBoard and not planned for v1.5
 * **CLI (Command Line Interface)**: A way of using an application by typing text commands instead of clicking buttons
 * **Command**: A line of text typed into the command box that tells LarperBoard to do something, e.g. adding or deleting a contact
+* **Command history**: The latest 50 commands submitted in the current session, which the user can bring back with the Up and Down arrow keys. It is kept in memory only and is not saved in the _data file_. This is not Tab completion, which LarperBoard does not have
 * **Contact**: A person whose details are saved in LarperBoard, such as a teammate, mentor, recruiter or fellow participant met at a hackathon
 * **Cracked**: Slang for being highly skilled, used to describe the participants a user wants to remember and keep in touch with
 * **Data file**: The file on the user's computer where LarperBoard saves all contacts, stored in JSON format
@@ -884,8 +1108,8 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 * **Index**: The position number of a contact in the list currently shown, starting from 1, used to refer to that contact in a command
 * **Mainstream OS**: Windows, Linux, Unix, or macOS
 * **MSS (Main Success Scenario)**: The steps of a use case in which everything goes as expected, as opposed to its extensions, which cover failures and alternative paths
-* **Note**: Free-form text attached to a contact to record the context in which they were met, e.g. "Met at booth 4"
-* **Starred contact**: A contact that the user has marked as high priority so that they stand out from the rest
+* **Note**: Free-form text of up to 1000 characters attached to a contact to record the context in which they were met, e.g. "Met at booth 4". It is set or cleared with the `note` command and shown in the detail panel
+* **Starred contact**: A contact that the user has marked as important with the `star` command, shown with a ★. The `filter starred` command lists only these contacts
 * **Tag**: A short keyword attached to a contact, such as a project or tech stack keyword, used to remember and find them later
 * **Tech stack**: The set of technologies, such as programming languages and frameworks, that a contact works with or used in their project
 
@@ -915,7 +1139,74 @@ Given below are instructions to test the app manually.
    1. Relaunch the app by double-clicking the JAR file.<br>
       Expected: The most recent window size and location are retained.
 
+1. Exiting while the Help window is open
+
+   1. Run `help` so that the Help window opens.
+
+   1. Close the main window with its title-bar close button.<br>
+      Expected: Both windows close and LarperBoard exits.
+
+   1. Relaunch the app with `java -jar larperboard.jar` and run `help` so that the Help window opens.
+
+   1. Exit with File > Exit.<br>
+      Expected: Both windows close and LarperBoard exits.
+
+   1. Relaunch the app with `java -jar larperboard.jar` and run `help` so that the Help window opens.
+
+   1. Exit with the `exit` command.<br>
+      Expected: Both windows close and LarperBoard exits.
+
+   These steps check the user-facing exits. Hiding the main window without a close request, such as from code, cannot
+   be done by hand; `MainWindowTest` covers it.
+
 1. _{ more test cases …​ }_
+
+### Search, grouping, and contact view
+
+1. Prerequisites: Start with the sample contacts (`Aisha Rahman` is the 1st contact and has `l/aisha-rahman` and tags `react`, `frontend`). Run `list`, then `note 1 nt/Met at c/o booth`, `meeting 1 ev/AI/ML Hackathon`, and `view 1`.
+
+1. Test case: `find Aisha`, then `find Aish`<br>
+   Expected: `find Aisha` lists Aisha (`1 contact(s) listed!`, and the line above the list says `Find results - Original order - 1 contact(s)`). `find Aish` shows an empty list (`0 contact(s) listed!`), and the detail panel still shows Aisha.
+
+1. Test case: `find n/Aish t/react nt/c/o ev/ai/ml`<br>
+   Expected: `1 contact(s) listed!` Typed `find` matches part of each field and accepts `/` in `c/o` and `ai/ml`.
+
+1. Test case: `find n/Aisha e/aisha@example.com`<br>
+   Expected: `Invalid command format!` followed by the `find` usage. The list, the line above the list, and the detail panel do not change. Other commands to try: `find n/Aisha l/aisha-rahman`, `find nt/likes r/java`, `find n/`.<br>
+   Expected: The same message.
+
+1. Test case: `find Aisha n/Aisha`<br>
+   Expected: `Use either plain keywords or field prefixes in one find command.` followed by `Example: find Alex or find n/Alex t/react.` The list and the detail panel do not change.
+
+1. Test case: `group t/REACT`, then `group t/nonexistent`<br>
+   Expected: `group t/REACT` shows `Group: [react]` followed by a new line and `1 contact(s) listed!`, and the line above the list says `Group: react - Original order - 1 contact(s)`. `group t/nonexistent` shows an empty list and `0 contact(s) listed!`, and the detail panel still shows Aisha.
+
+1. Test case: `group react`, `group t/react!`, and `group t/react t/frontend`<br>
+   Expected: Each command is rejected (`Invalid command format!` with usage, the tag constraint message, and `Multiple values specified for the following single-valued field(s): t/`). The list and the detail panel do not change.
+
+1. Test case: while `group t/nonexistent` shows 0 contacts, run `view 1`, then `list`, then `view 2147483648` and `view 1 2`<br>
+   Expected: `view 1` on the empty list gives `The person list is empty.` `list` shows all contacts again (`Listed all contacts.`, and the line above the list says `Original order - 6 contact(s)`). `view 2147483648` gives `The person index provided is invalid.` `view 1 2` gives `Invalid command format!`, `Only one index parameter is accepted.`, and the `view` usage.
+
+### Search and list error feedback
+
+Start with saved contacts, run `view 1`, then `find n/zzzz` to hide the viewed contact.
+For each invalid command below, verify that the list, heading, viewed contact and saved data stay unchanged.
+
+| Command | Expected feedback / recovery |
+| --- | --- |
+| `find n/` or `find n/Aisha e/private@example.com` | `Invalid command format!`, then the two-line supported find syntax and non-empty-term hint shown in the UG. No private input is echoed. |
+| `find Alex n/Sam` | `Use either plain keywords or field prefixes in one find command.` followed by `Example: find Alex or find n/Alex t/react.` |
+| `sort name` or `sort added extra` | `Invalid command format!` followed by `Use sort added, sort edited, or sort viewed (case-insensitive).` |
+| `group react` | `Invalid command format!` followed by `Use group t/TAG with one tag, e.g. group t/react.` |
+| `group t/react!` | `Tags should contain only letters, digits, hyphens, and plus signs, and be 1 to 20 characters long` |
+| `group t/react t/java` | `Multiple values specified for the following single-valued field(s): t/` |
+| `view` | `Invalid command format!` followed by `Use view INDEX with one positive displayed index, e.g. view 1.` |
+| `view 1 2` | The format wrapper, `Only one index parameter is accepted.`, then the short view hint. |
+| `view 2147483648` | `The person index provided is invalid.` |
+| `view 1` on the empty results | `The person list is empty.`; the hidden viewed contact and its activity stay unchanged. |
+
+Run `list extra`: it still succeeds like `list`, reporting `Listed all contacts.` and restoring the original order.
+Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successful outcome, not a validation error.
 
 ### Activity-time sorting
 
@@ -942,7 +1233,7 @@ Given below are instructions to test the app manually.
       Expected: The detail panel shows `CREATED` as the current Singapore time in `yyyy-MM-dd HH:mm` format, `LAST EDITED` as `—`, and `LAST VIEWED` as the current time.
 
    1. Test case: `edit 1 p/91234567`, then `view 1`<br>
-      Expected: The status message of `edit` starts with `Edited person:`. The detail panel now shows `LAST EDITED` as the current time. `CREATED` is unchanged.
+      Expected: The status message of `edit` starts with `Edited contact:`. The detail panel now shows `LAST EDITED` as the current time. `CREATED` is unchanged.
 
    1. Test case: `list`, then `view 2` where the 2nd contact is a sample contact<br>
       Expected: The status message starts with `Now viewing:`. `LAST VIEWED` shows the current time. `CREATED` and `LAST EDITED` stay `—`.
@@ -958,7 +1249,7 @@ Given below are instructions to test the app manually.
       Expected: `At least one field to edit must be provided.` No time changes.
 
    1. Test case: `add n/Activity Test p/91234567` (the same name and phone as the existing contact)<br>
-      Expected: `This person already exists in the address book.` No contact is added and no time changes.
+      Expected: `A contact with this name and phone number already exists. Edit that contact instead.` No contact is added and no time changes.
 
    1. Test case: `view 99` (larger than the list size)<br>
       Expected: `The person index provided is invalid.` The `LAST VIEWED` time of every contact is unchanged.
@@ -1094,6 +1385,93 @@ Given below are instructions to test the app manually.
 
 1. _{ more test cases …​ }_
 
+### Notes
+
+1. Setting, replacing and clearing a note
+
+   1. Prerequisites: List all persons using the `list` command, with at least two persons in the list.
+
+   1. Test case: `note 1 nt/Met at the AI track`<br>
+      Expected: The result box shows `Saved the note for NAME.` The note is not on the contact card, but `view 1` shows it in the detail panel. Repeating the same command shows `The note for NAME is already that text. Nothing was changed.`
+
+   1. Test case: `note 1 CLEAR`<br>
+      Expected: The result box shows `Cleared the note for NAME.` Repeating it shows `NAME has no note to clear. Nothing was changed.`
+
+   1. Test cases: `note 1 nt/` followed by 1000 characters, then by 1001 characters, then by only spaces<br>
+      Expected: The first is saved. The others show `Note must be at most 1000 characters.` and `Note cannot be blank. Use 'note INDEX clear' to remove it.`
+
+   1. Incorrect commands to try: `note`, `note 1`, `note 1 some text`, `note 1 2 nt/hi`, `note 1 clear nt/hi`, `note 0 nt/hi`<br>
+      Expected: No note is changed. The result box shows `Invalid command format!` with one hint that fits the mistake, or `The person index provided is invalid.` for `note 0 nt/hi`, as listed in the User Guide.
+
+### Starring and showing only starred contacts
+
+1. Starring, unstarring and filtering
+
+   1. Prerequisites: List all persons using the `list` command, with at least three persons in the list and none starred.
+
+   1. Test case: `star 1`<br>
+      Expected: The result box shows `Starred NAME.` and a ★ appears on the first card. Repeating it shows `NAME is already starred. Nothing was changed.`
+
+   1. Test case: `unstar 1`<br>
+      Expected: The result box shows `Removed the star from NAME.` and the ★ disappears. Repeating it shows `NAME is not starred. Nothing was changed.`
+
+   1. Test case: star the 1st and 3rd persons, then `filter starred`<br>
+      Expected: The result box shows `Showing only starred contacts.` and `2 contact(s) listed!`. Only those two persons are listed and the list heading shows `Starred only`. `unstar 1` now removes the star from the first listed person.
+
+   1. Test case: `filter Starred OFF`<br>
+      Expected: The result box shows `Showing all contacts.` and every person is listed again.
+
+   1. Incorrect commands to try: `star`, `star 1 2`, `star 0`, `filter`, `filter foo`, `filter starred extra`<br>
+      Expected: Nothing changes. The result box shows `Invalid command format!` with one hint, or `The person index provided is invalid.` for `star 0`, as listed in the User Guide.
+
+### Recalling previous commands
+
+1. Browsing the command history
+
+   1. Prerequisites: Launch the app so that the history is empty, and click in the command box.
+
+   1. Test case: press **Up**<br>
+      Expected: Nothing happens.
+
+   1. Test case: submit `list`, `find Aisha` and `foo` (an unknown command), then press **Up** three times<br>
+      Expected: The command box shows `foo`, `find Aisha`, then `list`. A command that failed is remembered too.
+
+   1. Test case: press **Down** three times<br>
+      Expected: The command box shows `find Aisha`, `foo`, then the text you had typed before browsing (empty if none).
+
+   1. Test case: type `fin` and press **Tab**<br>
+      Expected: The text is not completed, and focus moves to the next control. LarperBoard has no Tab completion.
+
+### Help and exit
+
+1. Opening help
+
+   1. Test cases: `help`, the **Help** menu, and the **F1** key<br>
+      Expected: The help window shows the address of the online User Guide and a **Copy URL** button. `help` also shows `Opened help window.` in the result box. Running `help` again brings the open window to the front and opens no second one.
+
+1. Exiting
+
+   1. Test case: `exit`<br>
+      Expected: The result box shows the exit message and the window closes after about one second. The command box does not accept typing meanwhile. After relaunching, the contacts are as they were.
+
+   1. Test cases: **File** → **Exit**, and the window's close button<br>
+      Expected: The window closes at once.
+
+### Contact names
+
+1. Adding names with hyphens and apostrophes
+
+   1. Prerequisites: List all persons using the `list` command.
+
+   1. Test case: `add n/Mary-Jane O'Neil`<br>
+      Expected: The contact is added with the name `Mary-Jane O'Neil`. `find Mary-Jane` finds it, and `find Mary` does not (a hyphenated name is one word for a plain `find`), but `find n/Mary` does.
+
+   1. Test case: `add n/-Al` and `edit 1 n/'Al`<br>
+      Expected: Nothing is changed. The result box shows `Names must be 1-50 characters: A-Z, a-z, 0-9, spaces, - and '. Start with a letter or digit.`
+
+   1. Test case: `add n/O’Brien` (with a curly apostrophe, as pasted from a phone or chat app)<br>
+      Expected: The same message as in the previous case, so the user has to type a straight apostrophe `'` instead.
+
 ### Unknown commands
 
 1. Entering a command word that does not exist
@@ -1101,8 +1479,11 @@ Given below are instructions to test the app manually.
    1. Test case: `strar 1`<br>
       Expected: No contact is changed. The result box shows `Unknown command.` followed by `Available commands:` and every command word in alphabetical order. The message wraps onto several lines of the result box, with no horizontal scroll bar.
 
-   1. Other unknown commands to try: `foo`, `STAR 1` (command words are case-sensitive)<br>
+   1. Other unknown commands to try: `foo`, `star1`<br>
       Expected: Similar to previous.
+
+   1. Test case: `STAR 1` (command words are not case-sensitive)<br>
+      Expected: Same as `star 1`. The first contact is starred.
 
    1. Test case: `help`<br>
       Expected: The help window opens, as before.

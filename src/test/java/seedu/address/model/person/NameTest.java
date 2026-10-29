@@ -30,6 +30,17 @@ public class NameTest {
         assertFalse(Name.isValidName("^")); // only non-alphanumeric characters
         assertFalse(Name.isValidName("peter*")); // contains non-alphanumeric characters
         assertFalse(Name.isValidName("a".repeat(51))); // more than 50 characters
+        assertFalse(Name.isValidName("-Mary")); // starts with a hyphen
+        assertFalse(Name.isValidName("'Brien")); // starts with an apostrophe
+        assertFalse(Name.isValidName("O’Brien")); // curly apostrophe, as pasted from phones and chat apps
+        assertFalse(Name.isValidName("’Brien")); // starts with a curly apostrophe
+        assertFalse(Name.isValidName(" -")); // starts with a space
+        assertFalse(Name.isValidName("-")); // only a hyphen
+        assertFalse(Name.isValidName("Mary_Jane")); // underscore
+        assertFalse(Name.isValidName("Mary.Jane")); // full stop
+        assertFalse(Name.isValidName("John s/o Raj")); // slash
+        assertFalse(Name.isValidName("Mary\"Jane")); // double quote
+        assertFalse(Name.isValidName("Mary-Jane" + "a".repeat(42))); // 51 characters with a hyphen
 
         // valid name
         assertTrue(Name.isValidName("peter jack")); // alphabets only
@@ -38,6 +49,20 @@ public class NameTest {
         assertTrue(Name.isValidName("Capital Tan")); // with capital letters
         assertTrue(Name.isValidName("David Roger Jackson Ray Jr 2nd")); // long names
         assertTrue(Name.isValidName("a".repeat(50))); // exactly 50 characters
+        assertTrue(Name.isValidName("Mary-Jane")); // hyphen
+        assertTrue(Name.isValidName("Nur-Aisyah binte Ahmad")); // hyphen and spaces
+        assertTrue(Name.isValidName("O'Brien")); // apostrophe
+        assertTrue(Name.isValidName("D'Souza-Lim")); // apostrophe and hyphen
+        assertTrue(Name.isValidName("Mary-")); // hyphen at the end
+        assertTrue(Name.isValidName("1st-Class")); // starts with a digit
+        assertTrue(Name.isValidName("Mary-Jane" + "a".repeat(41))); // exactly 50 characters with a hyphen
+    }
+
+    @Test
+    public void constraintsMessage_statesTheAllowedCharactersAndTheFirstCharacterRule() {
+        assertTrue(Name.MESSAGE_CONSTRAINTS.contains("1-50 characters"));
+        assertTrue(Name.MESSAGE_CONSTRAINTS.contains("spaces, - and '"));
+        assertTrue(Name.MESSAGE_CONSTRAINTS.contains("Start with a letter or digit"));
     }
 
     @Test
