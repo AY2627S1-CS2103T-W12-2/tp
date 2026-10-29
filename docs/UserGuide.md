@@ -37,6 +37,8 @@ LarperBoard is a desktop app for keeping track of people you meet at hackathons.
 
    * `exit` : Exits the app.
 
+   Two keyboard shortcuts save typing: press **Up** in the command box to bring back the command you typed before (see [Recalling previous commands](#recalling-previous-commands-up-and-down-arrows)), and press **F1** to open the help window.
+
 1. Refer to the [Features](#features) section below for details of each command.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -77,11 +79,17 @@ and `sort name` / `sort starred` from [#128](https://github.com/AY2627S1-CS2103T
 
 ### Viewing help: `help`
 
-Opens the help window with a link to this guide. The result message is `Opened help window.`
+Opens the help window, which shows the web address of this User Guide and a **Copy URL** button. Use it when you want to look up how a command works. The help window does not explain the commands itself: open the address in your web browser to read this guide.
 
 Format: `help`
 
-If you type a command that LarperBoard does not know, for example a typo such as `strar 1`, the result message is `Unknown command.` followed by the list of every command you can use, in alphabetical order, for example `Unknown command. Available commands: add, clear, delete, …`. Use `help` to open this guide.
+* The result message is `Opened help window.`
+* You can also open the help window from the **Help** menu, or by pressing **F1**.
+* If the help window is already open, `help` brings it to the front. If you minimized it, see [Known issues](#known-issues).
+* Reading this guide in your browser needs an internet connection. LarperBoard itself, and every command in it, works without one.
+* Extra text after `help` is ignored, so `help 123` works like `help`.
+
+**If you mistype a command:** when LarperBoard does not know the command, for example a typo such as `strar 1`, the result message is `Unknown command.` followed by every command you can use, in alphabetical order, for example `Unknown command. Available commands: add, clear, delete, …`. Check the spelling against that list, or use `help` to open this guide.
 
 
 ### Adding a contact: `add`
@@ -198,23 +206,35 @@ Examples:
 
 ### Adding a note to a contact: `note`
 
-Sets, replaces or removes a free-form note on a contact, for example where you met them or what to follow up on.
+Keeps one free-form note on a contact, for example where you met them or what to follow up on. Use it for anything that does not fit the other fields. You can search notes later with [`find nt/TERM`](#locating-contacts-find).
 
 Format: `note INDEX nt/NOTE` or `note INDEX clear`
 
+* **To save a note**, type `nt/` followed by the text. A contact that already has a note gets the new text instead; the old note is replaced, not added to.
+* **To remove a note**, type `clear` instead of `nt/NOTE`. `clear` can be in any letter case, so `CLEAR` works too.
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
-* `NOTE` can contain spaces and punctuation and can be up to 1000 characters long. An emoji such as 😀 counts as one character. An emoji that is made of several parts, such as a flag or a family, counts as several. Spaces at the start and end are removed. A note that is empty or only spaces is not accepted: use `note INDEX clear` to remove a note.
-* Setting a note on a contact that already has one replaces the old note.
-* The text after `nt/` is taken as typed, so it can contain `/`. Use `nt/` only once in a command.
-* The note is shown in full in the detail panel when you [`view`](#viewing-a-contact-view) the contact, and it is not shown in the contact list. If the note is long, scroll the detail panel to read all of it.
-* If the new note is the same as the old one, or you clear a contact that has no note, nothing is changed and the contact's last edited time stays as it was.
+* `NOTE` can be up to **1000 characters**. It can contain spaces, punctuation and `/`. An emoji such as 😀 counts as one character, but an emoji made of several parts, such as a flag or a family, counts as several.
+* Spaces at the start and end of `NOTE` are removed. A note that is empty or only spaces is not accepted: use `note INDEX clear` to remove a note.
+* Use `nt/` only once in a command.
+* The note is not shown in the contact list. [`view`](#viewing-a-contact-view) the contact to read it in full in the detail panel, and scroll the panel if the note is long.
+
+The result message tells you what happened:
+
+Situation | Message
+----------|--------
+Note saved | `Saved the note for NAME.`
+Note removed | `Cleared the note for NAME.`
+The new note is the same as the old one | `The note for NAME is already that text. Nothing was changed.`
+`clear` on a contact with no note | `NAME has no note to clear. Nothing was changed.`
+
+When nothing is changed, the contact's last edited time stays as it was.
 
 Examples:
 * `note 1 nt/Met at the AI track, wants a React teammate` sets the note of the 1st contact.
 * `find Aisha` followed by `note 1 nt/Follow up after the demo` sets the note of the 1st contact in the search results.
 * `note 2 clear` removes the note of the 2nd contact.
 
-If the note cannot be saved, LarperBoard shows these errors:
+If the command cannot be carried out, LarperBoard shows one of these errors:
 
 Input or situation | Message
 -------------------|--------
@@ -305,33 +325,62 @@ An accepted tag with no matches produces a normal zero-contact result, not an er
 
 ### Starring important contacts: `star` and `unstar`
 
-Marks a contact as important with a star, or removes the star again.
+Marks a contact as important with a star so that you can find them quickly, or removes the star again. After you star some contacts, [`filter starred`](#showing-only-starred-contacts-filter) shows only those contacts.
 
 Format: `star INDEX` or `unstar INDEX`
 
-* `INDEX` refers to the index number shown in the displayed contact list and must be a positive integer.
+* `star` adds the star and `unstar` removes it.
+* `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
 * A starred contact shows a ★ in the top right corner of its card in the contact list, and in the top right corner of the contact details.
-* Starring a contact that is already starred (or removing the star from one that is not) changes nothing, and LarperBoard tells you so.
-* Stars are saved with your data, and you can reverse a change with `undo`.
+* Stars are saved with your data, and you can reverse a change with [`undo`](#undoing-a-contact-change-undo).
+
+The result message tells you what happened:
+
+Situation | Message
+----------|--------
+`star` on a contact that is not starred | `Starred NAME.`
+`unstar` on a starred contact | `Removed the star from NAME.`
+`star` on a contact that is already starred | `NAME is already starred. Nothing was changed.`
+`unstar` on a contact that is not starred | `NAME is not starred. Nothing was changed.`
 
 Examples:
 * `star 1` stars the first contact in the displayed list.
 * `unstar 1` removes the star from it.
 
+If the command cannot be carried out, LarperBoard shows one of these errors (`unstar` gives the same messages with `unstar` in place of `star`):
+
+Input or situation | Message
+-------------------|--------
+`star` (no index) | `Invalid command format!` then `Add the contact's INDEX: star INDEX.`
+`star 1 2` or `star 1 junk` (more than the index) | `Invalid command format!` then `Use one INDEX only: star INDEX.`
+`star 0`, `star abc`, or an index larger than the number of contacts shown | `The person index provided is invalid.`
+A valid `star` command when the displayed list is empty | `The person list is empty.`
+
 ### Showing only starred contacts: `filter`
 
-Shows only your starred contacts, or shows all contacts again.
+Shows only the contacts you have starred with [`star`](#starring-important-contacts-star-and-unstar), or shows all contacts again. `starred` is the only thing you can filter by.
 
 Format: `filter starred` or `filter starred off`
 
-* The keywords are case-insensitive.
-* The result message shows how many contacts are listed. If you have not starred anyone, the list is empty.
+* `filter starred` hides every contact that is not starred. If you have not starred anyone, the list is empty.
+* `filter starred off` shows every contact again. [`list`](#listing-all-contacts-list) does the same.
+* The keywords are case-insensitive, so `filter Starred OFF` works.
+* While the filter is on, the list heading shows `Starred only` (see [Reading the list heading](#reading-the-list-heading)).
 * `filter` replaces the current `find`, `group` or `filter` result rather than combining with it.
-* `list` also shows all contacts again.
+* Indexes follow the filtered list, so `unstar 1` removes the star from the first contact you can see.
+
+The result message is `Showing only starred contacts.` or `Showing all contacts.`, followed by `N contact(s) listed!`.
 
 Examples:
 * `filter starred` shows only the starred contacts.
 * `filter starred off` shows every contact again.
+
+If the command cannot be carried out, LarperBoard shows one of these errors:
+
+Input | Message
+------|--------
+`filter` (nothing after it) | `Invalid command format!` then `Add starred: filter starred, or filter starred off.`
+`filter foo`, `filter off`, or `filter starred extra` | `Invalid command format!` then `Use: filter starred, or filter starred off.`
 
 ### Deleting a contact: `delete`
 
@@ -428,16 +477,20 @@ app is closed and reopened, although the redone contacts remain in the data file
 
 ### Exiting the program: `exit`
 
-Exits the program.
+Closes LarperBoard when you have finished. You do not need to save first: your contacts are already saved to the data file after every change.
 
 Format: `exit`
 
 * After `exit`, the window stays open for about one second so that you can read the message in the result box, then it closes. The command box does not accept input during that time.
 * Choosing **Exit** from the **File** menu, or closing the window with its close button, closes LarperBoard at once.
+* `undo`, `redo` and the [command history](#recalling-previous-commands-up-and-down-arrows) are cleared when the app closes. Your contacts are not.
+* Extra text after `exit` is ignored, so `exit now` works like `exit`.
 
 ### Recalling previous commands: Up and Down arrows
 
-Brings back commands that you submitted earlier in the same session, so that you can run or fix them without typing them again.
+Brings back commands that you submitted earlier in the same session, so that you can run or fix them without typing them again. This is useful after a typo: press **Up**, correct the command, and submit it again.
+
+This is not Tab completion. LarperBoard does not complete a half-typed command when you press **Tab**.
 
 * While the command box is selected, press the **Up** arrow to bring back the previous command, and press it again to go further back.
 * Press the **Down** arrow to move forward again. After the newest command, the command box shows the text that you had typed before you started browsing.
@@ -727,7 +780,7 @@ Action | Format, Examples
 **Find** | `find KEYWORD [MORE_KEYWORDS]…​` or `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`<br> e.g., `find Aisha Ben`, `find n/James t/react`
 **Follow-up** | `followup INDEX d/YYYY-MM-DD` or `followup INDEX clear`<br> e.g., `followup 1 d/2026-10-25`
 **Group** | `group t/TAG`<br> e.g., `group t/react`
-**Help** | `help`
+**Help** | `help`, or press **F1**
 **List** | `list`
 **Meeting** | `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]` or `meeting INDEX clear [event/date/role]`
 **Photo** | `photo INDEX f/RELATIVE_PATH` or `photo INDEX clear`
