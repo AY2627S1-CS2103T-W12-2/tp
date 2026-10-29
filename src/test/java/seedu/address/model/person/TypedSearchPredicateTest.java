@@ -35,6 +35,14 @@ public class TypedSearchPredicateTest {
     }
 
     @Test
+    public void test_nameTermWithSeparateAccent_matchesTheComposedName() {
+        PersonBuilder jose = new PersonBuilder().withName("José Tan");
+
+        assertTrue(new TypedSearchPredicate(List.of("josé"), List.of(), List.of(), List.of()).test(jose.build()));
+        assertFalse(new TypedSearchPredicate(List.of("jose"), List.of(), List.of(), List.of()).test(jose.build()));
+    }
+
+    @Test
     public void test_missingOptionalFieldsDoNotMatchRequestedTerms() {
         Person withoutOptionalFields = new PersonBuilder().withName("Alex Tan").build();
 

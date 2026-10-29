@@ -3,7 +3,6 @@ package seedu.address.logic.parser;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 
-import java.text.Normalizer;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Set;
@@ -97,8 +96,8 @@ public class ParserUtil {
      */
     public static Name parseName(String name) throws ParseException {
         requireNonNull(name);
-        // accents are composed into single characters, so the same name typed on different keyboards is one name
-        String normalizedName = Normalizer.normalize(name.trim().replaceAll("\\s+", " "), Normalizer.Form.NFC);
+        // Name composes accents, so the same name typed on different keyboards is one name
+        String normalizedName = name.trim().replaceAll("\\s+", " ");
         if (!Name.isValidName(normalizedName)) {
             throw new ParseException(Name.MESSAGE_CONSTRAINTS);
         }

@@ -12,8 +12,9 @@ import seedu.address.commons.util.ToStringBuilder;
 public class NameContainsKeywordsPredicate implements Predicate<Person> {
     private final List<String> keywords;
 
+    /** Creates a predicate for {@code keywords}, with accents composed like the stored names (see {@link Name}). */
     public NameContainsKeywordsPredicate(List<String> keywords) {
-        this.keywords = keywords;
+        this.keywords = keywords.stream().map(Name::normalize).toList();
     }
 
     @Override

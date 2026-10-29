@@ -1,5 +1,6 @@
 package seedu.address.model.person;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.Assert.assertThrows;
@@ -69,6 +70,19 @@ public class NameTest {
         assertTrue(Name.isValidName("Mary-")); // hyphen at the end
         assertTrue(Name.isValidName("1st-Class")); // starts with a digit
         assertTrue(Name.isValidName("Mary-Jane" + "a".repeat(41))); // exactly 50 characters with a hyphen
+    }
+
+    @Test
+    public void constructor_separateAccent_isStoredComposed() {
+        assertEquals("José", new Name("José").fullName);
+        assertEquals(new Name("José"), new Name("José"));
+    }
+
+    @Test
+    public void isValidName_lengthIsCountedAfterAccentsAreComposed() {
+        // 50 accented letters typed as 100 characters are still 50 characters
+        assertTrue(Name.isValidName("é".repeat(50)));
+        assertFalse(Name.isValidName("é".repeat(51)));
     }
 
     @Test

@@ -3,6 +3,8 @@ package seedu.address.model.person;
 import static java.util.Objects.requireNonNull;
 import static seedu.address.commons.util.AppUtil.checkArgument;
 
+import java.text.Normalizer;
+
 /**
  * Represents a Person's name in the address book.
  * Guarantees: immutable; is valid as declared in {@link #isValidName(String)}
@@ -32,16 +34,27 @@ public class Name {
     public Name(String name) {
         requireNonNull(name);
         checkArgument(isValidName(name), MESSAGE_CONSTRAINTS);
-        fullName = name;
+        fullName = normalize(name);
+    }
+
+    /**
+     * Returns {@code text} with its accents composed into single characters (Unicode NFC), so that the same name
+     * typed or pasted in different ways is one name. Names are stored in this form, and search terms for names
+     * are converted to it before matching.
+     */
+    public static String normalize(String text) {
+        return Normalizer.normalize(text, Normalizer.Form.NFC);
     }
 
     /**
      * Returns true if a given string is a valid name.
+     * The rules apply to the composed form of the string, so an accent typed as a separate character is accepted.
      * The length limit counts characters as a user sees them, so a letter outside the Basic Multilingual Plane
      * counts once.
      */
     public static boolean isValidName(String test) {
-        return test.matches(VALIDATION_REGEX) && test.codePointCount(0, test.length()) <= MAX_LENGTH;
+        String composed = normalize(test);
+        return composed.matches(VALIDATION_REGEX) && composed.codePointCount(0, composed.length()) <= MAX_LENGTH;
     }
 
     @Override

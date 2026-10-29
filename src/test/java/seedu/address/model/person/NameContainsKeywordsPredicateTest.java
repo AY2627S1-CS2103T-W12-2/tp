@@ -94,6 +94,17 @@ public class NameContainsKeywordsPredicateTest {
     }
 
     @Test
+    public void test_keywordWithSeparateAccent_matchesTheComposedName() {
+        PersonBuilder jose = new PersonBuilder().withName("José Tan");
+
+        assertTrue(new NameContainsKeywordsPredicate(List.of("José")).test(jose.build()));
+        // a name stored from a separate accent is the same name
+        assertTrue(new NameContainsKeywordsPredicate(List.of("José"))
+                .test(new PersonBuilder().withName("José Tan").build()));
+        assertFalse(new NameContainsKeywordsPredicate(List.of("Jose")).test(jose.build()));
+    }
+
+    @Test
     public void toStringMethod() {
         List<String> keywords = List.of("keyword1", "keyword2");
         NameContainsKeywordsPredicate predicate = new NameContainsKeywordsPredicate(keywords);
