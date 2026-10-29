@@ -206,7 +206,7 @@ Input or situation | Message
 `note` or `note nt/text` (no index) | `Invalid command format!` then `Add the contact's INDEX: note INDEX nt/NOTE or note INDEX clear.`
 `note 1` (no note and no `clear`) | `Invalid command format!` then `Add nt/NOTE, or use: note INDEX clear.`
 `note 1 some text` (text without `nt/`) | `Invalid command format!` then `Put the note after nt/: note INDEX nt/NOTE.`
-`note 1 2 nt/text` or `note 1 clear extra` (too many words) | `Invalid command format!` then `Too many words. Use: note INDEX nt/NOTE or note INDEX clear.`
+`note 1 2 nt/text` or `note 1 clear extra` (too many parameters) | `Invalid command format!` then `Too many parameters. Use: note INDEX nt/NOTE or note INDEX clear.`
 `note 1 clear nt/text` (both forms together) | `Invalid command format!` then `Use nt/NOTE or clear, not both.`
 `note 1 nt/` (empty or only spaces) | `Note cannot be blank. Use 'note INDEX clear' to remove it.`
 A note of more than 1000 characters | `Note must be at most 1000 characters.`

@@ -32,7 +32,7 @@ public class NoteCommand extends Command {
             + " INDEX " + KEYWORD_CLEAR + ".";
     public static final String MESSAGE_NOTE_WITHOUT_PREFIX = "Put the note after " + PREFIX_NOTE + ": "
             + COMMAND_WORD + " INDEX " + PREFIX_NOTE + "NOTE.";
-    public static final String MESSAGE_TOO_MANY_WORDS = "Too many words. " + MESSAGE_USAGE;
+    public static final String MESSAGE_TOO_MANY_PARAMETERS = "Too many parameters. " + MESSAGE_USAGE;
     public static final String MESSAGE_NOT_BOTH = "Use " + PREFIX_NOTE + "NOTE or " + KEYWORD_CLEAR + ", not both.";
 
     public static final String MESSAGE_SET_SUCCESS = "Saved the note for %1$s.";

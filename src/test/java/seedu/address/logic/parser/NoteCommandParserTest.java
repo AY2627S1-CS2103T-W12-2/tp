@@ -101,9 +101,9 @@ public class NoteCommandParserTest {
         assertParseFailure(parser, "1 foo", format(NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX));
         // both forms together
         assertParseFailure(parser, "1 clear nt/text", format(NoteCommand.MESSAGE_NOT_BOTH));
-        // too many words: before the prefix, or after clear
-        assertParseFailure(parser, "1 2 nt/text", format(NoteCommand.MESSAGE_TOO_MANY_WORDS));
-        assertParseFailure(parser, "1 clear extra", format(NoteCommand.MESSAGE_TOO_MANY_WORDS));
+        // too many parameters: before the prefix, or after clear
+        assertParseFailure(parser, "1 2 nt/text", format(NoteCommand.MESSAGE_TOO_MANY_PARAMETERS));
+        assertParseFailure(parser, "1 clear extra", format(NoteCommand.MESSAGE_TOO_MANY_PARAMETERS));
         // the shape is checked before the index, so a bad index in a wrong shape still gives the format error
         assertParseFailure(parser, "abc", format(NoteCommand.MESSAGE_MISSING_NOTE));
         assertParseFailure(parser, "abc some text", format(NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX));
@@ -115,12 +115,12 @@ public class NoteCommandParserTest {
                 NoteCommand.MESSAGE_MISSING_INDEX);
         assertEquals("Add nt/NOTE, or use: note INDEX clear.", NoteCommand.MESSAGE_MISSING_NOTE);
         assertEquals("Put the note after nt/: note INDEX nt/NOTE.", NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX);
-        assertEquals("Too many words. Use: note INDEX nt/NOTE or note INDEX clear.",
-                NoteCommand.MESSAGE_TOO_MANY_WORDS);
+        assertEquals("Too many parameters. Use: note INDEX nt/NOTE or note INDEX clear.",
+                NoteCommand.MESSAGE_TOO_MANY_PARAMETERS);
         assertEquals("Use nt/NOTE or clear, not both.", NoteCommand.MESSAGE_NOT_BOTH);
         for (String hint : new String[] {NoteCommand.MESSAGE_USAGE, NoteCommand.MESSAGE_MISSING_INDEX,
             NoteCommand.MESSAGE_MISSING_NOTE, NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX,
-            NoteCommand.MESSAGE_TOO_MANY_WORDS, NoteCommand.MESSAGE_NOT_BOTH}) {
+            NoteCommand.MESSAGE_TOO_MANY_PARAMETERS, NoteCommand.MESSAGE_NOT_BOTH}) {
             assertTrue(hint.length() <= 70, hint);
         }
     }

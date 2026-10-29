@@ -63,7 +63,7 @@ public class NoteCommandParser implements Parser<NoteCommand> {
         if (!hasNotePrefix && !secondWordIsClear) {
             return NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX;
         }
-        return NoteCommand.MESSAGE_TOO_MANY_WORDS;
+        return NoteCommand.MESSAGE_TOO_MANY_PARAMETERS;
     }
 
 }
