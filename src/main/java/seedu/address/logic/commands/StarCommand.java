@@ -21,15 +21,12 @@ public class StarCommand extends Command {
     public static final String COMMAND_WORD = "star";
     public static final String UNSTAR_COMMAND_WORD = "unstar";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Stars the person identified by the index number used in the displayed person list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
-            + "Example: " + COMMAND_WORD + " 1";
-    public static final String MESSAGE_UNSTAR_USAGE = UNSTAR_COMMAND_WORD
-            + ": Removes the star from the person identified by the index number used in the displayed "
-            + "person list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
-            + "Example: " + UNSTAR_COMMAND_WORD + " 1";
+    public static final String MESSAGE_MISSING_INDEX = "Add the contact's INDEX: " + COMMAND_WORD + " INDEX.";
+    public static final String MESSAGE_UNSTAR_MISSING_INDEX = "Add the contact's INDEX: " + UNSTAR_COMMAND_WORD
+            + " INDEX.";
+    public static final String MESSAGE_EXTRA_WORDS = "Use one INDEX only: " + COMMAND_WORD + " INDEX.";
+    public static final String MESSAGE_UNSTAR_EXTRA_WORDS = "Use one INDEX only: " + UNSTAR_COMMAND_WORD
+            + " INDEX.";
 
     public static final String MESSAGE_STAR_SUCCESS = "Starred %1$s.";
     public static final String MESSAGE_UNSTAR_SUCCESS = "Removed the star from %1$s.";

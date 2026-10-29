@@ -29,6 +29,7 @@ public class FilterCommandParser implements Parser<FilterCommand> {
         if (startsWithStarred && words.length == 2 && words[1].equalsIgnoreCase(FilterCommand.KEYWORD_OFF)) {
             return new FilterCommand(false);
         }
-        throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT, FilterCommand.MESSAGE_USAGE));
+        throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                words.length == 0 ? FilterCommand.MESSAGE_MISSING_KEYWORD : FilterCommand.MESSAGE_USAGE));
     }
 }

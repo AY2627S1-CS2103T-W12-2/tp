@@ -18,11 +18,10 @@ public class FilterCommand extends Command {
     public static final String KEYWORD_STARRED = "starred";
     public static final String KEYWORD_OFF = "off";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Shows only the starred contacts, or shows all contacts again.\n"
-            + "Parameters: " + KEYWORD_STARRED + " [" + KEYWORD_OFF + "]\n"
-            + "Examples: " + COMMAND_WORD + " " + KEYWORD_STARRED + "\n"
-            + "          " + COMMAND_WORD + " " + KEYWORD_STARRED + " " + KEYWORD_OFF;
+    public static final String MESSAGE_USAGE = "Use: " + COMMAND_WORD + " " + KEYWORD_STARRED + ", or "
+            + COMMAND_WORD + " " + KEYWORD_STARRED + " " + KEYWORD_OFF + ".";
+    public static final String MESSAGE_MISSING_KEYWORD = "Add " + KEYWORD_STARRED + ": " + COMMAND_WORD + " "
+            + KEYWORD_STARRED + ", or " + COMMAND_WORD + " " + KEYWORD_STARRED + " " + KEYWORD_OFF + ".";
 
     public static final String MESSAGE_STARRED_ON = "Showing only starred contacts.\n%1$d contact(s) listed!";
     public static final String MESSAGE_STARRED_OFF = "Showing all contacts.\n%1$d contact(s) listed!";
