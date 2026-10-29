@@ -11,7 +11,7 @@ end box
 [-> Model : undo()
 Model -> Model : captureState()
 Model --> Model : current
-note right of Model : The state includes contacts, selection, filter, and sort.
+note right of Model : The state includes contacts, selection, filter, filter label, and sort.
 Model -> UndoHistory : removeLast()
 UndoHistory --> Model : previous
 Model -> RedoHistory : addLast(current)

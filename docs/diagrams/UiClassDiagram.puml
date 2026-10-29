@@ -17,6 +17,8 @@ Class PersonDetailPanel
 Class ContactPhoto
 Class StatusBarFooter
 Class CommandBox
+Class CommandHistory
+Class TagRow
 }
 
 package Model <<Rectangle>> {
@@ -44,6 +46,8 @@ MainWindow *-down-> "1" PersonDetailPanel
 MainWindow --> "0..1" HelpWindow
 
 PersonListPanel -down-> "*" PersonCard
+CommandBox --> "1" CommandHistory
+PersonCard ..> TagRow : lays out tags
 
 MainWindow -left-|> UiPart
 

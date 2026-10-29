@@ -17,10 +17,6 @@ note right of Parser
   Parse failures stop before a snapshot.
 end note
 Parser --> Logic : command
-note over Logic, Model
-  Shared existing snapshot and history behavior (#108, #131/#132).
-  Shown for context; not implemented by meeting feature #130.
-end note
 Logic -> Model : createSnapshot()
 Model --> Logic : before
 Logic -> Command : execute(model)

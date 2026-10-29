@@ -15,6 +15,8 @@ class UserPrefs
 class UniquePersonList
 class Person {
     - photoPath : String
+    - followUpDate : LocalDate [0..1]
+    - starred : boolean
 }
 class Name
 class Phone
@@ -28,6 +30,9 @@ class Meeting {
     - role : String [0..1]
 }
 class Tag
+enum SortCriterion
+class "FilteredList" as FilteredPersons
+class "SortedList" as SortedPersons
 }
 
 show Person fields
@@ -39,6 +44,11 @@ Model .right.> ReadOnlyUserPrefs
 Model .left.> ReadOnlyAddressBook
 ModelManager --> "1" AddressBook
 ModelManager --> "1" UserPrefs
+ModelManager --> "1" FilteredPersons
+ModelManager --> "1" SortedPersons
+ModelManager --> "0..1" SortCriterion
+SortedPersons --> "1" FilteredPersons
+FilteredPersons ..> UniquePersonList : filters contacts
 AddressBook *--> "1" UniquePersonList
 UniquePersonList -down-> "* all" Person
 ModelManager ..> Person : filtered view

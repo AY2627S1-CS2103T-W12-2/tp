@@ -14,6 +14,10 @@ box Model MODEL_COLOR_T1
 participant "m:Model" as Model MODEL_COLOR
 end box
 
+box Storage STORAGE_COLOR_T1
+participant ":Storage" as Storage STORAGE_COLOR
+end box
+
 [-> LogicManager : execute("star 1")
 activate LogicManager
 
@@ -46,6 +50,8 @@ destroy StarCommandParser
 AddressBookParser --> LogicManager : s
 deactivate AddressBookParser
 
+LogicManager -> Model : createSnapshot()
+Model --> LogicManager : before
 LogicManager -> StarCommand : execute(m)
 activate StarCommand
 
@@ -87,7 +93,7 @@ alt person's starred state differs from the requested state
 
 else person is already in the requested state
 
-    note right of StarCommand : Nothing is changed and no undo step is created.
+    note right of StarCommand : No model edit or timestamp change.
 
 end
 
@@ -101,6 +107,16 @@ deactivate CommandResult
 StarCommand --> LogicManager : r
 deactivate StarCommand
 
-[<--LogicManager
+LogicManager -> Storage : saveAddressBook(model.getAddressBook())
+alt save succeeds
+    Storage --> LogicManager : saved
+    LogicManager -> Model : recordSuccessfulMutation(before)
+    note right of Model : A no-op adds no history entry.
+    [<-- LogicManager : r
+else save fails
+    Storage --> LogicManager : IOException
+    LogicManager -> Model : restore(before)
+    [<-- LogicManager : CommandException
+end
 deactivate LogicManager
 @enduml

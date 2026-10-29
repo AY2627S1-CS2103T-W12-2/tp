@@ -6,6 +6,7 @@ skinparam classBackgroundColor MODEL_COLOR
 skinparam classAttributeFontColor #FFFFFF
 
 AddressBook *-right-> "1" UniquePersonList
+AddressBook *-down-> "*" Tag
 
 UniquePersonList -right-> Person
 
@@ -20,6 +21,8 @@ Person *--> Activity
 Person *--> Meeting
 class Person {
     - photoPath : String
+    - followUpDate : LocalDate [0..1]
+    - starred : boolean
 }
 show Person fields
 @enduml

@@ -19,13 +19,20 @@ Class "<<interface>>\nStorage" as Storage
 Class StorageManager
 }
 
+package UI as UiPackage {
+Class "<<interface>>\nUi" as Ui
+Class UiManager
+}
+
 Class HiddenOutside #FFFFFF
 HiddenOutside ..> Logic
 
 LogicManager .up.|> Logic
 ModelManager .up.|> Model
 StorageManager .up.|> Storage
+UiManager .up.|> Ui
 
 LogicManager --> Model
 LogicManager --> Storage
+UiManager --> Logic
 @enduml

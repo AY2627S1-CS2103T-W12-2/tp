@@ -39,6 +39,7 @@ activate Edited
 Edited --> Model : stamped
 deactivate Edited
 
+Model -> Model : setPerson(target, stamped)
 Model -> AddressBook : setPerson(target, stamped)
 activate AddressBook
 AddressBook --> Model

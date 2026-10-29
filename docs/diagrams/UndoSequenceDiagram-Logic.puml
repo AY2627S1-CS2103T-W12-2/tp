@@ -29,7 +29,7 @@ UndoCommand -> Model : canUndo()
 alt undo history is empty
     Model --> UndoCommand : false
     UndoCommand --> LogicManager : throws CommandException("Nothing to undo.")
-    LogicManager -->] : CommandException
+    [<-- LogicManager : CommandException
 else an earlier state is available
     Model --> UndoCommand : true
     UndoCommand -> Model : undo()
@@ -40,12 +40,12 @@ else an earlier state is available
     alt save succeeds
         Storage --> LogicManager : saved
         note right of LogicManager : Undo does not record a new mutation.
-        LogicManager -->] : result
+        [<-- LogicManager : result
     else save fails
         Storage --> LogicManager : throws IOException
         LogicManager -> Model : restore(before)
         note right of Model : Restore contacts and both history stacks.
-        LogicManager -->] : CommandException
+        [<-- LogicManager : CommandException
     end
 end
 

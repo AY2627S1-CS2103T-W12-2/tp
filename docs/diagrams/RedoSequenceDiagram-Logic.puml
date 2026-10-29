@@ -29,7 +29,7 @@ RedoCommand -> Model : canRedo()
 alt redo history is empty
     Model --> RedoCommand : false
     RedoCommand --> LogicManager : throws CommandException("Nothing to redo.")
-    LogicManager -->] : CommandException
+    [<-- LogicManager : CommandException
 else an undone state is available
     Model --> RedoCommand : true
     RedoCommand -> Model : redo()
@@ -40,12 +40,12 @@ else an undone state is available
     alt save succeeds
         Storage --> LogicManager : saved
         note right of LogicManager : Redo does not record a new mutation.
-        LogicManager -->] : result
+        [<-- LogicManager : result
     else save fails
         Storage --> LogicManager : throws IOException
         LogicManager -> Model : restore(before)
         note right of Model : Restore contacts and both history stacks.
-        LogicManager -->] : CommandException
+        [<-- LogicManager : CommandException
     end
 end
 
