@@ -197,8 +197,8 @@ Format: `tag INDEX t/TAG [t/TAG]…​`
 
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
 * At least one nonempty `t/TAG` is required. A tag must be 1 to 20 characters long and contain only `A`–`Z`, `a`–`z`, digits, hyphens (`-`), or plus signs (`+`).
-* Tags are stored in lowercase. Repeating a tag with different capitalization, or adding a tag the contact already has, keeps only one copy. If every requested tag is already present, the command reports `Tags unchanged:` followed by the contact's details.
-* A successful command reports `Updated Person:` followed by the contact's details.
+* Tags are stored in lowercase. Repeating a tag with different capitalization, or adding a tag the contact already has, keeps only one copy. If every requested tag is already present, the command reports `Tags unchanged:` followed by the contact's details. The last-edited time and undo history stay unchanged.
+* When tags are added, the command reports `Updated Person:` followed by the contact's details.
 * Use `edit INDEX t/TAG` to replace all tags, or `edit INDEX t/` to remove them all.
 
 Examples:
