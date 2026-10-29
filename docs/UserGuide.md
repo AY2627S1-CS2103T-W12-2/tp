@@ -518,7 +518,7 @@ Command | Use it to | Date prefix | Example
 
 ### Recording meeting context: `meeting`
 
-Records where, when and in what role you met a contact, so that you can remember the context later and find them with `find ev/`. To plan when to contact them again, use [`followup`](#setting-a-follow-up-date-followup). See [Choosing between `meeting`, `followup` and `due`](#choosing-between-meeting-followup-and-due).
+Record where, when, and in what role you met someone. To plan a later contact, use [`followup`](#setting-a-follow-up-date-followup); see [which command to use](#choosing-between-meeting-followup-and-due).
 
 ![Meeting feature at 1280×720](images/meeting-v1.4.1.png)
 
@@ -531,13 +531,11 @@ Format: `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]`
 1. Remove one field: `meeting 1 clear date`. Use `meeting 1 clear` to remove all context.
 1. Find it later: `find ev/singapore`.
 
-`meeting INDEX clear` removes all context. Add `event`, `date`, or `role` to clear only that field.
-Indexes refer to the displayed list, including after a search. Event and role each accept 1–80
-UTF-16 code units and cannot be blank. Most letters count once; supplementary characters such as
-`😀` count twice, so at most 40 such emoji fit. This meeting-field limit differs from the note limit.
-Dates must be real calendar dates in exactly YYYY-MM-DD format
-(years 0001–9999); they are displayed as Singapore calendar dates without time-zone conversion.
-Tags are independent and are never generated from meeting fields.
+* Use the displayed index, including after a search.
+* Clear one field with `clear event`, `clear date`, or `clear role`.
+* Event/role: 1–80 UTF-16 code units, nonblank. Most letters count once; `😀` counts twice (40 fit). Notes use a different character count.
+* Date: a real `YYYY-MM-DD` date, years 0001–9999, shown as a Singapore calendar date without conversion.
+* Meeting fields never create tags.
 
 An invalid event reports `Use 1–80 characters for the event (some emoji count twice).`; an invalid role
 reports the same guidance for the role. Invalid dates report
@@ -556,19 +554,13 @@ Input | Hint
 `meeting 1 2 ev/Event` | `Use one INDEX, then ev/, md/, r/, or clear.`
 `meeting 1 clear when` or `meeting 1 clear event extra` | `Use: meeting INDEX clear [event\|date\|role].`
 
-The list shows an event cue of at most 32 UTF-16 code units; `view INDEX` shows full event, date, and role
-in a vertically scrolling detail panel. Editing a viewed contact refreshes the panel. If changing
-its event excludes it from the current event search, its selection is cleared.
+Cards show up to 32 UTF-16 code units of the event; `view INDEX` shows full meeting details. Changing the viewed event so it leaves the current search clears selection.
 
-`find ev/TERM [ev/TERM]...` matches partial event names without case sensitivity, using OR across
-repeated terms. No match is a valid empty list. Do not mix event terms with plain name keywords.
+`find ev/TERM [ev/TERM]...` matches partial event names, ignoring case, with OR between terms. No matches is valid; do not mix typed terms with plain name words.
 
-Meeting context is saved in optional JSON `meeting`, for example
-`"meeting": {"eventName": "Hack Singapore", "date": "2026-10-20", "role": "Mentor"}`.
-Missing/null context and fields mean absent values. Clearing the final field omits the object.
-Malformed present values reject loading with `Invalid contact data: 'meeting.<field>' <reason>.`;
-a non-object context names `meeting`. Back up JSON before editing it manually.
-Successful real changes update last-edited time and are saved before entering session undo history.
+JSON uses optional `meeting`, for example `"meeting": {"eventName": "Hack Singapore", "date": "2026-10-20", "role": "Mentor"}`. Missing/null fields mean absent values; clearing the final field omits the object. Invalid values reject loading with `Invalid contact data: 'meeting.<field>' <reason>.`; a non-object names `meeting`. [Back up before editing JSON](#editing-the-data-file).
+
+Real changes update last-edited time and enter undo history only after saving.
 
 ### Setting a follow-up date: `followup`
 
@@ -639,19 +631,11 @@ Format: `photo INDEX f/RELATIVE_PATH` or `photo INDEX clear`
 1. Check the contact's displayed index, then run `photo 1 f/images/me.png`.
 1. Run `view 1` to see it. Repeat with another file to replace it, or run `photo 1 clear` to remove the reference.
 
-The app creates a managed `photos/` folder beside the JAR. Source subfolders are allowed.
-
-Subfolders and spaces in paths are allowed. Absolute paths, URLs, `..` traversal, and symlinks that
-escape the JAR folder are rejected. If a path contains ` f/`, surround the whole path with double quotes,
-for example `photo 1 f/"my f/portrait.png"`, so that the embedded text is treated as part of the filename.
-Spaces after `f/` are also accepted, for example `photo 1 f/ "my f/portrait.png"`.
-Quoted paths use the same file and folder validation as unquoted paths. Sources must be readable PNG/JPEG
-files, at most **5 MiB**
-(5,242,880 bytes) and **4096×4096 pixels**. Both filename extension and decoded image format
-must agree. The JAR folder must be writable. The application copies accepted images to `photos/`
-with generated collision-safe names and saves a relative reference such as
-`"photoPath": "photos/contact-123.png"` in the editable JSON. The root is the JAR folder even when
-launched from another working directory. During development with Gradle it is the working folder.
+* Paths may contain subfolders and spaces. Absolute paths, URLs, `..`, and symlinks escaping the JAR folder are rejected.
+* Quote paths containing ` f/`: `photo 1 f/"my f/portrait.png"`. A space after `f/` is also allowed. Quoting does not bypass validation.
+* Use readable PNG/JPEG files up to **5 MiB (5,242,880 bytes)** and **4096×4096 pixels**. The extension must match the image format.
+* The JAR folder must be writable. Accepted images get unique names under `photos/`; JSON stores a relative reference, e.g. `"photoPath": "photos/contact-123.png"`.
+* Photo paths stay relative to the JAR even when launched elsewhere. Gradle development uses the working folder.
 
 Photo errors explain what to correct:
 
@@ -678,21 +662,11 @@ Input | Hint
 `photo 1 clear f/portrait.png` | `Use f/PATH or clear, not both.`
 `photo 1 2 f/portrait.png` or `photo 1 clear extra` | `Use one INDEX before f/PATH or clear.`
 
-The photo is shown only in the detail panel (`view INDEX`), to the right of the contact's name, and not in
-the contact list. It is scaled to fit inside a fixed 160×120 frame, preserving its aspect ratio, so photos of
-different shapes never change the layout. If the detail panel is too narrow for the photo and the name
-side by side (for example when the window is at its minimum width), the photo is shown under the name
-instead. Absent, missing, malformed, or unreadable references show a
-"No photo" placeholder of the same size;
-unavailable images also produce a log warning and do not prevent other contacts loading.
-Unsafe saved paths are never opened. Old JSON without `photoPath` loads with no photo.
+Photos appear only in details (`view INDEX`), beside the name or below it on narrow panels. They preserve aspect ratio inside a 160×120 frame. Missing/invalid images show a same-size "No photo" placeholder and log a warning without blocking contacts. Unsafe paths are never opened; older JSON without `photoPath` loads without a photo.
 
-Clearing/replacing a photo or deleting/clearing contacts **does not delete imported images**.
-Unused files may remain, including after a failed save, so undo/redo references remain usable.
-An identical current image and clearing an absent photo are no-ops. Only real successful changes
-update last-edited time and enter undo history; failed saves restore the contact and history.
-Keep the `photos/` folder when transferring contacts to another installation. Do not delete images
-that may still be referenced by a contact or session history.
+**Imported images are retained** after replacement, clear, deletion, or failed saves so undo/redo can restore references. Keep `photos/` when transferring contacts; do not delete files still referenced by contacts or session history.
+
+Reattaching the identical image or clearing an absent photo is a no-op. Real saved changes update last-edited time and enter undo history; failed saves restore contacts and history.
 
 
 ### Saving the data
@@ -742,10 +716,7 @@ Each contact can also have an optional `followUpDate` field, a date written like
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Close LarperBoard on both computers. Copy `data/addressbook.json` from the old working folder
-and the managed `photos/` folder from beside the old JAR into the corresponding folders on the new computer.
-Keep the relative folder layout. Copy `preferences.json` only if you want the same window settings.
-Back up the destination files before replacing them. Undo/redo and command recall do not transfer.
+**A**: Close both apps and back up destination files. Copy `data/addressbook.json` into the new working folder and `photos/` beside the new JAR, keeping relative paths. Copy `preferences.json` only for the same window settings. Session histories do not transfer.
 
 --------------------------------------------------------------------------------------------------------------------
 

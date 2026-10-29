@@ -180,16 +180,15 @@ The `Model` component,
 
 ### Storage component
 
-**API** : [`Storage.java`](https://github.com/se-edu/addressbook-level3/tree/master/src/main/java/seedu/address/storage/Storage.java)
+**API** : [`Storage.java`](https://github.com/AY2627S1-CS2103T-W12-2/tp/blob/master/src/main/java/seedu/address/storage/Storage.java)
 
 <img src="images/StorageClassDiagram.png" width="550" />
 
-The `Storage` component,
+`StorageManager` reads and saves model objects:
 
-* can save both address book data and user preference data in JSON format, and read them back into corresponding objects.
-* keeps photo file access in the separate `PhotoStorage` class. Commands import validated PNG/JPEG files into the application-folder `photos/` directory; `ContactPhoto` reads validated image bytes through the same service. Imported assets are retained for history restoration.
-* is implemented by `StorageManager`, which delegates the actual JSON file access to `JsonAddressBookStorage` and `JsonUserPrefsStorage` (one class per data file).
-* depends on some classes in the `Model` component (because the `Storage` component's job is to save/retrieve objects that belong to the `Model`)
+* Contacts: `JsonAddressBookStorage` reads/writes JSON; `JsonUserPrefsStorage` handles preferences.
+* Photos: `PhotoStorage` imports validated PNG/JPEG files into `photos/` beside the JAR and supplies validated bytes to `ContactPhoto`. Assets remain available for undo/redo.
+* Storage depends on model classes to convert their objects to/from JSON.
 * saves a person's activity as optional `createdAt`, `lastEditedAt` and `lastViewedAt` fields in `addressbook.json`. Each is a whole-second ISO-8601 UTC timestamp written exactly as `2026-10-17T04:12:33Z`. A missing or `null` field loads as an absent time, so data files from v1.3 still load. A value with a fraction of a second, an offset other than `Z`, surrounding spaces or any other format makes the file fail to load with `Invalid contact data: '<field>' must be an ISO-8601 UTC timestamp.`, naming the field (`createdAt`, `lastEditedAt` or `lastViewedAt`). `JsonAdaptedPerson.INVALID_FIELD_MESSAGE_FORMAT` holds this message pattern so other fields use the same wording.
 * saves a person's follow-up date as an optional `followUpDate` string in `addressbook.json`, written as `2026-10-25`. A missing or `null` field loads as no follow-up date, so older data files still load. A value that is not a real `YYYY-MM-DD` date, including a non-string value, makes the file fail to load with `Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.`
 * saves whether a person is starred as an optional `starred` boolean in `addressbook.json`. A missing or `null` field loads as not starred, so older data files still load. Any other value, such as a string or a number, makes the file fail to load with `Invalid contact data: 'starred' must be true or false.` The field is kept as an `Object` in `JsonAdaptedPerson` so that such a value reaches this message instead of a generic Jackson error.
@@ -232,7 +231,7 @@ command-text history.
 
 ### Meeting context implementation
 
-`Meeting` is an immutable optional value on `Person`; `toBuilder()` keeps existing context when changing other fields.
+`Person` holds an optional immutable `Meeting`; `toBuilder()` preserves it.
 
 ![Meeting context implementation](images/MeetingUpdateSequenceDiagram.png)
 
@@ -241,15 +240,15 @@ command-text history.
 1. A real update uses a complete builder copy and `Model.editPerson`.
 1. `LogicManager` saves before recording history. Failed saves restore the snapshot, so every real set/replace/clear uses the shared history mechanism.
 
-Event/role limits use `String.length()` (80 UTF-16 code units); some emoji count twice. Dates use strict `YYYY-MM-DD`, years 0001–9999. `JsonAdaptedPerson` accepts absent/null fields, validates present types without coercion, names invalid meeting fields, and omits empty context on save.
+Validation: event/role use `String.length()` (80 UTF-16 code units); dates are real `YYYY-MM-DD` values, years 0001–9999. `JsonAdaptedPerson` treats absent/null fields as missing, rejects invalid types without coercion, names the invalid field, and omits empty context.
 
-`TypedSearchPredicate` matches partial event names without case sensitivity: OR within a field, AND across fields. An absent event matches only when no event terms were supplied. Cards show up to 32 UTF-16 code units of event text; details scroll the full context. The pending Unicode fix in #181 is not part of v1.4.1.
+Event search uses `TypedSearchPredicate`: partial case-insensitive matches, OR within fields, AND across fields. Missing events match only if no event term was given. Cards show 32 UTF-16 code units; details show full context. The pending Unicode fix #181 is not in v1.4.1.
 
 Tests cover 80/81-character and leap-date boundaries, partial/all clears, no-ops, malformed/old JSON, round trips, filtered indexes, search, UI, rollback, and undo.
 
 ### Contact photo implementation
 
-`Person.photoPath` stores a relative reference. Complete builder copies, equality, and detail comparison preserve it.
+`Person.photoPath` is a relative reference preserved by builder copies, equality, and detail comparison.
 
 ![Contact photo implementation](images/PhotoImportSequenceDiagram.png)
 
@@ -258,7 +257,7 @@ Tests cover 80/81-character and leap-date boundaries, partial/all clears, no-ops
 1. It rejects absolute paths, parent components, and symlink escapes; reads at most 5 MiB plus one byte; checks type/dimensions before decoding; and generates collision-safe copy names.
 1. A real attach/replace/clear uses `toBuilder()` and `Model.editPerson`. Shared logic saves, rolls back failures, and records one undo step. An identical image is a no-op.
 
-The UI decodes only validated bytes, never a user path or stored URI. Missing/invalid references show a placeholder and warning without blocking other contacts. Imported assets remain after replacement, clear, deletion, and failed saves so undo/redo can restore references without recreating files.
+The UI decodes validated bytes, never raw paths/URIs. Invalid references show a placeholder and warning without blocking contacts. Assets survive replacement, clear, deletion, and failed saves so undo/redo can restore references.
 
 Tests cover traversal/symlink escapes (including `photos/`), corrupt/type/size/dimension failures, copies, no-ops, filtered indexes, JSON compatibility, save rollback, and undo. Check the packaged JAR at 1280×720/150% with attach/replace/clear and reload.
 
