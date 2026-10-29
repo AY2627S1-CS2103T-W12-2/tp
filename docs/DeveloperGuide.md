@@ -1436,6 +1436,21 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
    1. Test cases: **File** → **Exit**, and the window's close button<br>
       Expected: The window closes at once.
 
+### Contact names
+
+1. Adding names with hyphens and apostrophes
+
+   1. Prerequisites: List all persons using the `list` command.
+
+   1. Test case: `add n/Mary-Jane O'Neil`<br>
+      Expected: The contact is added with the name `Mary-Jane O'Neil`. `find Mary-Jane` finds it, and `find Mary` does not (a hyphenated name is one word for a plain `find`), but `find n/Mary` does.
+
+   1. Test case: `add n/-Al` and `edit 1 n/'Al`<br>
+      Expected: Nothing is changed. The result box shows `Names must be 1-50 characters: A-Z, a-z, 0-9, spaces, - and '. Start with a letter or digit.`
+
+   1. Test case: `add n/O’Brien` (with a curly apostrophe, as pasted from a phone or chat app)<br>
+      Expected: The same message as in the previous case, so the user has to type a straight apostrophe `'` instead.
+
 ### Unknown commands
 
 1. Entering a command word that does not exist
