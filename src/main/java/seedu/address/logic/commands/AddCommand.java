@@ -36,6 +36,7 @@ public class AddCommand extends Command {
             + PREFIX_TAG + "owesMoney";
 
     public static final String MESSAGE_SUCCESS = "New person added: %1$s";
+    public static final String MESSAGE_HIDDEN_BY_FILTER = " (hidden by the filter; use list to see all)";
     public static final String MESSAGE_DUPLICATE_PERSON = "This person already exists in the address book.";
 
     private final Person toAdd;
@@ -58,7 +59,12 @@ public class AddCommand extends Command {
 
         Person withCreatedTime = toAdd.withActivity(toAdd.getActivity().withCreatedAt(model.now()));
         model.addPerson(withCreatedTime);
-        return new CommandResult(String.format(MESSAGE_SUCCESS, Messages.format(toAdd)));
+        String message = String.format(MESSAGE_SUCCESS, Messages.format(toAdd));
+        // an active find, group, filter or due is kept, so the new contact is saved but may not be listed
+        if (!model.getFilteredPersonList().contains(withCreatedTime)) {
+            message += MESSAGE_HIDDEN_BY_FILTER;
+        }
+        return new CommandResult(message);
     }
 
     @Override

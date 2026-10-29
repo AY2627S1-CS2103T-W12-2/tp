@@ -97,7 +97,7 @@ name, so the same tag always looks the same in the contact list and detail panel
 * `PHONE` is optional and must contain 3 to 20 digits when supplied.
 * `EMAIL` is optional and must be a valid email address of at most 254 characters when supplied.
 * A contact is a duplicate when its name matches an existing contact's name ignoring case and its phone number is the same. A different phone number permits the same name. Duplicate contacts cannot be added.
-* If a `find`, `group`, `filter starred` or `due` result is showing, `add` keeps it and updates the count. The new contact is listed only if it matches, otherwise it is saved but not shown, so use [`list`](#listing-all-contacts-list) to see every contact. A new contact has no follow-up date, so it never appears in a `due` result.
+* If a `find`, `group`, `filter starred` or `due` result is showing, `add` keeps it and updates the count. The new contact is listed only if it matches, otherwise it is saved but not shown, so use [`list`](#listing-all-contacts-list) to see every contact. A new contact has no follow-up date, so it never appears in a `due` result. When the new contact is not listed, the result message ends with `(hidden by the filter; use list to see all)`.
 * In the contact list, a card shows its tags on a single row. If they do not all fit, the row ends with `+N`, where `N` is the number of tags left out. Use `view INDEX` to see all of a contact's tags.
 
 Examples:

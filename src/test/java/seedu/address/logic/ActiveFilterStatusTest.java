@@ -3,6 +3,7 @@ package seedu.address.logic;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalPersons.ALICE;
 import static seedu.address.testutil.TypicalPersons.BENSON;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
@@ -16,6 +17,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
+import seedu.address.logic.commands.AddCommand;
+import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -129,8 +132,9 @@ public class ActiveFilterStatusTest {
     @Test
     public void execute_addHiddenContactUnderStarredFilter_keepsFilterAndSavesContact() throws Exception {
         logic.execute("filter starred");
-        logic.execute("add n/Carol p/91234567");
+        CommandResult result = logic.execute("add n/Carol p/91234567");
 
+        assertTrue(result.getFeedbackToUser().endsWith(AddCommand.MESSAGE_HIDDEN_BY_FILTER));
         assertEquals("Starred only - Original order - 1 contact(s)", status());
         assertEquals(List.of(ALICE.getName()), model.getFilteredPersonList().stream().map(Person::getName).toList());
         // the new contact is saved even though it is hidden
@@ -143,10 +147,12 @@ public class ActiveFilterStatusTest {
     @Test
     public void execute_addUnderGroupFilter_updatesCountOnlyForMatchingContact() throws Exception {
         logic.execute("group t/react");
-        logic.execute("add n/Dave p/91234568 t/react");
+        CommandResult shown = logic.execute("add n/Dave p/91234568 t/react");
+        assertFalse(shown.getFeedbackToUser().contains(AddCommand.MESSAGE_HIDDEN_BY_FILTER));
         assertEquals("Group: react - Original order - 2 contact(s)", status());
 
-        logic.execute("add n/Erin p/91234569");
+        CommandResult hidden = logic.execute("add n/Erin p/91234569");
+        assertTrue(hidden.getFeedbackToUser().endsWith(AddCommand.MESSAGE_HIDDEN_BY_FILTER));
         assertEquals("Group: react - Original order - 2 contact(s)", status());
         assertEquals(4, model.getAddressBook().getPersonList().size());
     }
