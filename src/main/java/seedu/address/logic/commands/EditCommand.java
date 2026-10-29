@@ -48,9 +48,10 @@ public class EditCommand extends Command {
             + PREFIX_EMAIL + "johndoe@example.com";
 
     public static final String MESSAGE_EDIT_PERSON_SUCCESS = "Edited contact: %1$s";
-    public static final String MESSAGE_EDIT_PERSON_UNCHANGED = "Contact unchanged: %1$s";
+    public static final String MESSAGE_EDIT_PERSON_UNCHANGED = "Person unchanged: %1$s";
     public static final String MESSAGE_NOT_EDITED = "At least one field to edit must be provided.";
-    public static final String MESSAGE_DUPLICATE_PERSON = "This contact already exists.";
+    public static final String MESSAGE_DUPLICATE_PERSON =
+            "Another contact has this name and phone number. Choose a different name or phone number.";
 
     private final Index index;
     private final EditPersonDescriptor editPersonDescriptor;
@@ -87,9 +88,9 @@ public class EditCommand extends Command {
             return new CommandResult(String.format(MESSAGE_EDIT_PERSON_UNCHANGED, Messages.format(personToEdit)));
         }
 
+        boolean editsViewedPerson = personToEdit.equals(model.getViewedPerson().get());
         model.editPerson(personToEdit, editedPerson);
-        if (model.getViewedPerson().get() != null
-                && !model.getFilteredPersonList().contains(model.getViewedPerson().get())) {
+        if (editsViewedPerson && !model.getFilteredPersonList().contains(model.getViewedPerson().get())) {
             model.setViewedPerson(null);
         }
         return new CommandResult(String.format(MESSAGE_EDIT_PERSON_SUCCESS, Messages.format(editedPerson)));
