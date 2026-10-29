@@ -12,7 +12,6 @@ import java.time.LocalDate;
 import org.junit.jupiter.api.Test;
 
 import seedu.address.logic.commands.FollowUpCommand;
-import seedu.address.model.person.Meeting;
 
 public class FollowUpCommandParserTest {
 
@@ -59,11 +58,12 @@ public class FollowUpCommandParserTest {
 
     @Test
     public void parse_invalidDate_failure() {
-        assertParseFailure(parser, "1 d/2026-02-30", Meeting.MESSAGE_DATE);
-        assertParseFailure(parser, "1 d/2027-02-29", Meeting.MESSAGE_DATE);
-        assertParseFailure(parser, "1 d/25-10-2026", Meeting.MESSAGE_DATE);
-        assertParseFailure(parser, "1 d/tomorrow", Meeting.MESSAGE_DATE);
-        assertParseFailure(parser, "1 d/", Meeting.MESSAGE_DATE);
+        assertParseFailure(parser, "1 d/2026-02-30", FollowUpCommand.MESSAGE_INVALID_DATE);
+        assertParseFailure(parser, "1 d/2027-02-29", FollowUpCommand.MESSAGE_INVALID_DATE);
+        assertParseFailure(parser, "1 d/2026-1-5", FollowUpCommand.MESSAGE_INVALID_DATE);
+        assertParseFailure(parser, "1 d/25-10-2026", FollowUpCommand.MESSAGE_INVALID_DATE);
+        assertParseFailure(parser, "1 d/tomorrow", FollowUpCommand.MESSAGE_INVALID_DATE);
+        assertParseFailure(parser, "1 d/", FollowUpCommand.MESSAGE_INVALID_DATE);
     }
 
     @Test

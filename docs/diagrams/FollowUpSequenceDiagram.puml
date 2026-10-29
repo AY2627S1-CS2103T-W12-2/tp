@@ -28,7 +28,7 @@ else valid displayed index
     Command -> Target : getFollowUpDate()
     Target --> Command : current date
     alt same date as requested
-        Command --> Logic : "Follow-up date unchanged."
+        Command --> Logic : CommandResult (already has date / no date to clear)
         note right of Command : No model edit, timestamp or history entry.
     else real change
         Command -> Target : toBuilder().withFollowUpDate(date).build()

@@ -19,6 +19,7 @@ import java.util.List;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import seedu.address.model.AddressBook;
 import seedu.address.model.Model;
 import seedu.address.model.ModelManager;
 import seedu.address.model.SortCriterion;
@@ -44,13 +45,21 @@ public class ListCommandTest {
 
     @Test
     public void execute_listIsNotFiltered_showsSameList() {
-        assertCommandSuccess(new ListCommand(), model, ListCommand.MESSAGE_SUCCESS, expectedModel);
+        assertCommandSuccess(new ListCommand(), model, "Listed all contacts.", expectedModel);
     }
 
     @Test
     public void execute_listIsFiltered_showsEverything() {
         showPersonAtIndex(model, INDEX_FIRST_PERSON);
-        assertCommandSuccess(new ListCommand(), model, ListCommand.MESSAGE_SUCCESS, expectedModel);
+        assertCommandSuccess(new ListCommand(), model, "Listed all contacts.", expectedModel);
+    }
+
+    @Test
+    public void execute_emptyList_reportsContacts() {
+        model = new ModelManager(new AddressBook(), new UserPrefs());
+        expectedModel = new ModelManager(new AddressBook(), new UserPrefs());
+
+        assertCommandSuccess(new ListCommand(), model, "Listed all contacts.", expectedModel);
     }
 
     @Test
@@ -73,7 +82,7 @@ public class ListCommandTest {
             model.sortFilteredPersonList(criterion);
             assertEquals(sortedPersons, model.getFilteredPersonList());
 
-            assertCommandSuccess(new ListCommand(), model, ListCommand.MESSAGE_SUCCESS, expectedModel);
+            assertCommandSuccess(new ListCommand(), model, "Listed all contacts.", expectedModel);
 
             assertEquals(List.of(originalFirst, CARL, originalLast), model.getFilteredPersonList());
             assertEquals("Original order - 3 contact(s)", model.getPersonListStatus().get());

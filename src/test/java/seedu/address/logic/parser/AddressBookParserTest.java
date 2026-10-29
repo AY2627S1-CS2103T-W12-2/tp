@@ -132,6 +132,10 @@ public class AddressBookParserTest {
     @Test
     public void parseCommand_sort() throws Exception {
         assertEquals(new SortCommand(SortCriterion.ADDED), parser.parseCommand("sort added"));
+        assertEquals(new SortCommand(SortCriterion.ADDED), parser.parseCommand("sort Added"));
+        assertEquals(new SortCommand(SortCriterion.ADDED), parser.parseCommand("sort ADDED"));
+        assertEquals(new SortCommand(SortCriterion.EDITED), parser.parseCommand("sort EdItEd"));
+        assertEquals(new SortCommand(SortCriterion.VIEWED), parser.parseCommand("sort VIEWED"));
     }
 
     @Test
