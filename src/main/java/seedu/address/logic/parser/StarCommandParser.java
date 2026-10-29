@@ -29,9 +29,13 @@ public class StarCommandParser implements Parser<StarCommand> {
     public StarCommand parse(String args) throws ParseException {
         requireNonNull(args);
         String trimmedArgs = args.strip();
-        if (trimmedArgs.isEmpty() || trimmedArgs.split("\\s+").length > 1) {
+        if (trimmedArgs.isEmpty()) {
             throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                    starred ? StarCommand.MESSAGE_USAGE : StarCommand.MESSAGE_UNSTAR_USAGE));
+                    starred ? StarCommand.MESSAGE_MISSING_INDEX : StarCommand.MESSAGE_UNSTAR_MISSING_INDEX));
+        }
+        if (trimmedArgs.split("\\s+").length > 1) {
+            throw new ParseException(String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                    starred ? StarCommand.MESSAGE_EXTRA_WORDS : StarCommand.MESSAGE_UNSTAR_EXTRA_WORDS));
         }
 
         return new StarCommand(ParserUtil.parseDisplayedIndex(trimmedArgs), starred);

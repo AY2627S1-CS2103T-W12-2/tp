@@ -1,5 +1,7 @@
 package seedu.address.logic.parser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
@@ -21,10 +23,11 @@ import seedu.address.model.person.Note;
  */
 public class NoteCommandParserTest {
 
-    private static final String INVALID_FORMAT = String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-            NoteCommand.MESSAGE_USAGE);
-
     private final NoteCommandParser parser = new NoteCommandParser();
+
+    private static String format(String hint) {
+        return String.format(MESSAGE_INVALID_COMMAND_FORMAT, hint);
+    }
 
     @Test
     public void parse_setNote_returnsNoteCommand() {
@@ -86,22 +89,51 @@ public class NoteCommandParserTest {
     }
 
     @Test
-    public void parse_wrongShape_throwsInvalidCommandFormat() {
-        // nothing at all, and an index on its own
-        assertParseFailure(parser, "", INVALID_FORMAT);
-        assertParseFailure(parser, "1", INVALID_FORMAT);
-        // no index
-        assertParseFailure(parser, "nt/text", INVALID_FORMAT);
+    public void parse_wrongShape_throwsHintThatFitsTheMistake() {
+        // no index: nothing at all, or only a note
+        assertParseFailure(parser, "", format(NoteCommand.MESSAGE_MISSING_INDEX));
+        // the arguments after the command word start with a space, as they do when typed in the app
+        assertParseFailure(parser, " nt/text", format(NoteCommand.MESSAGE_MISSING_INDEX));
+        // a lone clear has the operation but not the index, in any letter case
+        assertParseFailure(parser, "clear", format(NoteCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " CLEAR ", format(NoteCommand.MESSAGE_MISSING_INDEX));
+        // an index on its own
+        assertParseFailure(parser, "1", format(NoteCommand.MESSAGE_MISSING_NOTE));
         // text without the prefix, or one word that is not clear
-        assertParseFailure(parser, "1 some text", INVALID_FORMAT);
-        assertParseFailure(parser, "1 foo", INVALID_FORMAT);
+        assertParseFailure(parser, "1 some text", format(NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX));
+        assertParseFailure(parser, "1 foo", format(NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX));
         // both forms together
-        assertParseFailure(parser, "1 clear nt/text", INVALID_FORMAT);
-        // extra words before the prefix
-        assertParseFailure(parser, "1 2 nt/text", INVALID_FORMAT);
+        assertParseFailure(parser, "1 clear nt/text", format(NoteCommand.MESSAGE_NOT_BOTH));
+        // too many parameters: before the prefix, or after clear
+        assertParseFailure(parser, "1 2 nt/text", format(NoteCommand.MESSAGE_TOO_MANY_PARAMETERS));
+        // more than two words before the prefix, whether or not the second one is clear
+        assertParseFailure(parser, "1 2 3 nt/text", format(NoteCommand.MESSAGE_TOO_MANY_PARAMETERS));
+        assertParseFailure(parser, "1 clear extra nt/text", format(NoteCommand.MESSAGE_TOO_MANY_PARAMETERS));
+        assertParseFailure(parser, "1 clear extra", format(NoteCommand.MESSAGE_TOO_MANY_PARAMETERS));
         // the shape is checked before the index, so a bad index in a wrong shape still gives the format error
-        assertParseFailure(parser, "abc", INVALID_FORMAT);
-        assertParseFailure(parser, "abc some text", INVALID_FORMAT);
+        assertParseFailure(parser, "abc", format(NoteCommand.MESSAGE_MISSING_NOTE));
+        assertParseFailure(parser, "abc some text", format(NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX));
+    }
+
+    /**
+     * Pins the wording of the hints and keeps them short. The 70-character budget only guards against verbose
+     * hints; it does not show how the text is laid out. {@code ResultDisplayTest} checks that the complete
+     * messages fit the result box without scrolling at the minimum window width.
+     */
+    @Test
+    public void hints_haveTheAgreedWordingAndStayWithinACharacterBudget() {
+        assertEquals("Add the contact's INDEX: note INDEX nt/NOTE or note INDEX clear.",
+                NoteCommand.MESSAGE_MISSING_INDEX);
+        assertEquals("Add nt/NOTE, or use: note INDEX clear.", NoteCommand.MESSAGE_MISSING_NOTE);
+        assertEquals("Put the note after nt/: note INDEX nt/NOTE.", NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX);
+        assertEquals("Too many parameters. Use: note INDEX nt/NOTE or note INDEX clear.",
+                NoteCommand.MESSAGE_TOO_MANY_PARAMETERS);
+        assertEquals("Use nt/NOTE or clear, not both.", NoteCommand.MESSAGE_NOT_BOTH);
+        for (String hint : new String[] {NoteCommand.MESSAGE_USAGE, NoteCommand.MESSAGE_MISSING_INDEX,
+            NoteCommand.MESSAGE_MISSING_NOTE, NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX,
+            NoteCommand.MESSAGE_TOO_MANY_PARAMETERS, NoteCommand.MESSAGE_NOT_BOTH}) {
+            assertTrue(hint.length() <= 70, hint);
+        }
     }
 
     @Test

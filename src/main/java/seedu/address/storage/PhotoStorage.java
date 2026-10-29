@@ -24,9 +24,14 @@ import seedu.address.commons.core.LogsCenter;
 
 /** Imports and reads bounded local images while keeping every resolved path inside the application folder. */
 public class PhotoStorage {
-    public static final String MESSAGE_INVALID = "Photo file must be a PNG or JPEG inside the application folder.";
-    public static final String MESSAGE_LIMIT = "Photo must be at most 5 MiB and 4096×4096 pixels.";
-    public static final String MESSAGE_UNREADABLE = "Photo file could not be read.";
+    public static final String MESSAGE_INVALID =
+            "Use a valid PNG or JPEG with a matching file extension.";
+    public static final String MESSAGE_LIMIT = "Choose a photo up to 5 MiB and 4096×4096 pixels.";
+    public static final String MESSAGE_UNREADABLE =
+            "Cannot read the photo. Check that the file exists and is readable.";
+    public static final String MESSAGE_PATH = "Use a relative path inside the JAR folder, e.g. images/me.png.";
+    public static final String MESSAGE_IMPORT =
+            "Cannot copy the photo. Check photos/ is writable inside the JAR folder.";
     private static final int MAX_BYTES = 5 * 1024 * 1024;
     private static final int MAX_DIMENSION = 4096;
     private static final Logger logger = LogsCenter.getLogger(PhotoStorage.class);
@@ -82,20 +87,20 @@ public class PhotoStorage {
         try {
             relative = Path.of(reference);
         } catch (InvalidPathException e) {
-            throw new PhotoException(MESSAGE_INVALID, e);
+            throw new PhotoException(MESSAGE_PATH, e);
         }
         if (reference.isBlank() || relative.isAbsolute() || reference.contains("\\") || reference.contains(":")) {
-            throw new PhotoException(MESSAGE_INVALID);
+            throw new PhotoException(MESSAGE_PATH);
         }
         for (Path part : relative) {
             if (part.toString().equals("..")) {
-                throw new PhotoException(MESSAGE_INVALID);
+                throw new PhotoException(MESSAGE_PATH);
             }
         }
         Path root = applicationFolder.toRealPath();
         Path resolved = root.resolve(relative).toRealPath();
         if (!resolved.startsWith(root)) {
-            throw new PhotoException(MESSAGE_INVALID);
+            throw new PhotoException(MESSAGE_PATH);
         }
         return resolved;
     }
@@ -176,7 +181,7 @@ public class PhotoStorage {
             Files.createDirectories(folder);
             Path realFolder = folder.toRealPath();
             if (!realFolder.startsWith(root)) {
-                throw new PhotoException(MESSAGE_INVALID);
+                throw new PhotoException(MESSAGE_IMPORT);
             }
             destination = Files.createTempFile(realFolder, "contact-", "." + extension(source));
             Files.write(destination, bytes);
@@ -189,7 +194,7 @@ public class PhotoStorage {
                     logger.warning("Could not remove an incomplete imported photo.");
                 }
             }
-            throw new PhotoException(MESSAGE_UNREADABLE, e);
+            throw new PhotoException(MESSAGE_IMPORT, e);
         }
     }
 

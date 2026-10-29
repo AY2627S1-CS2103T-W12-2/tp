@@ -14,7 +14,6 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 <img src="images/jvally.png" width="200px">
 
 [[github](https://github.com/jvally)]
-[[portfolio](team/jvally.md)]
 
 * Role: Project Advisor
 
@@ -23,7 +22,6 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 <img src="images/jiewue.png" width="200px">
 
 [[github](http://github.com/jiewue)]
-[[portfolio](team/jiewue.md)]
 
 * Role: -
 * Responsibilities: -
@@ -32,7 +30,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 <img src="images/honeycombhen.png" width="200px">
 
-[[github](http://github.com/honeycombhen)] [[portfolio](team/honeycombhen.md)]
+[[github](http://github.com/honeycombhen)]
 
 * Role: Developer
 * Responsibilities: -

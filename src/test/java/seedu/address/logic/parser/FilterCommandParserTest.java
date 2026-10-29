@@ -1,5 +1,6 @@
 package seedu.address.logic.parser;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseSuccess;
@@ -12,6 +13,8 @@ public class FilterCommandParserTest {
 
     private static final String INVALID_FORMAT = String.format(MESSAGE_INVALID_COMMAND_FORMAT,
             FilterCommand.MESSAGE_USAGE);
+    private static final String MISSING_KEYWORD = String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+            FilterCommand.MESSAGE_MISSING_KEYWORD);
 
     private final FilterCommandParser parser = new FilterCommandParser();
 
@@ -28,11 +31,23 @@ public class FilterCommandParserTest {
     }
 
     @Test
+    public void parse_nothing_throwsHintToAddStarred() {
+        assertParseFailure(parser, "", MISSING_KEYWORD);
+        assertParseFailure(parser, "   ", MISSING_KEYWORD);
+    }
+
+    @Test
     public void parse_anythingElse_throwsFormatError() {
-        assertParseFailure(parser, "", INVALID_FORMAT);
         assertParseFailure(parser, "off", INVALID_FORMAT);
         assertParseFailure(parser, "important", INVALID_FORMAT);
         assertParseFailure(parser, "starred on", INVALID_FORMAT);
         assertParseFailure(parser, "starred off now", INVALID_FORMAT);
+        assertParseFailure(parser, "starred extra", INVALID_FORMAT);
+    }
+
+    @Test
+    public void hints_haveTheAgreedWording() {
+        assertEquals("Use: filter starred, or filter starred off.", FilterCommand.MESSAGE_USAGE);
+        assertEquals("Add starred: filter starred, or filter starred off.", FilterCommand.MESSAGE_MISSING_KEYWORD);
     }
 }

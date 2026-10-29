@@ -13,7 +13,12 @@ import seedu.address.storage.PhotoStorage.PhotoException;
 /** Attaches/replaces one validated local image or clears a displayed contact's photo reference. */
 public class PhotoCommand extends Command {
     public static final String COMMAND_WORD = "photo";
-    public static final String MESSAGE_USAGE = "photo INDEX f/RELATIVE_PATH or photo INDEX clear";
+    public static final String MESSAGE_USAGE = "Use: photo INDEX f/PATH or photo INDEX clear.";
+    public static final String MESSAGE_MISSING_INDEX = "Add the contact's INDEX: photo INDEX f/PATH.";
+    public static final String MESSAGE_MISSING_PATH = "Add f/PATH, or use: photo INDEX clear.";
+    public static final String MESSAGE_NOT_BOTH = "Use f/PATH or clear, not both.";
+    public static final String MESSAGE_WITHOUT_PREFIX = "Put the photo path after f/: photo INDEX f/PATH.";
+    public static final String MESSAGE_EXTRA_WORDS = "Use one INDEX before f/PATH or clear.";
 
     private final Index index;
     private final String source;

@@ -14,9 +14,13 @@ import seedu.address.model.person.Person;
 /** Updates supplied meeting fields or explicitly clears selected fields of a displayed contact. */
 public class MeetingCommand extends Command {
     public static final String COMMAND_WORD = "meeting";
-    public static final String MESSAGE_USAGE = "meeting INDEX ev/EVENT md/YYYY-MM-DD r/ROLE\n"
-            + "Supply at least one field, or use meeting INDEX clear [event|date|role].";
-    public static final String MESSAGE_NO_UPDATE = "Specify a meeting field or use 'meeting INDEX clear'.";
+    public static final String MESSAGE_USAGE = "Use: meeting INDEX ev/EVENT, md/YYYY-MM-DD, or r/ROLE.";
+    public static final String MESSAGE_MISSING_INDEX = "Add the contact's INDEX: meeting INDEX ev/EVENT.";
+    public static final String MESSAGE_NO_UPDATE = "Add ev/, md/, or r/, or use: meeting INDEX clear.";
+    public static final String MESSAGE_NOT_BOTH = "Use meeting fields or clear, not both.";
+    public static final String MESSAGE_WITHOUT_PREFIX = "Put meeting details after ev/, md/, or r/.";
+    public static final String MESSAGE_EXTRA_WORDS = "Use one INDEX, then ev/, md/, r/, or clear.";
+    public static final String MESSAGE_CLEAR_USAGE = "Use: meeting INDEX clear [event|date|role].";
 
     private final Index index;
     private final Meeting updates;
