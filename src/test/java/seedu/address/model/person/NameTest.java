@@ -32,6 +32,8 @@ public class NameTest {
         assertFalse(Name.isValidName("a".repeat(51))); // more than 50 characters
         assertFalse(Name.isValidName("-Mary")); // starts with a hyphen
         assertFalse(Name.isValidName("'Brien")); // starts with an apostrophe
+        assertFalse(Name.isValidName("O’Brien")); // curly apostrophe, as pasted from phones and chat apps
+        assertFalse(Name.isValidName("’Brien")); // starts with a curly apostrophe
         assertFalse(Name.isValidName(" -")); // starts with a space
         assertFalse(Name.isValidName("-")); // only a hyphen
         assertFalse(Name.isValidName("Mary_Jane")); // underscore
@@ -54,6 +56,13 @@ public class NameTest {
         assertTrue(Name.isValidName("Mary-")); // hyphen at the end
         assertTrue(Name.isValidName("1st-Class")); // starts with a digit
         assertTrue(Name.isValidName("Mary-Jane" + "a".repeat(41))); // exactly 50 characters with a hyphen
+    }
+
+    @Test
+    public void constraintsMessage_statesTheAllowedCharactersAndTheFirstCharacterRule() {
+        assertTrue(Name.MESSAGE_CONSTRAINTS.contains("1-50 characters"));
+        assertTrue(Name.MESSAGE_CONSTRAINTS.contains("spaces, - and '"));
+        assertTrue(Name.MESSAGE_CONSTRAINTS.contains("Start with a letter or digit"));
     }
 
     @Test

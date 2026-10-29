@@ -10,8 +10,8 @@ import static seedu.address.commons.util.AppUtil.checkArgument;
 public class Name {
 
     public static final String MESSAGE_CONSTRAINTS =
-        "Names should be 1 to 50 characters long, contain only alphanumeric characters, spaces, hyphens "
-                + "and apostrophes, and should not be blank";
+        "Names must be 1-50 characters: A-Z, a-z, 0-9, spaces, - and '. "
+                + "Start with a letter or digit.";
 
     /*
      * The first character of the name must be alphanumeric, so a name cannot start with a space, hyphen or
