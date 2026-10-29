@@ -218,6 +218,14 @@ A valid `note` command when the displayed list is empty | `The person list is em
 
 Use plain name keywords or typed field prefixes. A valid search may return zero contacts.
 
+Aspect | Plain `find Han` | Typed `find n/Han`
+---|---|---
+Searches | Names only | Names `n/`, tags `t/`, notes `nt/`, event names `ev/`
+Matching | Whole words: does **not** find `Hans Gruber` | Partial text: **does** find `Hans Gruber`
+Several terms | Any keyword matches (OR) | OR within one field, AND across fields
+Letter case | Ignored | Ignored
+Cannot search | Phone, email, LinkedIn handle, meeting date or role, follow-up date | Same
+
 Plain format: `find KEYWORD [MORE_KEYWORDS]…​`
 
 * Plain search is case-insensitive and considers only names.
@@ -400,7 +408,21 @@ Examples:
 * Submit `find Aisha` and then `view 1`. Press **Up** once to bring back `view 1`, and press **Up** again to bring back `find Aisha`.
 * Type `tag 1 t/` without submitting it, press **Up** to bring back an earlier command, then press **Down** to get `tag 1 t/` back.
 
+### Choosing between `meeting`, `followup` and `due`
+
+Command | Use it to | Date prefix | Example
+--------|-----------|-------------|--------
+`meeting` | Record where, when and in what role you met a contact (looks back) | `md/` (meeting date) | `meeting 1 ev/Hack Singapore md/2026-10-20 r/Mentor`
+`followup` | Set the date you plan to contact them again (looks ahead) | `d/` (follow-up date) | `followup 1 d/2026-10-27`
+`due` | List contacts whose follow-up date is today or earlier | none | `due`
+
+* The meeting date and the follow-up date are separate. Setting one never changes the other.
+* `due` looks only at follow-up dates, so a meeting date alone never makes a contact due.
+* `ev/` and `r/` belong to `meeting`. `ev/` also works in `find`.
+
 ### Recording meeting context: `meeting`
+
+Records where, when and in what role you met a contact, so that you can remember the context later and find them with `find ev/`. To plan when to contact them again, use [`followup`](#setting-a-follow-up-date-followup). See [Choosing between `meeting`, `followup` and `due`](#choosing-between-meeting-followup-and-due).
 
 ![Meeting feature at 1280×720](images/meeting-v1.4.1.png)
 
@@ -674,3 +696,21 @@ Action | Format, Examples
 **Unstar** | `unstar INDEX`<br> e.g., `unstar 1`
 **View** | `view INDEX`<br> e.g., `view 1`
 **Recall previous command** | Press **Up** or **Down** in the command box. See [Recalling previous commands](#recalling-previous-commands-up-and-down-arrows)
+
+### Prefix cheat sheet
+
+Prefix | Means | Used by
+-------|-------|--------
+`n/` | Name | `add`, `edit`, `find`
+`p/` | Phone | `add`, `edit`
+`e/` | Email | `add`, `edit`
+`l/` | LinkedIn handle | `add`, `edit`
+`t/` | Tag | `add`, `edit`, `tag`, `group`, `find`
+`nt/` | Note | `note`, `find`
+`ev/` | Meeting event | `meeting`, `find`
+`md/` | Meeting date | `meeting`
+`r/` | Meeting role | `meeting`
+`d/` | Follow-up date | `followup`
+`f/` | Photo file path | `photo`
+
+`find` accepts only `n/`, `t/`, `nt/` and `ev/`. The other prefixes give `Invalid command format!`.
