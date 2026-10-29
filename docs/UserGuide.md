@@ -425,11 +425,22 @@ Dates must be real calendar dates in exactly YYYY-MM-DD format
 (years 0001–9999); they are displayed as Singapore calendar dates without time-zone conversion.
 Tags are independent and are never generated from meeting fields.
 
-Invalid text reports `Event and role must each contain 1 to 80 characters.` Invalid dates report
-`Date must be a real date in YYYY-MM-DD format.` A command with no fields reports
-`Specify a meeting field or use 'meeting INDEX clear'.` Invalid displayed indexes report
+An invalid event reports `Use 1–80 characters for the event (some emoji count twice).`; an invalid role
+reports the same guidance for the role. Invalid dates report
+`Enter a real meeting date as YYYY-MM-DD, e.g. 2026-10-29.` Invalid displayed indexes report
 `The person index provided is invalid.` Failures leave the contact unchanged. Same-value updates
 and clearing an already absent field are informational no-ops, with no timestamp or undo entry.
+
+For an invalid command shape, `Invalid command format!` is followed by one hint:
+
+Input | Hint
+------|-----
+`meeting` or `meeting ev/Event` | `Add the contact's INDEX: meeting INDEX ev/EVENT.`
+`meeting 1` | `Add ev/, md/, or r/, or use: meeting INDEX clear.`
+`meeting 1 Mentor` | `Put meeting details after ev/, md/, or r/.`
+`meeting 1 clear ev/Event` | `Use meeting fields or clear, not both.`
+`meeting 1 2 ev/Event` | `Use one INDEX, then ev/, md/, r/, or clear.`
+`meeting 1 clear when` or `meeting 1 clear event extra` | `Use: meeting INDEX clear [event\|date\|role].`
 
 The list shows an event cue of at most 32 UTF-16 code units; `view INDEX` shows full event, date, and role
 in a vertically scrolling detail panel. Editing a viewed contact refreshes the panel. If changing
@@ -474,8 +485,8 @@ Input or situation | Message
 `followup 99 d/2026-10-25` when the displayed list has fewer than 99 contacts, or any `followup` with an index when the displayed list is empty | `The person index provided is invalid.`
 `followup`, `followup 1`, `followup 1 clear d/2026-10-25`, or `followup 1 2 d/2026-10-25` | `Invalid command format!` followed by the command usage
 `followup 1 d/2026-10-25 d/2026-10-26` (`d/` used twice) | `Multiple values specified for the following single-valued field(s): d/`
-The data file cannot be saved because it or its folder is not writable | `Could not save data to file FILE_PATH due to insufficient permissions to write to the file or the folder.`
-The data file cannot be saved for another reason | `Could not save data due to the following error: REASON`
+The data file cannot be saved because it or its folder is not writable | `Could not save contacts. Nothing changed. Allow file/folder writes.`
+The data file cannot be saved for another reason | `Could not save contacts. Nothing changed. Check file/folder access.`
 
 The date is saved in the optional JSON field `followUpDate`, for example `"followUpDate": "2026-10-25"`. A missing or `null` value means no follow-up. A malformed value makes the data file invalid, so LarperBoard starts with an empty contact list and writes `Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` to its log. The next successful command other than `help` or `exit` (even `list`) saves the empty list over the file and the contacts in it are lost, so back up the file before editing it by hand. See [Editing the data file](#editing-the-data-file).
 
@@ -535,15 +546,30 @@ with generated collision-safe names and saves a relative reference such as
 `"photoPath": "photos/contact-123.png"` in the editable JSON. The root is the JAR folder even when
 launched from another working directory. During development with Gradle it is the working folder.
 
-Errors are `Photo file must be a PNG or JPEG inside the application folder.` for unsafe paths,
-wrong types, or undecodable content; `Photo must be at most 5 MiB and 4096×4096 pixels.` for
-size/dimension limits; and `Photo file could not be read.` for file-access failures.
-An invalid displayed index reports `The person index provided is invalid.`
+Photo errors explain what to correct:
 
-Input | Error and recovery
-------|-------------------
-An unquoted path containing ` f/`, or multiple `f/` arguments | `Multiple values specified for the following single-valued field(s): f/`, followed by `If the path contains " f/", put the whole path in double quotes: f/"my f/portrait.png"`
-An unclosed quoted path | A duplicate-file or invalid-format error, followed by the same quoting hint. Close both quotes around the whole path.
+Problem | Error and recovery
+--------|-------------------
+Unsafe path (absolute path, `..`, or an escaping symlink) | `Use a relative path inside the JAR folder, e.g. images/me.png.`
+Wrong type, mismatched extension, or damaged image | `Use a valid PNG or JPEG with a matching file extension.`
+File too large or dimensions too big | `Choose a photo up to 5 MiB and 4096×4096 pixels.`
+Missing or unreadable file | `Cannot read the photo. Check that the file exists and is readable.`
+Cannot write the imported copy | `Cannot copy the photo. Check photos/ is writable inside the JAR folder.`
+An unquoted path containing ` f/`, or multiple `f/` arguments | `Use one f/ path. Quote paths containing " f/": f/"my f/portrait.png"`
+An unclosed quoted path without an embedded ` f/` | `Close both double quotes around the path: f/"portrait.png"`. An embedded ` f/` can produce the preceding quoting hint instead.
+A closed quoted path followed by extra text, e.g. `photo 1 f/"portrait.png" extra` or `photo 1 f/"portrait.png"x` | `Put nothing after the closing quote: f/"portrait.png".`
+
+An invalid displayed index reports `The person index provided is invalid.` Errors leave the contact unchanged.
+
+For an invalid command shape, `Invalid command format!` is followed by one hint:
+
+Input | Hint
+------|-----
+`photo` or `photo f/portrait.png` | `Add the contact's INDEX: photo INDEX f/PATH.`
+`photo 1`, `photo 1 f/`, or `photo 1 f/" "` | `Add f/PATH, or use: photo INDEX clear.`
+`photo 1 portrait.png` | `Put the photo path after f/: photo INDEX f/PATH.`
+`photo 1 clear f/portrait.png` | `Use f/PATH or clear, not both.`
+`photo 1 2 f/portrait.png` or `photo 1 clear extra` | `Use one INDEX before f/PATH or clear.`
 
 The photo is shown only in the detail panel (`view INDEX`), to the right of the contact's name, and not in
 the contact list. It is scaled to fit inside a fixed 160×120 frame, preserving its aspect ratio, so photos of
@@ -566,10 +592,15 @@ that may still be referenced by a contact or session history.
 
 LarperBoard automatically saves data after successful commands. You do not need to save manually.
 `help` and `exit` do not write contact data and remain available if the contact data file is read-only.
+If saving fails, the command reports that nothing changed and restores the previous contacts and history.
+Check file/folder access before retrying; technical details are recorded in the log.
 
 ### Editing the data file
 
-LarperBoard data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
+LarperBoard saves contacts to `data/addressbook.json` relative to its **working folder** (the folder you
+launch it from). This may differ from the folder containing the JAR. The status bar shows the data-file
+path. Photo paths are instead relative to the JAR folder, as described above. Close LarperBoard and back
+up the JSON file before editing it directly.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
 If your changes make the data file invalid, LarperBoard starts with an empty contact list at the next run. The invalid file remains on disk until a successful command other than `help` or `exit` saves contact data. We recommend backing up the file before editing it.<br>

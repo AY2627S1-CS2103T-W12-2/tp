@@ -8,7 +8,8 @@ import java.util.Optional;
 /** Immutable, optional context about where and when a contact was met. */
 public final class Meeting {
     public static final Meeting EMPTY = new Meeting(null, null, null);
-    public static final String MESSAGE_TEXT = "Event and role must each contain 1 to 80 characters.";
+    public static final String MESSAGE_EVENT = "Use 1–80 characters for the event (some emoji count twice).";
+    public static final String MESSAGE_ROLE = "Use 1–80 characters for the role (some emoji count twice).";
     public static final String MESSAGE_DATE = "Date must be a real date in YYYY-MM-DD format.";
 
     private final String eventName;
@@ -17,8 +18,8 @@ public final class Meeting {
 
     /** Creates meeting context. Null fields represent absent values; present text must be nonblank. */
     public Meeting(String eventName, LocalDate date, String role) {
-        validateText(eventName);
-        validateText(role);
+        validateText(eventName, MESSAGE_EVENT);
+        validateText(role, MESSAGE_ROLE);
         if (date != null && (date.getYear() < 1 || date.getYear() > 9999)) {
             throw new IllegalArgumentException(MESSAGE_DATE);
         }
@@ -28,9 +29,9 @@ public final class Meeting {
     }
 
     /** Rejects blank or overlong present text without inventing a value for absent fields. */
-    private static void validateText(String value) {
+    private static void validateText(String value, String message) {
         if (value != null && (value.isBlank() || value.length() > 80)) {
-            throw new IllegalArgumentException(MESSAGE_TEXT);
+            throw new IllegalArgumentException(message);
         }
     }
 

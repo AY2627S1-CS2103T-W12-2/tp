@@ -24,10 +24,11 @@ import seedu.address.storage.Storage;
  * The main LogicManager of the app.
  */
 public class LogicManager implements Logic {
-    public static final String FILE_OPS_ERROR_FORMAT = "Could not save data due to the following error: %s";
+    public static final String MESSAGE_SAVE_ERROR =
+            "Could not save contacts. Nothing changed. Check file/folder access.";
 
-    public static final String FILE_OPS_PERMISSION_ERROR_FORMAT =
-            "Could not save data to file %s due to insufficient permissions to write to the file or the folder.";
+    public static final String MESSAGE_SAVE_PERMISSION_ERROR =
+            "Could not save contacts. Nothing changed. Allow file/folder writes.";
 
     private final Logger logger = LogsCenter.getLogger(LogicManager.class);
 
@@ -76,11 +77,11 @@ public class LogicManager implements Logic {
         } catch (AccessDeniedException e) {
             logger.log(Level.WARNING, "Restoring model after failed save", e);
             model.restore(before);
-            throw new CommandException(String.format(FILE_OPS_PERMISSION_ERROR_FORMAT, e.getMessage()), e);
+            throw new CommandException(MESSAGE_SAVE_PERMISSION_ERROR, e);
         } catch (IOException ioe) {
             logger.log(Level.WARNING, "Restoring model after failed save", ioe);
             model.restore(before);
-            throw new CommandException(String.format(FILE_OPS_ERROR_FORMAT, ioe.getMessage()), ioe);
+            throw new CommandException(MESSAGE_SAVE_ERROR, ioe);
         }
 
         if (command.recordsHistory()) {

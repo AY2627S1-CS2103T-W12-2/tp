@@ -142,14 +142,22 @@ public class LogicManagerTest {
 
     @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, LogicManager.MESSAGE_SAVE_ERROR);
     }
 
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
+        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, LogicManager.MESSAGE_SAVE_PERMISSION_ERROR);
+    }
+
+    @Test
+    public void execute_failedSave_hidesTechnicalDetailsAndPreservesCause() {
+        useFailingStorageWithTypicalContacts();
+        CommandException error = org.junit.jupiter.api.Assertions.assertThrows(
+                CommandException.class, () -> logic.execute("meeting 1 ev/Hackathon"));
+        assertEquals(LogicManager.MESSAGE_SAVE_ERROR, error.getMessage());
+        assertFalse(error.getMessage().contains(DUMMY_IO_EXCEPTION.getMessage()));
+        assertEquals(DUMMY_IO_EXCEPTION, error.getCause());
     }
 
     @Test
@@ -335,8 +343,7 @@ public class LogicManagerTest {
         List<Person> visibleBefore = new ArrayList<>(model.getFilteredPersonList());
         Person viewedBefore = model.getViewedPerson().get();
 
-        assertThrows(CommandException.class, String.format(LogicManager.FILE_OPS_ERROR_FORMAT,
-                DUMMY_IO_EXCEPTION.getMessage()), () -> logic.execute(command));
+        assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_ERROR, () -> logic.execute(command));
 
         assertEquals(addressBookBefore, model.getAddressBook());
         assertEquals(visibleBefore, model.getFilteredPersonList());
@@ -603,7 +610,7 @@ public class LogicManagerTest {
             logic.execute("meeting 1 ev/" + secret + " r/" + secret);
             assertParseException("meeting 1 " + secret,
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                            MeetingCommand.MESSAGE_USAGE));
+                            MeetingCommand.MESSAGE_WITHOUT_PREFIX));
             assertParseException("meeting 1 ev/" + secret + " ev/duplicate",
                     Messages.getErrorMessageForDuplicatePrefixes(
                             CliSyntax.PREFIX_EVENT));
