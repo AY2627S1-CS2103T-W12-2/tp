@@ -12,6 +12,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.logging.Handler;
 import java.util.logging.Level;
@@ -23,15 +25,27 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
+import javafx.beans.property.ReadOnlyObjectProperty;
+import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
+import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.CommandResult;
+import seedu.address.logic.commands.ExitCommand;
+import seedu.address.logic.commands.exceptions.CommandException;
+import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
+import seedu.address.model.person.Person;
 import seedu.address.storage.JsonAddressBookStorage;
 import seedu.address.storage.JsonUserPrefsStorage;
 import seedu.address.storage.StorageManager;
@@ -126,6 +140,130 @@ public class MainWindowTest {
 
         assertTrue(logged.stream().anyMatch(message -> message.contains("note [hidden]")), logged.toString());
         assertTrue(logged.stream().noneMatch(message -> message.contains("private text")), logged.toString());
+    }
+
+    /*
+     * The three tests below do not show the window, because opening real windows crashes the macOS CI runner.
+     * Closing the window always saves the window settings just before it hides the window, so they count the
+     * calls to Logic#setGuiSettings to tell when the window has been closed.
+     */
+
+    @Test
+    public void executeCommand_exit_waitsBeforeClosingSoThatTheMessageCanBeRead() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        RecordingLogic logic = new RecordingLogic(newLogic(dataFile));
+        AtomicLong exitCommandAt = new AtomicLong();
+
+        runOnFxThread(() -> {
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile);
+            mainWindow.fillInnerParts();
+            Parent root = mainWindow.getPrimaryStage().getScene().getRoot();
+            TextField commandBox = (TextField) root.lookup("#commandTextField");
+            commandBox.setText("exit");
+            exitCommandAt.set(System.nanoTime());
+            commandBox.fireEvent(new ActionEvent());
+
+            // straight after the command the message is on screen, the window is not closed yet and the command
+            // box takes no input
+            TextArea resultDisplay = (TextArea) root.lookup("#resultDisplay");
+            assertEquals(ExitCommand.MESSAGE_EXIT_ACKNOWLEDGEMENT, resultDisplay.getText());
+            assertEquals(0, logic.closeCount.get());
+            assertTrue(commandBox.isDisabled());
+        });
+
+        assertTrue(logic.closed.await(5, TimeUnit.SECONDS), "The window should close after the pause");
+        long waitedMillis = TimeUnit.NANOSECONDS.toMillis(System.nanoTime() - exitCommandAt.get());
+        assertTrue(waitedMillis >= 800, "The window closed after only " + waitedMillis + " ms");
+    }
+
+    @Test
+    public void closeRequest_duringTheExitPause_closesAtOnceAndOnlyOnce() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        RecordingLogic logic = new RecordingLogic(newLogic(dataFile));
+
+        runOnFxThread(() -> {
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile);
+            mainWindow.fillInnerParts();
+            Stage stage = mainWindow.getPrimaryStage();
+            TextField commandBox = (TextField) stage.getScene().getRoot().lookup("#commandTextField");
+            commandBox.setText("exit");
+            commandBox.fireEvent(new ActionEvent());
+            assertEquals(0, logic.closeCount.get());
+
+            stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
+
+            assertEquals(1, logic.closeCount.get());
+        });
+
+        // the pause was stopped, so it does not close the window a second time when it would have finished
+        TimeUnit.MILLISECONDS.sleep(1500);
+        assertEquals(1, logic.closeCount.get());
+    }
+
+    @Test
+    public void closeRequest_withoutExitCommand_closesAtOnce() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        RecordingLogic logic = new RecordingLogic(newLogic(dataFile));
+
+        runOnFxThread(() -> {
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile);
+            mainWindow.fillInnerParts();
+            Stage stage = mainWindow.getPrimaryStage();
+            assertEquals(0, logic.closeCount.get());
+
+            stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
+
+            assertEquals(1, logic.closeCount.get());
+        });
+    }
+
+    /** Passes everything on to {@code delegate}, and counts how many times the window settings are saved. */
+    private static class RecordingLogic implements Logic {
+        private final Logic delegate;
+        private final AtomicInteger closeCount = new AtomicInteger();
+        private final CountDownLatch closed = new CountDownLatch(1);
+
+        RecordingLogic(Logic delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public CommandResult execute(String commandText) throws CommandException, ParseException {
+            return delegate.execute(commandText);
+        }
+
+        @Override
+        public ObservableList<Person> getFilteredPersonList() {
+            return delegate.getFilteredPersonList();
+        }
+
+        @Override
+        public ReadOnlyStringProperty getPersonListStatus() {
+            return delegate.getPersonListStatus();
+        }
+
+        @Override
+        public ReadOnlyObjectProperty<Person> getViewedPerson() {
+            return delegate.getViewedPerson();
+        }
+
+        @Override
+        public GuiSettings getGuiSettings() {
+            return delegate.getGuiSettings();
+        }
+
+        @Override
+        public void setGuiSettings(GuiSettings guiSettings) {
+            delegate.setGuiSettings(guiSettings);
+            closeCount.incrementAndGet();
+            closed.countDown();
+        }
+    }
+
+    private Logic newLogic(Path dataFile) {
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
+        return new LogicManager(new ModelManager(getTypicalAddressBook(), new UserPrefs()), storage);
     }
 
     /**

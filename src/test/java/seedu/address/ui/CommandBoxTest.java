@@ -4,8 +4,10 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.api.Assumptions.assumeFalse;
+import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 
 import java.awt.GraphicsEnvironment;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
@@ -14,6 +16,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
@@ -22,12 +25,22 @@ import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.VBox;
+import seedu.address.logic.LogicManager;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.parser.exceptions.ParseException;
+import seedu.address.model.AddressBook;
+import seedu.address.model.ModelManager;
+import seedu.address.model.UserPrefs;
+import seedu.address.storage.JsonAddressBookStorage;
+import seedu.address.storage.JsonUserPrefsStorage;
+import seedu.address.storage.StorageManager;
 
 public class CommandBoxTest {
 
     private final List<String> executedCommands = new ArrayList<>();
+
+    @TempDir
+    private Path folder;
 
     /**
      * Starts the JavaFX toolkit, which is needed to create UI controls.
@@ -52,6 +65,33 @@ public class CommandBoxTest {
             press(field, KeyCode.UP);
 
             assertEquals("half typed", field.getText());
+        });
+    }
+
+    @Test
+    public void replaceText_tabSeparatedCommands_executeThroughCommandBoxAndRecallNormalizedText() throws Exception {
+        runOnFxThread(() -> {
+            ModelManager model = new ModelManager(new AddressBook(), new UserPrefs(), FIXED_CLOCK);
+            StorageManager storage = new StorageManager(new JsonAddressBookStorage(folder.resolve("contacts.json")),
+                    new JsonUserPrefsStorage(folder.resolve("prefs.json")));
+            LogicManager logic = new LogicManager(model, storage);
+            CommandBox commandBox = createCommandBox(logic::execute);
+            TextField field = (TextField) commandBox.getRoot().lookup("#commandTextField");
+
+            field.replaceText(0, 0, "add\tn/Tab Person\tp/12345678");
+            assertEquals("add n/Tab Person p/12345678", field.getText());
+            field.fireEvent(new ActionEvent());
+            assertEquals("Tab Person", model.getFilteredPersonList().getFirst().getName().fullName);
+
+            field.replaceText(0, 0, "edit 1\tp/87654321");
+            field.fireEvent(new ActionEvent());
+            assertEquals("87654321", model.getFilteredPersonList().getFirst().getPhone().value);
+
+            field.replaceText(0, 0, "note 1\tnt/Pasted\tnote");
+            field.fireEvent(new ActionEvent());
+            assertEquals("Pasted note", model.getFilteredPersonList().getFirst().getNote().value);
+            press(field, KeyCode.UP);
+            assertEquals("note 1 nt/Pasted note", field.getText());
         });
     }
 

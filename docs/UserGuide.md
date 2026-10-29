@@ -43,7 +43,7 @@ LarperBoard is a desktop app for keeping track of people you meet at hackathons.
 
 ## Features
 
-This guide describes v1.4. `sort` supports `added`, `edited`, and `viewed`. Separate
+This guide describes v1.4.1. `sort` supports `added`, `edited`, and `viewed`. Separate
 `find`, `group`, and `filter` commands replace the previous filter; combined filters
 and `sort name` / `sort starred` from [#128](https://github.com/AY2627S1-CS2103T-W12-2/tp/issues/128) are deferred.
 
@@ -62,6 +62,9 @@ and `sort name` / `sort starred` from [#128](https://github.com/AY2627S1-CS2103T
 
 * Put a required `INDEX` first; prefixed parameters can then be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
+
+* Spaces or tabs can separate prefixed parameters, including in pasted commands.
+  The command box converts pasted tabs to spaces before running the command.
 
 * Extraneous parameters for commands that take no parameters, such as `help`, `list`, `exit`, and `clear`, are ignored. The `undo` and `redo` commands reject arguments.<br>
   For example, `help 123` is interpreted as `help`.
@@ -92,7 +95,7 @@ name, so the same tag always looks the same in the contact list and detail panel
 * `LINKEDIN_HANDLE` is the last part of the contact's LinkedIn profile link (e.g. `john-doe` in `linkedin.com/in/john-doe`). It may contain only letters, digits and hyphens, and must be 3 to 50 characters long.
 * `NAME` must contain 1 to 50 alphanumeric characters and spaces and cannot be blank. Leading and trailing spaces are removed, and repeated whitespace is collapsed.
 * `PHONE` is optional and must contain 3 to 20 digits when supplied.
-* `EMAIL` is optional and must be a valid email address when supplied.
+* `EMAIL` is optional and must be a valid email address of at most 254 characters when supplied.
 * A contact is a duplicate when its name matches an existing contact's name ignoring case and its phone number is the same. A different phone number permits the same name. Duplicate contacts cannot be added.
 * In the contact list, a card shows its tags on a single row. If they do not all fit, the row ends with `+N`, where `N` is the number of tags left out. Use `view INDEX` to see all of a contact's tags.
 
@@ -323,7 +326,7 @@ Format: `view INDEX`
 
 Examples:
 * `view 1` shows the 1st displayed contact.<br>
-  ![result for 'view 1'](images/view-panel.png)
+  ![result for 'view 1'](images/Ui-v1.4.1.png)
 * `find Aisha` followed by `view 1` shows the 1st contact in the search results.
 
 If the contact cannot be viewed, LarperBoard shows these errors:
@@ -378,6 +381,9 @@ Exits the program.
 
 Format: `exit`
 
+* After `exit`, the window stays open for about one second so that you can read the message in the result box, then it closes. The command box does not accept input during that time.
+* Choosing **Exit** from the **File** menu, or closing the window with its close button, closes LarperBoard at once.
+
 ### Recalling previous commands: Up and Down arrows
 
 Brings back commands that you submitted earlier in the same session, so that you can run or fix them without typing them again.
@@ -396,9 +402,9 @@ Examples:
 
 ### Recording meeting context: `meeting`
 
-![Meeting feature at 1280×720](images/meeting-feature.png)
+![Meeting feature at 1280×720](images/meeting-v1.4.1.png)
 
-[View the simulated 150% layout](images/meeting-feature-150percent.png).
+[View the simulated 150% layout](images/meeting-v1.4.1-150percent.png).
 
 Use `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]` to set or replace one or more fields.
 Omitted fields keep their existing values. For example:
@@ -413,7 +419,9 @@ find ev/singapore
 
 `meeting INDEX clear` removes all context. Add `event`, `date`, or `role` to clear only that field.
 Indexes refer to the displayed list, including after a search. Event and role each accept 1–80
-characters and cannot be blank. Dates must be real calendar dates in exactly YYYY-MM-DD format
+UTF-16 code units and cannot be blank. Most letters count once; supplementary characters such as
+`😀` count twice, so at most 40 such emoji fit. This meeting-field limit differs from the note limit.
+Dates must be real calendar dates in exactly YYYY-MM-DD format
 (years 0001–9999); they are displayed as Singapore calendar dates without time-zone conversion.
 Tags are independent and are never generated from meeting fields.
 
@@ -423,7 +431,7 @@ Invalid text reports `Event and role must each contain 1 to 80 characters.` Inva
 `The person index provided is invalid.` Failures leave the contact unchanged. Same-value updates
 and clearing an already absent field are informational no-ops, with no timestamp or undo entry.
 
-The list shows an event cue of at most 32 characters; `view INDEX` shows full event, date, and role
+The list shows an event cue of at most 32 UTF-16 code units; `view INDEX` shows full event, date, and role
 in a vertically scrolling detail panel. Editing a viewed contact refreshes the panel. If changing
 its event excludes it from the current event search, its selection is cleared.
 
@@ -469,7 +477,7 @@ Input or situation | Message
 The data file cannot be saved because it or its folder is not writable | `Could not save data to file FILE_PATH due to insufficient permissions to write to the file or the folder.`
 The data file cannot be saved for another reason | `Could not save data due to the following error: REASON`
 
-The date is saved in the optional JSON field `followUpDate`, for example `"followUpDate": "2026-10-25"`. A missing or `null` value means no follow-up. A malformed value makes the data file invalid, so LarperBoard starts with an empty contact list and writes `Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` to its log. The next command you run, of any kind (even `help` or `list`), saves the empty list over the file and the contacts in it are lost, so back up the file before editing it by hand. See [Editing the data file](#editing-the-data-file).
+The date is saved in the optional JSON field `followUpDate`, for example `"followUpDate": "2026-10-25"`. A missing or `null` value means no follow-up. A malformed value makes the data file invalid, so LarperBoard starts with an empty contact list and writes `Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` to its log. The next successful command other than `help` or `exit` (even `list`) saves the empty list over the file and the contacts in it are lost, so back up the file before editing it by hand. See [Editing the data file](#editing-the-data-file).
 
 ### Showing contacts due for follow-up: `due`
 
@@ -494,9 +502,9 @@ Examples:
 
 ### Contact photos: `photo`
 
-![Photo feature at 1280×720](images/photo-feature.png)
+![Photo feature at 1280×720](images/photo-v1.4.1.png)
 
-[View the simulated 150% layout](images/photo-feature-150percent.png).
+[View the simulated 150% layout](images/photo-v1.4.1-150percent.png).
 
 Use `photo INDEX f/RELATIVE_PATH` to attach or replace one PNG/JPEG, or `photo INDEX clear` to
 remove its reference. INDEX always refers to the displayed list. Place the source image inside the
@@ -516,7 +524,11 @@ photo 1 clear
 ```
 
 Subfolders and spaces in paths are allowed. Absolute paths, URLs, `..` traversal, and symlinks that
-escape the JAR folder are rejected. Sources must be readable PNG/JPEG files, at most **5 MiB**
+escape the JAR folder are rejected. If a path contains ` f/`, surround the whole path with double quotes,
+for example `photo 1 f/"my f/portrait.png"`, so that the embedded text is treated as part of the filename.
+Spaces after `f/` are also accepted, for example `photo 1 f/ "my f/portrait.png"`.
+Quoted paths use the same file and folder validation as unquoted paths. Sources must be readable PNG/JPEG
+files, at most **5 MiB**
 (5,242,880 bytes) and **4096×4096 pixels**. Both filename extension and decoded image format
 must agree. The JAR folder must be writable. The application copies accepted images to `photos/`
 with generated collision-safe names and saves a relative reference such as
@@ -527,6 +539,11 @@ Errors are `Photo file must be a PNG or JPEG inside the application folder.` for
 wrong types, or undecodable content; `Photo must be at most 5 MiB and 4096×4096 pixels.` for
 size/dimension limits; and `Photo file could not be read.` for file-access failures.
 An invalid displayed index reports `The person index provided is invalid.`
+
+Input | Error and recovery
+------|-------------------
+An unquoted path containing ` f/`, or multiple `f/` arguments | `Multiple values specified for the following single-valued field(s): f/`, followed by `If the path contains " f/", put the whole path in double quotes: f/"my f/portrait.png"`
+An unclosed quoted path | A duplicate-file or invalid-format error, followed by the same quoting hint. Close both quotes around the whole path.
 
 The photo is shown only in the detail panel (`view INDEX`), to the right of the contact's name, and not in
 the contact list. It is scaled to fit inside a fixed 160×120 frame, preserving its aspect ratio, so photos of
@@ -547,14 +564,15 @@ that may still be referenced by a contact or session history.
 
 ### Saving the data
 
-LarperBoard automatically saves data after every successful command. You do not need to save manually.
+LarperBoard automatically saves data after successful commands. You do not need to save manually.
+`help` and `exit` do not write contact data and remain available if the contact data file is read-only.
 
 ### Editing the data file
 
 LarperBoard data is saved automatically as a JSON file `[JAR file location]/data/addressbook.json`. Advanced users are welcome to update data directly by editing that data file.
 
 <div markdown="span" class="alert alert-warning">:exclamation: **Caution:**
-If your changes make the data file invalid, LarperBoard starts with an empty contact list at the next run. The invalid file remains on disk until you run a successful command. We recommend backing up the file before editing it.<br>
+If your changes make the data file invalid, LarperBoard starts with an empty contact list at the next run. The invalid file remains on disk until a successful command other than `help` or `exit` saves contact data. We recommend backing up the file before editing it.<br>
 Furthermore, certain edits can cause LarperBoard to behave in unexpected ways (e.g., if a value entered is outside of the acceptable range). Therefore, edit the data file only if you are confident that you can update it correctly.
 </div>
 
@@ -570,24 +588,28 @@ Each contact can also have an optional `note` field: a string of at most 1000 ch
 
 Each contact can also have an optional `starred` field, which is `true` or `false`. A missing or `null` field means the contact is not starred. Any other value makes the data file invalid, so LarperBoard starts with an empty contact list and writes `Invalid contact data: 'starred' must be true or false.` to its log.
 
-LarperBoard fills the time fields in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid. LarperBoard then starts with an empty contact list and writes `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem) to its log. The next command you run, of any kind (even `help` or `list`), saves the empty list over the file and the contacts in it are lost, so back up the file before editing it. Times are shown in Singapore time (Asia/Singapore).
+LarperBoard fills the time fields in for you. Contacts saved by an older version have no times and keep none until they are changed or viewed. A time with a fraction of a second, an offset such as `+08:00`, spaces, or any other format makes the data file invalid. LarperBoard then starts with an empty contact list and writes `Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` (naming the field with the problem) to its log. The next successful command other than `help` or `exit` (even `list`) saves the empty list over the file and the contacts in it are lost, so back up the file before editing it. Times are shown in Singapore time (Asia/Singapore).
 
 Each contact can also have an optional `followUpDate` field, a date written like `"2026-10-25"`. A missing or `null` field means the contact has no follow-up date. A value that is not a real date in `YYYY-MM-DD` format makes the data file invalid, with the same effect as above. See [Setting a follow-up date](#setting-a-follow-up-date-followup).
-
-### Archiving data files `[coming in v2.0]`
-
-_Details coming soon ..._
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## FAQ
 
 **Q**: How do I transfer my data to another computer?<br>
-**A**: Install the app on the other computer and overwrite the data file it creates with the data file from your previous LarperBoard home folder.
+**A**: Close LarperBoard on both computers. Copy `data/addressbook.json` from the old working folder
+and the managed `photos/` folder from beside the old JAR into the corresponding folders on the new computer.
+Keep the relative folder layout. Copy `preferences.json` only if you want the same window settings.
+Back up the destination files before replacing them. Undo/redo and command recall do not transfer.
 
 --------------------------------------------------------------------------------------------------------------------
 
 ## Known issues
+
+Meeting text counts supplementary characters twice, and an event preview can split a surrogate pair
+when truncated. The pending [Unicode fix](https://github.com/AY2627S1-CS2103T-W12-2/tp/pull/181)
+is not included in v1.4.1. `find` also reports `person(s)` while other list commands say `contact(s)`;
+this wording difference does not change the results.
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.

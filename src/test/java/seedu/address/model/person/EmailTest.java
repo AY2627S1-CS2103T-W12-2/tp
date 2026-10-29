@@ -9,8 +9,30 @@ import org.junit.jupiter.api.Test;
 public class EmailTest {
 
     @Test
+    public void isValidEmail_oversizedInput_rejectedWithoutRegexOverflow() {
+        assertFalse(Email.isValidEmail("a@" + "a-".repeat(3000) + "aa"));
+        assertFalse(Email.isValidEmail("a.".repeat(3000) + "a@example.com"));
+        assertFalse(Email.isValidEmail("a".repeat(255) + "@example.com"));
+    }
+
+    @Test
+    public void isValidEmail_lengthBoundary_accepts254AndRejects255Characters() {
+        String domain = "a".repeat(63) + "." + "b".repeat(63) + "." + "c".repeat(61);
+        assertTrue(Email.isValidEmail("a".repeat(64) + "@" + domain));
+        assertFalse(Email.isValidEmail("a".repeat(64) + "@" + domain + "c"));
+    }
+
+    @Test
     public void constructor_null_throwsNullPointerException() {
         assertThrows(NullPointerException.class, () -> new Email(null));
+    }
+
+    @Test
+    public void isValidEmail_hyphenatedFinalLabel_acceptsValidLabels() {
+        assertTrue(Email.isValidEmail("a@a-b"));
+        assertTrue(Email.isValidEmail("a@b.c-d"));
+        assertFalse(Email.isValidEmail("a@b.-cd"));
+        assertFalse(Email.isValidEmail("a@b.cd-"));
     }
 
     @Test

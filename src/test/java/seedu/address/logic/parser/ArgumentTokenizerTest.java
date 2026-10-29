@@ -15,6 +15,19 @@ public class ArgumentTokenizerTest {
     private final Prefix hatQ = new Prefix("^Q");
 
     @Test
+    public void tokenize_tabBoundaries_preserveValuesAndEmbeddedSlashes() {
+        Prefix name = new Prefix("n/");
+        Prefix phone = new Prefix("p/");
+        ArgumentMultimap fields = ArgumentTokenizer.tokenize("\tn/Alice\tp/12345678", name, phone);
+        assertEquals("", fields.getPreamble());
+        assertEquals("Alice", fields.getValue(name).orElseThrow());
+        assertEquals("12345678", fields.getValue(phone).orElseThrow());
+
+        fields = ArgumentTokenizer.tokenize("\tn/Alice\tTan/n/example", name);
+        assertEquals("Alice\tTan/n/example", fields.getValue(name).orElseThrow());
+    }
+
+    @Test
     public void tokenize_emptyArgsString_noValues() {
         String argsString = "  ";
         ArgumentMultimap argMultimap = ArgumentTokenizer.tokenize(argsString, pSlash);
