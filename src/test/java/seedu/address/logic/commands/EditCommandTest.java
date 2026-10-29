@@ -14,6 +14,7 @@ import static seedu.address.logic.commands.CommandTestUtil.assertCommandSuccess;
 import static seedu.address.logic.commands.CommandTestUtil.showPersonAtIndex;
 import static seedu.address.testutil.TypicalIndexes.INDEX_FIRST_PERSON;
 import static seedu.address.testutil.TypicalIndexes.INDEX_SECOND_PERSON;
+import static seedu.address.testutil.TypicalIndexes.INDEX_THIRD_PERSON;
 import static seedu.address.testutil.TypicalPersons.getTypicalAddressBook;
 import static seedu.address.testutil.TypicalTimes.EARLIER;
 import static seedu.address.testutil.TypicalTimes.EARLIEST;
@@ -232,6 +233,22 @@ public class EditCommandTest {
 
         assertTrue(model.getFilteredPersonList().isEmpty());
         assertNull(model.getViewedPerson().get());
+    }
+
+    @Test
+    public void execute_editDifferentPersonWhileViewedPersonHidden_keepsSelection() throws Exception {
+        new ViewCommand(INDEX_THIRD_PERSON).execute(model);
+        Person viewedPerson = model.getViewedPerson().get();
+        model.updateFilteredPersonList(new NameContainsKeywordsPredicate(List.of("Benson")));
+        assertFalse(model.getFilteredPersonList().contains(viewedPerson));
+
+        EditCommand editCommand = new EditCommand(INDEX_FIRST_PERSON,
+                new EditPersonDescriptorBuilder().withEmail("new@example.com").build());
+        editCommand.execute(model);
+
+        assertEquals(1, model.getFilteredPersonList().size());
+        assertEquals("new@example.com", model.getFilteredPersonList().get(0).getEmail().value);
+        assertEquals(viewedPerson, model.getViewedPerson().get());
     }
 
     @Test
