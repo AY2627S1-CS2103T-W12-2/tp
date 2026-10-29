@@ -94,6 +94,8 @@ Format: `help`
 
 ### Adding a contact: `add`
 
+A successful add reports `New contact added:` followed by the contact details.
+
 Adds a contact to LarperBoard.
 
 Format: `add n/NAME [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`
@@ -108,6 +110,7 @@ name, so the same tag always looks the same in the contact list and detail panel
 * `PHONE` is optional and must contain 3 to 20 digits when supplied.
 * `EMAIL` is optional and must be a valid email address of at most 254 characters when supplied.
 * A contact is a duplicate when its name matches an existing contact's name ignoring case and its phone number is the same. A different phone number permits the same name. Duplicate contacts cannot be added.
+  LarperBoard reports `A contact with this name and phone number already exists. Edit that contact instead.`
 * In the contact list, a card shows its tags on a single row. If they do not all fit, the row ends with `+N`, where `N` is the number of tags left out. Use `view INDEX` to see all of a contact's tags.
 
 Examples:
@@ -170,6 +173,8 @@ Use sort added, sort edited, or sort viewed (case-insensitive).
 
 ### Editing a contact: `edit`
 
+A successful edit reports `Edited contact:` followed by the contact details. A duplicate edit reports `Another contact has this name and phone number. Choose a different name or phone number.`
+
 Edits an existing contact in LarperBoard.
 
 Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`
@@ -180,8 +185,9 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…�
 * When editing tags, all of the contact's existing tags are replaced; adding tags with `edit` is not cumulative.
 * To remove all of a contact's tags, enter `t/` without a tag after it.
 * To remove a contact's LinkedIn handle, enter `l/` without a handle after it.
-* If the supplied values already match the contact, the command reports `Contact unchanged:` followed by the
+* If the supplied values already match the contact, the command reports `Person unchanged:` followed by the
   contact's details. The displayed list, activity times, and undo history stay unchanged.
+* If an edit would give two contacts the same name and phone number, choose a different name or phone number.
 
 Examples:
 * `edit 1 p/91234567 e/johndoe@example.com` changes the 1st contact's phone number and email address to `91234567` and `johndoe@example.com`.
@@ -195,8 +201,8 @@ Format: `tag INDEX t/TAG [t/TAG]…​`
 
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
 * At least one nonempty `t/TAG` is required. A tag must be 1 to 20 characters long and contain only `A`–`Z`, `a`–`z`, digits, hyphens (`-`), or plus signs (`+`).
-* Tags are stored in lowercase. Repeating a tag with different capitalization, or adding a tag the contact already has, keeps only one copy. The command still reports success if every requested tag is already present.
-* A successful command reports `Updated contact:` followed by the contact's details.
+* Tags are stored in lowercase. Repeating a tag with different capitalization, or adding a tag the contact already has, keeps only one copy. If every requested tag is already present, the command reports `Tags unchanged:` followed by the contact's details. The last-edited time and undo history stay unchanged.
+* When tags are added, the command reports `Updated contact:` followed by the contact's details.
 * Use `edit INDEX t/TAG` to replace all tags, or `edit INDEX t/` to remove them all.
 
 Examples:
@@ -384,6 +390,8 @@ Input | Message
 
 ### Deleting a contact: `delete`
 
+A successful deletion reports `Deleted contact:` followed by the deleted contact details.
+
 Deletes the specified contact from the displayed list.
 
 Format: `delete INDEX`
@@ -441,9 +449,13 @@ Failed `view` commands do not replace the viewed contact or update its activity 
 
 ### Clearing all entries: `clear`
 
+Clearing a nonempty list reports `All contacts have been cleared!`.
+
 Clears all contacts from LarperBoard.
 
 Format: `clear`
+
+If there are no contacts, LarperBoard reports `No contacts to clear.`
 
 ### Undoing a contact change: `undo`
 
@@ -461,6 +473,9 @@ view time is kept for a contact that survives the undo; restoring a deleted cont
 as a new view. The history is not saved: after closing and reopening LarperBoard, restored contact
 data remains in the JSON file, but no earlier undo steps are available.
 
+For example, `add n/Jane Tan` followed by `undo` removes Jane. A second `undo` reports
+`Nothing to undo.` if there were no earlier contact changes in this session.
+
 ### Redoing an undone contact change: `redo`
 
 Reapplies the most recently undone contact change in the current app session and saves the restored
@@ -475,7 +490,12 @@ changes that leave contacts unchanged, and view or list commands keep them. Phot
 saved photo reference; imported image files are retained. Redo history is not available after the
 app is closed and reopened, although the redone contacts remain in the data file.
 
+For example, after `add n/Jane Tan` and `undo`, `redo` restores Jane. Adding a different contact
+before `redo` instead removes that redo step.
+
 ### Exiting the program: `exit`
+
+The exit message is `Exiting LarperBoard ...`.
 
 Closes LarperBoard when you have finished. You do not need to save first: your contacts are already saved to the data file after every change.
 

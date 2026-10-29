@@ -12,6 +12,7 @@ import javafx.scene.input.KeyCombination;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import javafx.util.Duration;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.commons.core.LogsCenter;
@@ -68,6 +69,13 @@ public class MainWindow extends UiPart<Stage> {
      * and the data file path to show in the status bar.
      */
     public MainWindow(Stage primaryStage, Logic logic, Path dataFilePath) {
+        this(primaryStage, logic, dataFilePath, new HelpWindow());
+    }
+
+    /**
+     * Creates a {@code MainWindow} that uses the given {@code HelpWindow}, so that tests can observe it.
+     */
+    MainWindow(Stage primaryStage, Logic logic, Path dataFilePath, HelpWindow helpWindow) {
         super(FXML, primaryStage);
 
         // Set dependencies
@@ -80,7 +88,9 @@ public class MainWindow extends UiPart<Stage> {
 
         setAccelerators();
 
-        helpWindow = new HelpWindow();
+        this.helpWindow = helpWindow;
+        // the help window must not outlive the main window, even if it is hidden without a close request
+        primaryStage.addEventHandler(WindowEvent.WINDOW_HIDDEN, event -> helpWindow.hide());
     }
 
     public Stage getPrimaryStage() {

@@ -58,7 +58,8 @@ public class AddCommandTest {
         AddCommand addCommand = new AddCommand(duplicatePerson);
         ModelStub modelStub = new ModelStubWithPerson(existingPerson);
 
-        assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, () -> addCommand.execute(modelStub));
+        assertThrows(CommandException.class, "A contact with this name and phone number already exists. "
+                + "Edit that contact instead.", () -> addCommand.execute(modelStub));
     }
 
     @Test

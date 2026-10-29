@@ -12,12 +12,14 @@ public class ClearCommand extends Command {
 
     public static final String COMMAND_WORD = "clear";
     public static final String MESSAGE_SUCCESS = "All contacts have been cleared!";
+    public static final String MESSAGE_ALREADY_EMPTY = "No contacts to clear.";
 
 
     @Override
     public CommandResult execute(Model model) {
         requireNonNull(model);
+        boolean alreadyEmpty = model.getAddressBook().getPersonList().isEmpty();
         model.setAddressBook(new AddressBook());
-        return new CommandResult(MESSAGE_SUCCESS);
+        return new CommandResult(alreadyEmpty ? MESSAGE_ALREADY_EMPTY : MESSAGE_SUCCESS);
     }
 }
