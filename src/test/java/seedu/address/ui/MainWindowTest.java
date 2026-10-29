@@ -143,7 +143,7 @@ public class MainWindowTest {
     }
 
     /*
-     * The three tests below do not show the window, because opening real windows crashes the macOS CI runner.
+     * The tests below do not show the window, because opening real windows crashes the macOS CI runner.
      * Closing the window always saves the window settings just before it hides the window, so they count the
      * calls to Logic#setGuiSettings to tell when the window has been closed.
      */
@@ -215,6 +215,57 @@ public class MainWindowTest {
 
             assertEquals(1, logic.closeCount.get());
         });
+    }
+
+    @Test
+    public void closeRequest_closesHelpWindow() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        RecordingLogic logic = new RecordingLogic(newLogic(dataFile));
+
+        runOnFxThread(() -> {
+            RecordingHelpWindow helpWindow = new RecordingHelpWindow();
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile, helpWindow);
+            mainWindow.fillInnerParts();
+            Stage stage = mainWindow.getPrimaryStage();
+
+            stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
+
+            assertTrue(helpWindow.hideCount.get() > 0, "The help window should be hidden");
+            assertEquals(1, logic.closeCount.get());
+        });
+    }
+
+    @Test
+    public void mainWindowHidden_withoutCloseRequest_closesHelpWindow() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        RecordingLogic logic = new RecordingLogic(newLogic(dataFile));
+
+        runOnFxThread(() -> {
+            RecordingHelpWindow helpWindow = new RecordingHelpWindow();
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile, helpWindow);
+            mainWindow.fillInnerParts();
+            Stage stage = mainWindow.getPrimaryStage();
+
+            // hiding the stage directly skips the close request, so the event is fired by hand
+            stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_HIDDEN));
+
+            assertTrue(helpWindow.hideCount.get() > 0, "The help window should be hidden");
+        });
+    }
+
+    /** A {@code HelpWindow} that counts how many times it is hidden. */
+    private static class RecordingHelpWindow extends HelpWindow {
+        private final AtomicInteger hideCount = new AtomicInteger();
+
+        RecordingHelpWindow() {
+            super(new Stage());
+        }
+
+        @Override
+        public void hide() {
+            hideCount.incrementAndGet();
+            super.hide();
+        }
     }
 
     /** Passes everything on to {@code delegate}, and counts how many times the window settings are saved. */
