@@ -45,7 +45,7 @@ LarperBoard is a desktop app for keeping track of people you meet at hackathons.
 
 ## Features
 
-This guide describes v1.4.1. `sort` supports `added`, `edited`, and `viewed`. Separate
+This guide describes the v1.5 release candidate. `sort` supports `added`, `edited`, and `viewed`. Separate
 `find`, `group`, and `filter` commands replace the previous filter; combined filters
 and `sort name` / `sort starred` from [#128](https://github.com/AY2627S1-CS2103T-W12-2/tp/issues/128) are deferred.
 
@@ -431,7 +431,7 @@ Format: `view INDEX`
 
 Examples:
 * `view 1` shows the 1st displayed contact.<br>
-  ![result for 'view 1'](images/Ui-v1.4.1.png)
+  ![result for 'view 1'](images/Ui-v1.5.png)
 * `find Aisha` followed by `view 1` shows the 1st contact in the search results.
 
 If the contact cannot be viewed, LarperBoard shows these errors:
@@ -543,9 +543,9 @@ Command | Use it to | Date prefix | Example
 
 Record where, when, and in what role you met someone. To plan a later contact, use [`followup`](#setting-a-follow-up-date-followup); see [which command to use](#choosing-between-meeting-followup-and-due).
 
-![Meeting feature at 1280×720](images/meeting-v1.4.1.png)
+![Meeting feature at 1280×720](images/meeting-v1.5.png)
 
-[View the simulated 150% layout](images/meeting-v1.4.1-150percent.png).
+[View the simulated 150% layout](images/meeting-v1.5-150percent.png).
 
 Format: `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]`
 
@@ -644,9 +644,9 @@ Examples:
 
 ### Contact photos: `photo`
 
-![Photo feature at 1280×720](images/photo-v1.4.1.png)
+![Photo feature at 1280×720](images/photo-v1.5.png)
 
-[View the simulated 150% layout](images/photo-v1.4.1-150percent.png).
+[View the simulated 150% layout](images/photo-v1.5-150percent.png).
 
 Format: `photo INDEX f/RELATIVE_PATH` or `photo INDEX clear`
 
@@ -748,8 +748,12 @@ Each contact can also have an optional `followUpDate` field, a date written like
 ## Known issues
 
 Meeting text counts supplementary characters twice, and an event preview can split a surrogate pair
-when truncated. The pending [Unicode fix](https://github.com/AY2627S1-CS2103T-W12-2/tp/pull/181)
-is not included in v1.4.1.
+when truncated. [PR #181](https://github.com/AY2627S1-CS2103T-W12-2/tp/pull/181) was closed
+without merging; this limitation remains in v1.5.
+
+Typed name search can differ from plain search for some Unicode case variants: for example,
+`find οσ` finds a contact named `ΟΣ`, while `find n/οσ` does not. Use plain search with the
+full name word as a workaround. Accent composition is supported in both forms.
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
