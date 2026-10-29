@@ -120,10 +120,29 @@ public class ActiveFilterStatusTest {
         logic.execute("delete 1");
         assertEquals("Find results - Original order - 0 contact(s)", status());
         logic.execute("add n/Carl p/91234567");
-        assertEquals("Original order - 2 contact(s)", status());
+        assertEquals("Find results - Original order - 0 contact(s)", status());
         logic.execute("group t/java");
         logic.execute("clear");
         assertEquals("Group: java - Original order - 0 contact(s)", status());
+    }
+
+    @Test
+    public void execute_addWhileFiltered_keepsFilterAndUpdatesCount() throws Exception {
+        logic.execute("filter starred");
+        logic.execute("add n/Carol p/91234567");
+        assertEquals("Starred only - Original order - 1 contact(s)", status());
+        assertEquals(List.of(ALICE.getName()), model.getFilteredPersonList().stream().map(Person::getName).toList());
+
+        logic.execute("group t/react");
+        logic.execute("add n/Dave p/91234568 t/react");
+        assertEquals("Group: react - Original order - 2 contact(s)", status());
+
+        logic.execute("add n/Erin p/91234569");
+        assertEquals("Group: react - Original order - 2 contact(s)", status());
+        assertEquals(5, model.getAddressBook().getPersonList().size());
+
+        logic.execute("list");
+        assertEquals("Original order - 5 contact(s)", status());
     }
 
     @Test
