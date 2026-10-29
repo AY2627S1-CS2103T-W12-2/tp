@@ -342,7 +342,7 @@ Design considerations:
 ### Activity-time sorting
 
 `SortCommandParser` trims the argument and normalizes it with `Locale.ROOT` before matching `added`, `edited`,
-or `viewed`. Sort keywords are case-insensitive regardless of the system locale; unsupported keywords and extra
+or `viewed`. Sort keywords are case-insensitive regardless of the system locale; unsupported keywords (such as `name` or `due`), missing arguments, and extra
 arguments still produce the invalid-format error with the short sort hint.
 
 `SortCommand` passes a `SortCriterion` (`ADDED`, `EDITED`, or `VIEWED`) to `ModelManager`. The model keeps one
@@ -381,11 +381,11 @@ This does not change selection rules or implement combined filters from #128.
 
 ### Viewed contact selection
 
-The `find`, `group`, and `filter` commands only update the visible-list predicate;
+The `find`, `group`, `filter`, `due`, `sort`, and `list` commands only update the visible-list predicate or sort;
 they do not clear `Model#getViewedPerson()` when a contact is filtered out.
 The detail selection is independent of list membership, including for zero results.
 A subsequent `view` selects by displayed index, while deleting the viewed contact
-or clearing the address book still clears the detail selection.
+or clearing the address book clears the detail selection. When the viewed contact is edited by `FollowUpCommand`, `MeetingCommand`, `StarCommand`, or `EditCommand` so that it leaves the visible list, the command clears the viewed contact (leaving a hidden viewed contact when editing a different contact is tracked in #227).
 
 ### Starring contacts
 
@@ -496,9 +496,9 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 | Nice-to-have | Shipped | user | undo my last destructive CLI action | avoid losing important contact information because of a fast typo |
 | Nice-to-have | Shipped | hackathon participant | clear all data or reset my board | start fresh for a brand new hackathon event |
 | Nice-to-have | Shipped | user | group people together | organize everyone I met at a specific track or workshop |
-| Unlikely-to-have | Partial (typed `find` matches part of a name, tag, note or event; plain `find` matches whole words; no fuzzy match) | forgetful participant | search contacts using partial text or fuzzy matching | find a person even if I only remember part of their name or handle |
-| Nice-to-have | Partial (sort by added, edited or viewed time only) | user | sort people by keywords | easily find people using keywords |
-| Unlikely-to-have | Partial (`filter starred`, `group`, and typed `find` with AND across fields; no saved or arbitrary queries) | power user | filter contacts | execute complex queries on my network |
+| Unlikely-to-have | Partial (typed `find` matches part of a name, tag, note or event; plain `find` matches whole name words; no fuzzy or LinkedIn-handle search) | forgetful participant | search contacts using partial text or fuzzy matching | find a person even if I only remember part of their name or handle |
+| Nice-to-have | Partial (sort by added, edited or viewed time only; no arbitrary keyword sort) | user | sort people by keywords | easily find people using keywords |
+| Unlikely-to-have | Partial (`filter starred`, `group`, `due`, and typed `find` with AND across fields; filters replace one another; no saved or arbitrary queries) | power user | filter contacts | execute complex queries on my network |
 | Must-have | Shipped | hackathon participant | attach project tags or stack keywords | remember what tech stack or project a participant is cracked at |
 | Nice-to-have | Shipped | forgetful participant | add rapid freeform notes (e.g., "Met at booth 4") | remember the context when following up after the event |
 | Nice-to-have | Shipped | hackathon participant | mark high-priority contacts with a "starred" flag | easily filter and focus on standout individuals |
@@ -586,7 +586,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 **MSS**
 
 1. User requests to find contacts using plain name keywords or typed search terms.
-2. LarperBoard performs a case-insensitive search. Plain name keywords use OR; repeated typed terms within one field use OR and terms across fields use AND.
+2. LarperBoard performs a case-insensitive search and replaces the active filter while preserving any active sort and the viewed contact. Plain name keywords match whole words using OR; typed `n/`, `t/`, `nt/`, and `ev/` terms match partial text using OR within one field and AND across fields.
 3. LarperBoard displays the matching contacts and reports `N contact(s) listed!`, where `N` is the number of matches.
 
    Use case ends.
@@ -611,7 +611,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 **MSS**
 
 1. User requests to group contacts by one tag.
-2. LarperBoard filters the displayed contact list to contacts with the specified tag, ignoring tag letter case.
+2. LarperBoard replaces the active filter with contacts having the specified tag (ignoring tag letter case), while preserving any active sort and the viewed contact.
 3. LarperBoard displays the selected tag and the number of matching contacts.
 4. User enters `list` to return to the full contact list.
 
@@ -619,7 +619,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 
 **Extensions**
 
-* 1a. The user omits the tag or provides an invalid tag.
+* 1a. The user omits `t/TAG`, includes extra text before `t/`, provides an invalid tag, or supplies multiple `t/` fields.
   * 1a1. LarperBoard displays an error message.
 
     Use case resumes at step 1.
@@ -669,7 +669,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 **MSS**
 
 1. User requests to list all persons.
-2. LarperBoard displays all persons and their contact details.
+2. LarperBoard clears the active filter and sort, and displays all persons in their original order while retaining the viewed contact.
 
    Use case ends.
 
@@ -764,7 +764,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 1. User requests to list persons.
 2. LarperBoard shows a list of persons.
 3. User requests to view the full details of a specific person by index.
-4. LarperBoard opens and updates the detailed view panel showing all stored attributes (full name, phone, email, LinkedIn handle, and categorised tag chips with colour codes) of the selected person.
+4. LarperBoard updates the contact's last-viewed time, saves the address book, and shows the selected person's full details in the detail panel (name, ★ when starred, photo or placeholder, phone, email, LinkedIn handle, sorted colour-coded tags, note, meeting event/date/role, follow-up date, and created/last-edited/last-viewed times in Singapore time, using `-` for absent fields and `—` for unknown times).
 
    Use case ends.
 
@@ -925,6 +925,32 @@ Given below are instructions to test the app manually.
       Expected: The most recent window size and location are retained.
 
 1. _{ more test cases …​ }_
+
+### Search, grouping, and contact view
+
+1. Prerequisites: Start with the sample contacts (`Aisha Rahman` is the 1st contact and has `l/aisha-rahman` and tags `react`, `frontend`). Run `list`, then `note 1 nt/Met at c/o booth`, `meeting 1 ev/AI/ML Hackathon`, and `view 1`.
+
+1. Test case: `find Aisha`, then `find Aish`<br>
+   Expected: `find Aisha` lists Aisha (`1 contact(s) listed!`, and the line above the list says `Find results - Original order - 1 contact(s)`). `find Aish` shows an empty list (`0 contact(s) listed!`), and the detail panel still shows Aisha.
+
+1. Test case: `find n/Aish t/react nt/c/o ev/ai/ml`<br>
+   Expected: `1 contact(s) listed!` Typed `find` matches part of each field and accepts `/` in `c/o` and `ai/ml`.
+
+1. Test case: `find n/Aisha e/aisha@example.com`<br>
+   Expected: `Invalid command format!` followed by the `find` usage. The list, the line above the list, and the detail panel do not change. Other commands to try: `find n/Aisha l/aisha-rahman`, `find nt/likes r/java`, `find n/`.<br>
+   Expected: The same message.
+
+1. Test case: `find Aisha n/Aisha`<br>
+   Expected: `Use either plain keywords or field prefixes in one find command.` followed by `Example: find Alex or find n/Alex t/react.` The list and the detail panel do not change.
+
+1. Test case: `group t/REACT`, then `group t/nonexistent`<br>
+   Expected: `group t/REACT` shows `Group: [react]` followed by a new line and `1 contact(s) listed!`, and the line above the list says `Group: react - Original order - 1 contact(s)`. `group t/nonexistent` shows an empty list and `0 contact(s) listed!`, and the detail panel still shows Aisha.
+
+1. Test case: `group react`, `group t/react!`, and `group t/react t/frontend`<br>
+   Expected: Each command is rejected (`Invalid command format!` with usage, the tag constraint message, and `Multiple values specified for the following single-valued field(s): t/`). The list and the detail panel do not change.
+
+1. Test case: while `group t/nonexistent` shows 0 contacts, run `view 1`, then `list`, then `view 2147483648` and `view 1 2`<br>
+   Expected: `view 1` on the empty list gives `The person list is empty.` `list` shows all contacts again (`Listed all contacts.`, and the line above the list says `Original order - 6 contact(s)`). `view 2147483648` gives `The person index provided is invalid.` `view 1 2` gives `Invalid command format!`, `Only one index parameter is accepted.`, and the `view` usage.
 
 ### Search and list error feedback
 
