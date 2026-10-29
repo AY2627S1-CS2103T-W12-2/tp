@@ -377,6 +377,9 @@ Exits the program.
 
 Format: `exit`
 
+* After `exit`, the window stays open for about one second so that you can read the message in the result box, then it closes. The command box does not accept input during that time.
+* Choosing **Exit** from the **File** menu, or closing the window with its close button, closes LarperBoard at once.
+
 ### Recalling previous commands: Up and Down arrows
 
 Brings back commands that you submitted earlier in the same session, so that you can run or fix them without typing them again.

@@ -25,11 +25,14 @@ import org.junit.jupiter.api.io.TempDir;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.scene.control.Label;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.StackPane;
 import javafx.stage.Stage;
+import javafx.stage.WindowEvent;
 import seedu.address.logic.Logic;
 import seedu.address.logic.LogicManager;
+import seedu.address.logic.commands.ExitCommand;
 import seedu.address.model.ModelManager;
 import seedu.address.model.UserPrefs;
 import seedu.address.storage.JsonAddressBookStorage;
@@ -53,6 +56,8 @@ public class MainWindowTest {
         } catch (IllegalStateException e) {
             // toolkit already started
         }
+        // closing the only window must not shut the toolkit down for the tests that run after it
+        Platform.setImplicitExit(false);
     }
 
     @Test
@@ -126,6 +131,81 @@ public class MainWindowTest {
 
         assertTrue(logged.stream().anyMatch(message -> message.contains("note [hidden]")), logged.toString());
         assertTrue(logged.stream().noneMatch(message -> message.contains("private text")), logged.toString());
+    }
+
+    @Test
+    public void executeCommand_exit_keepsWindowOpenLongEnoughToReadTheMessageThenCloses() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        Logic logic = newLogic(dataFile);
+        CountDownLatch closed = new CountDownLatch(1);
+
+        runOnFxThread(() -> {
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile);
+            mainWindow.fillInnerParts();
+            mainWindow.show();
+            Stage stage = mainWindow.getPrimaryStage();
+            stage.showingProperty().addListener((observable, wasShowing, isShowing) -> {
+                if (!isShowing) {
+                    closed.countDown();
+                }
+            });
+            TextField commandBox = (TextField) stage.getScene().getRoot().lookup("#commandTextField");
+            commandBox.setText("exit");
+            commandBox.fireEvent(new ActionEvent());
+
+            // straight after the command the message is on screen, the window is still open and takes no input
+            TextArea resultDisplay = (TextArea) stage.getScene().getRoot().lookup("#resultDisplay");
+            assertEquals(ExitCommand.MESSAGE_EXIT_ACKNOWLEDGEMENT, resultDisplay.getText());
+            assertTrue(stage.isShowing());
+            assertTrue(commandBox.isDisabled());
+        });
+
+        assertTrue(closed.await(5, TimeUnit.SECONDS), "The window should close after the pause");
+    }
+
+    @Test
+    public void closeRequest_duringTheExitPause_closesAtOnce() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        Logic logic = newLogic(dataFile);
+
+        runOnFxThread(() -> {
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile);
+            mainWindow.fillInnerParts();
+            mainWindow.show();
+            Stage stage = mainWindow.getPrimaryStage();
+            TextField commandBox = (TextField) stage.getScene().getRoot().lookup("#commandTextField");
+            commandBox.setText("exit");
+            commandBox.fireEvent(new ActionEvent());
+            assertTrue(stage.isShowing());
+
+            stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
+
+            assertFalse(stage.isShowing());
+        });
+    }
+
+    @Test
+    public void closeRequest_withoutExitCommand_closesAtOnce() throws Exception {
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        Logic logic = newLogic(dataFile);
+
+        runOnFxThread(() -> {
+            MainWindow mainWindow = new MainWindow(new Stage(), logic, dataFile);
+            mainWindow.fillInnerParts();
+            mainWindow.show();
+            Stage stage = mainWindow.getPrimaryStage();
+            assertTrue(stage.isShowing());
+
+            stage.fireEvent(new WindowEvent(stage, WindowEvent.WINDOW_CLOSE_REQUEST));
+
+            assertFalse(stage.isShowing());
+        });
+    }
+
+    private Logic newLogic(Path dataFile) {
+        StorageManager storage = new StorageManager(new JsonAddressBookStorage(dataFile),
+                new JsonUserPrefsStorage(temporaryFolder.resolve("userPrefs.json")));
+        return new LogicManager(new ModelManager(getTypicalAddressBook(), new UserPrefs()), storage);
     }
 
     /**
