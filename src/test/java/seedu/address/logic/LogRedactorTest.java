@@ -46,6 +46,15 @@ public class LogRedactorTest {
     }
 
     @Test
+    public void redactCommand_commandWordInAnyLetterCase_stillHidesPersonalText() {
+        assertEquals("NOTE [hidden]", LogRedactor.redactCommand("NOTE 1 nt/private text"));
+        assertEquals("Meeting [hidden]", LogRedactor.redactCommand("Meeting 1 ev/Private event"));
+        assertEquals("FIND [hidden]", LogRedactor.redactCommand("FIND nt/Private note"));
+        assertEquals("[hidden]", LogRedactor.redactArguments("NOTE", " 1 nt/private text"));
+        assertEquals("FIND Alice", LogRedactor.redactCommand("FIND Alice"));
+    }
+
+    @Test
     public void redactCommand_otherCommands_areUnchanged() {
         assertEquals("note", LogRedactor.redactCommand("note"));
         assertEquals("delete 1", LogRedactor.redactCommand("delete 1"));

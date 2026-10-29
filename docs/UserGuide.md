@@ -54,6 +54,9 @@ and `sort name` / `sort starred` from [#128](https://github.com/AY2627S1-CS2103T
 * Words in `UPPER_CASE` are the parameters to be supplied by the user.<br>
   For example, in `add n/NAME`, replace `NAME` with a value such as `John Doe`.
 
+* Command words are not case-sensitive.<br>
+  For example, `list`, `List` and `LIST` all work. Prefixes such as `n/` and `t/` must still be typed in lowercase.
+
 * Items in square brackets are optional.<br>
   For example, `n/NAME [t/TAG]` can be used as `n/John Doe t/friend` or as `n/John Doe`.
 
@@ -135,7 +138,7 @@ the contact list, and the result message is `Sorted by CRITERION (newest first).
 Format: `sort added|edited|viewed`
 
 * Sort keywords are case-insensitive: `sort Added`, `sort ADDED`, and `sort added` behave the same.
-  The command word remains lowercase: `sort`.
+  So is the command word, so `SORT added` works too.
 * `sort added` puts most recently added contacts first.
 * `sort edited` puts most recently edited contacts first.
 * `sort viewed` puts most recently viewed contacts first. Viewing a contact can therefore move it in this list.
