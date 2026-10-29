@@ -630,6 +630,14 @@ public class LogicManagerTest {
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX));
             assertParseException("note 1 nt/" + (secret + " ").repeat(100), Note.MESSAGE_TOO_LONG);
             assertCommandException("note 9 nt/" + secret, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+            logic.execute("NOTE 1 nt/" + secret);
+            assertParseException("NOTE 1 NT/" + secret,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX));
+            logic.execute("find nt/" + secret);
+            assertParseException("find NT/" + secret,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
+            assertParseException("FIND Nt/" + secret,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         } finally {
             for (int i = 0; i < loggers.length; i++) {
                 loggers[i].removeHandler(handler);
@@ -677,6 +685,8 @@ public class LogicManagerTest {
             assertCommandException("meeting 9 ev/" + secret, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
             logic.execute("find ev/" + secret);
             assertParseException("find Alice ev/" + secret, FindCommand.MESSAGE_MIXED_SEARCH);
+            assertParseException("find EV/" + secret,
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE));
         } finally {
             for (int i = 0; i < loggers.length; i++) {
                 loggers[i].removeHandler(handler);
