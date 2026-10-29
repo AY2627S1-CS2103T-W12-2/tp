@@ -105,7 +105,7 @@ Examples:
 
 ### Listing all contacts: `list`
 
-Clears the active contact filter and sort, then shows all contacts in their original order.
+Clears the active contact filter and sort, then shows all contacts in their original order. The result message is `Listed all persons.`, even when the list is empty. Any text typed after `list` is ignored.
 
 Format: `list`
 
@@ -116,29 +116,31 @@ Format: `list`
 
 The heading above the contact list keeps showing the active filter, order, and result count,
 even after another command such as `view` replaces the command-result message.
-For example, `group t/react` shows `Group: react - Original order - 6 contact(s)` when six contacts match.
+When all contacts are shown in their original order, the heading is `Original order - N contact(s)`. For example, `group t/react` shows `Group: react - Original order - 6 contact(s)` when six contacts match.
 `filter starred` shows `Starred only`, while plain and typed `find` show `Find results`.
 The search heading identifies an active search but does not repeat the search terms.
-`due` shows `Due on/before YYYY-MM-DD`, using the date when the command ran.
+`due` shows `Due on/before YYYY-MM-DD`, using the date when the command ran, and sets the order part to `Sorted by due`.
 
 Changing the filter replaces its label; filters do not combine in this release.
-Sorting preserves the filter label, and the count updates when contacts change, including to zero.
-`filter starred off` removes the filter label while keeping the sort.
+Sorting sets the order part to `Sorted by added`, `Sorted by edited`, or `Sorted by viewed` while keeping the filter label, and the count updates when contacts change, including to zero.
+`filter starred off` removes the filter label while keeping the sort. Adding a contact shows all contacts again while keeping the sort.
 
 ### Sorting contacts by activity time: `sort`
 
 Sorts the currently displayed contacts by a recorded activity time. The active order and result count are shown above
-the contact list.
+the contact list, and the result message is `Sorted by CRITERION (newest first).` followed by `N contact(s) listed!`.
 
 Format: `sort added|edited|viewed`
 
+* The keywords `added`, `edited`, and `viewed` must be in lowercase. Any other word (such as `sort name` or `sort due`), uppercase (such as `sort Added`), a missing keyword, or extra text gives `Invalid command format!` followed by the command usage.
 * `sort added` puts most recently added contacts first.
 * `sort edited` puts most recently edited contacts first.
 * `sort viewed` puts most recently viewed contacts first. Viewing a contact can therefore move it in this list.
 * Contacts without the chosen recorded time appear last. Contacts with equal times keep their original list order.
+* `sort` keeps the current filter (`find`, `group`, `filter starred`, or `due`) and the viewed contact. Later `find`, `group`, and `filter` commands keep the sort.
 * The displayed indexes follow the order you see, so commands such as `view`, `edit`, `delete`, and `tag` use the
   sorted contact index.
-* Use `list` to return to the full, original-order list after `find` or `group`.
+* Use `list` to return to the full, original-order list.
 
 Examples:
 
@@ -212,7 +214,7 @@ A valid `note` command when the displayed list is empty | `The person list is em
 
 ### Locating contacts: `find`
 
-Use plain name keywords or typed field prefixes. A valid search may return zero contacts.
+Use plain name keywords or typed field prefixes. Both forms report `N person(s) listed!`, where `N` is the number of matches. No contact matching is a normal result: the list is empty and the message is `0 person(s) listed!`. `find` replaces the current `find`, `group`, `filter`, or `due` result while keeping any active sort and the viewed contact.
 
 Plain format: `find KEYWORD [MORE_KEYWORDS]…​`
 
@@ -232,7 +234,7 @@ Typed format: `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`
   Ordinary slash-containing text in typed terms, such as `find ev/ai/ml workshop` or `find nt/c/o NUS`, remains valid.
   This also means a note or event search cannot contain these reserved prefixes after whitespace:
   `find nt/likes r/java` is rejected even if `r/java` is intended as literal note text.
-* Indexes always refer to the contacts currently displayed. Use `list` to return to the full list.
+* Indexes always refer to the contacts currently displayed. Use `list` to return to the full, original-order list. A rejected `find` command leaves the list, the heading, and the viewed contact as they were.
 
 Examples:
 * `find Aisha Ben` finds contacts named `Aisha Rahman` or `Ben Tan` when both have been added.
@@ -245,10 +247,11 @@ Shows contacts with the specified tag.
 
 Format: `group t/TAG`
 
-* Tag matching is case-insensitive.
-* The result message shows the selected tag and the number of matching contacts.
-* `group` replaces the current `find` or `group` result rather than combining with it.
-* Use `list` to return to the full contact list.
+* Tag matching is case-insensitive and matches the whole tag name. A tag must follow the same rules as `tag` (1 to 20 letters, digits, hyphens, or plus signs).
+* The result message is `Group: [TAG]` followed by a new line and `N contact(s) listed!`. No contact having the tag is a normal result: the list is empty and `N` is `0`.
+* `group` replaces the current `find`, `group`, `filter`, or `due` result rather than combining with it, while keeping any active sort and the viewed contact.
+* Missing `t/` or text before `t/` gives `Invalid command format!` followed by the command usage. An invalid tag gives the tag constraint message, and two `t/` fields give `Multiple values specified for the following single-valued field(s): t/`. A rejected command leaves the list and the viewed contact as they were.
+* Use `list` to return to the full, original-order contact list.
 
 Examples:
 * `group t/react`
@@ -315,10 +318,10 @@ Shows the selected contact's full details in the detail panel, next to the conta
 Format: `view INDEX`
 
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
-* The detail panel shows the contact's name, phone number, email, LinkedIn handle and all of their tags. A field that the contact does not have is shown as `-`.
-* The detail panel shows `No contact selected` until you view a contact. A successful command also reports `Now viewing:` followed by the contact's details.
-* The detail panel stays on the contact you viewed until you view someone else. It is updated if you edit or tag that contact, and goes back to `No contact selected` if you delete that contact or clear all entries.
-* `find`, `group`, and `filter` change the contact list without clearing the detail panel, even if the viewed contact is hidden or there are no results. A later `view INDEX` selects from the currently displayed results, not from the retained detail panel.
+* The detail panel shows the contact's name, a ★ when starred, their photo (or a `No photo` placeholder), phone number, email, LinkedIn handle, tags in alphabetical order, note, meeting event, meeting date, meeting role, follow-up date, and activity times. A field that the contact does not have is shown as `-` (`—` for an unknown activity time).
+* The detail panel shows `No contact selected` until you view a contact. A successful command also reports `Now viewing:` followed by the contact's name, phone, email, LinkedIn handle (if present), and tags.
+* The detail panel stays on the contact you viewed until you view someone else. It updates when you change that contact (`edit`, `tag`, `note`, `star`/`unstar`, `meeting`, `followup`, or `photo`), and goes back to `No contact selected` if you delete that contact, clear all entries, or change that contact so that it leaves the current filtered list (for example, `unstar` in the starred list, or clearing its follow-up date in the due list).
+* `find`, `group`, `filter`, `due`, `sort`, and `list` change the contact list without clearing the detail panel, even if the viewed contact is hidden or there are no results. A later `view INDEX` selects from the currently displayed results, not from the retained detail panel. A rejected `view` command leaves the viewed contact and its last viewed time as they were.
 
 Examples:
 * `view 1` shows the 1st displayed contact.<br>
@@ -623,7 +626,7 @@ Action | Format, Examples
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Exit** | `exit`
 **Filter** | `filter starred` or `filter starred off`
-**Find** | `find KEYWORD [MORE_KEYWORDS]…​` or `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`<br> e.g., `find n/James t/react`
+**Find** | `find KEYWORD [MORE_KEYWORDS]…​` or `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`<br> e.g., `find Aisha Ben`, `find n/James t/react`
 **Follow-up** | `followup INDEX d/YYYY-MM-DD` or `followup INDEX clear`<br> e.g., `followup 1 d/2026-10-25`
 **Group** | `group t/TAG`<br> e.g., `group t/react`
 **Help** | `help`
