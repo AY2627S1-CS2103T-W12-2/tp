@@ -180,7 +180,6 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…�
 * When editing tags, all of the contact's existing tags are replaced; adding tags with `edit` is not cumulative.
 * To remove all of a contact's tags, enter `t/` without a tag after it.
 * To remove a contact's LinkedIn handle, enter `l/` without a handle after it.
-* An edit that would give two contacts the same name and phone number is rejected. Use a different name or phone number.
 * If the supplied values already match the contact, the command reports `Person unchanged:` followed by the
   contact's details. The displayed list, activity times, and undo history stay unchanged.
 
@@ -196,7 +195,7 @@ Format: `tag INDEX t/TAG [t/TAG]…​`
 
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
 * At least one nonempty `t/TAG` is required. A tag must be 1 to 20 characters long and contain only `A`–`Z`, `a`–`z`, digits, hyphens (`-`), or plus signs (`+`).
-* Tags are stored in lowercase. Repeating a tag with different capitalization, or adding a tag the contact already has, keeps only one copy. The command still reports success if every requested tag is already present; the last-edited time and undo history stay unchanged.
+* Tags are stored in lowercase. Repeating a tag with different capitalization, or adding a tag the contact already has, keeps only one copy. The command still reports success if every requested tag is already present.
 * A successful command reports `Updated Person:` followed by the contact's details.
 * Use `edit INDEX t/TAG` to replace all tags, or `edit INDEX t/` to remove them all.
 
