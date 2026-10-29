@@ -17,6 +17,7 @@ import seedu.address.model.person.Meeting;
 
 /** Parses partial meeting updates and explicit clear forms without changing omitted fields. */
 public class MeetingCommandParser implements Parser<MeetingCommand> {
+    public static final String MESSAGE_DATE = "Enter a real meeting date as YYYY-MM-DD, e.g. 2026-10-29.";
     @Override
     public MeetingCommand parse(String args) throws ParseException {
         requireNonNull(args);
@@ -56,7 +57,7 @@ public class MeetingCommandParser implements Parser<MeetingCommand> {
                     fields.getValue(PREFIX_ROLE).orElse(null));
             return new MeetingCommand(index, updates, null);
         } catch (IllegalArgumentException e) {
-            throw new ParseException(e.getMessage(), e);
+            throw new ParseException(Meeting.MESSAGE_DATE.equals(e.getMessage()) ? MESSAGE_DATE : e.getMessage(), e);
         }
     }
 

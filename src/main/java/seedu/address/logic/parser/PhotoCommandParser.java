@@ -16,7 +16,9 @@ import seedu.address.storage.PhotoStorage;
 public class PhotoCommandParser implements Parser<PhotoCommand> {
     public static final Prefix PREFIX_FILE = new Prefix("f/");
     public static final String MESSAGE_QUOTED_PATH =
-            "If the path contains \" f/\", put the whole path in double quotes: f/\"my f/portrait.png\"";
+            "Use one f/ path. Quote paths containing \" f/\": f/\"my f/portrait.png\"";
+    public static final String MESSAGE_UNCLOSED_QUOTE =
+            "Close both double quotes around the path: f/\"portrait.png\"";
     private static final Pattern QUOTED_FILE = Pattern.compile("\\s*(\\S+)\\s+f/\\s*\"([^\"]*)\"\\s*");
     private final PhotoStorage photos;
 
@@ -47,7 +49,7 @@ public class PhotoCommandParser implements Parser<PhotoCommand> {
         try {
             fields.verifyNoDuplicatePrefixesFor(PREFIX_FILE);
         } catch (ParseException e) {
-            throw new ParseException(e.getMessage() + "\n" + MESSAGE_QUOTED_PATH, e);
+            throw new ParseException(MESSAGE_QUOTED_PATH, e);
         }
         Index index;
         try {
@@ -59,7 +61,7 @@ public class PhotoCommandParser implements Parser<PhotoCommand> {
             return new PhotoCommand(index, "", photos);
         }
         if (fields.getValue(PREFIX_FILE).orElse("").startsWith("\"")) {
-            throw new ParseException(usage().getMessage() + "\n" + MESSAGE_QUOTED_PATH);
+            throw new ParseException(MESSAGE_UNCLOSED_QUOTE);
         }
         if (preamble.length != 1 || fields.getValue(PREFIX_FILE).orElse("").isBlank()) {
             throw usage();

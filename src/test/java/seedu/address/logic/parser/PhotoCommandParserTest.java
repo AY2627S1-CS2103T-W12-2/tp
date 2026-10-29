@@ -4,9 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
 import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
-import static seedu.address.logic.Messages.getErrorMessageForDuplicatePrefixes;
 import static seedu.address.logic.parser.CommandParserTestUtil.assertParseFailure;
-import static seedu.address.logic.parser.PhotoCommandParser.PREFIX_FILE;
 import static seedu.address.testutil.Assert.assertThrows;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
 
@@ -30,7 +28,7 @@ public class PhotoCommandParserTest {
 
     private static final String INVALID_FORMAT = String.format(MESSAGE_INVALID_COMMAND_FORMAT,
             PhotoCommand.MESSAGE_USAGE);
-    private static final String QUOTE_HINT = "If the path contains \" f/\", put the whole path in double quotes: "
+    private static final String QUOTE_HINT = "Use one f/ path. Quote paths containing \" f/\": "
             + "f/\"my f/portrait.png\"";
 
     @TempDir
@@ -67,7 +65,7 @@ public class PhotoCommandParserTest {
         PhotoCommand command = new PhotoCommandParser(new PhotoStorage(folder)).parse(" 1 f/\"../portrait.png\"");
 
         assertThrows(CommandException.class,
-                PhotoStorage.MESSAGE_INVALID, () -> command.execute(model));
+                PhotoStorage.MESSAGE_PATH, () -> command.execute(model));
     }
 
     @Test
@@ -104,22 +102,22 @@ public class PhotoCommandParserTest {
         PhotoCommandParser parser = new PhotoCommandParser(new PhotoStorage(folder));
 
         assertParseFailure(parser, " 1 f/a.png f/b.png",
-                getErrorMessageForDuplicatePrefixes(PREFIX_FILE) + "\n" + QUOTE_HINT);
+                QUOTE_HINT);
     }
 
     @Test
     public void parse_unquotedPrefixInsidePath_explainsHowToQuoteIt() {
         PhotoCommandParser parser = new PhotoCommandParser(new PhotoStorage(folder));
         assertParseFailure(parser, " 1 f/my f/portrait.png",
-                getErrorMessageForDuplicatePrefixes(PREFIX_FILE) + "\n" + QUOTE_HINT);
+                QUOTE_HINT);
     }
 
     @Test
     public void parse_unclosedQuote_explainsHowToQuoteIt() {
         PhotoCommandParser parser = new PhotoCommandParser(new PhotoStorage(folder));
         assertParseFailure(parser, " 1 f/\"my f/portrait.png",
-                getErrorMessageForDuplicatePrefixes(PREFIX_FILE) + "\n" + QUOTE_HINT);
-        assertParseFailure(parser, " 1 f/\"portrait.png", INVALID_FORMAT + "\n" + QUOTE_HINT);
+                QUOTE_HINT);
+        assertParseFailure(parser, " 1 f/\"portrait.png", PhotoCommandParser.MESSAGE_UNCLOSED_QUOTE);
     }
 
     @Test

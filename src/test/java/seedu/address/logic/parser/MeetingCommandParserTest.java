@@ -75,6 +75,17 @@ public class MeetingCommandParserTest {
         assertParseFailure(parser, " 1 clear when", INVALID_FORMAT);
     }
 
+    @Test
+    public void parse_invalidFields_identifiesTheCorrectionWithoutEchoingInput() {
+        assertParseFailure(parser, " 1 ev/", Meeting.MESSAGE_EVENT);
+        assertParseFailure(parser, " 1 ev/" + "x".repeat(81), Meeting.MESSAGE_EVENT);
+        assertParseFailure(parser, " 1 r/", Meeting.MESSAGE_ROLE);
+        assertParseFailure(parser, " 1 r/" + "x".repeat(81), Meeting.MESSAGE_ROLE);
+        assertParseFailure(parser, " 1 md/2026-02-30", MeetingCommandParser.MESSAGE_DATE);
+        assertParseFailure(parser, " 1 md/", MeetingCommandParser.MESSAGE_DATE);
+        assertParseFailure(parser, " 1", MeetingCommand.MESSAGE_NO_UPDATE);
+    }
+
     /** Returns the meeting of the only contact after running {@code args}, starting from {@code meeting}. */
     private Meeting meetingAfter(String args, Meeting meeting) throws Exception {
         Model model = new ModelManager(new AddressBook(), new UserPrefs());

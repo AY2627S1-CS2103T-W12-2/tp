@@ -16,7 +16,7 @@ public class MeetingCommand extends Command {
     public static final String COMMAND_WORD = "meeting";
     public static final String MESSAGE_USAGE = "meeting INDEX ev/EVENT md/YYYY-MM-DD r/ROLE\n"
             + "Supply at least one field, or use meeting INDEX clear [event|date|role].";
-    public static final String MESSAGE_NO_UPDATE = "Specify a meeting field or use 'meeting INDEX clear'.";
+    public static final String MESSAGE_NO_UPDATE = "Add ev/, md/, or r/, or use: meeting INDEX clear.";
 
     private final Index index;
     private final Meeting updates;

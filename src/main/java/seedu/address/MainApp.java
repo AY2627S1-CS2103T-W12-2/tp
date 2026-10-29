@@ -82,7 +82,8 @@ public class MainApp extends Application {
             initialData = addressBookOptional.orElseGet(SampleDataUtil::getSampleAddressBook);
         } catch (DataLoadingException e) {
             logger.warning("Data file at " + storage.getAddressBookFilePath() + " could not be loaded."
-                    + " Will be starting with an empty LarperBoard.");
+                    + " Starting with no contacts. Close LarperBoard and back up or repair the file before continuing."
+                    + " Commands other than help or exit can overwrite it.");
             initialData = new AddressBook();
         }
 
