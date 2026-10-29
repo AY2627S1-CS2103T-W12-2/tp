@@ -38,7 +38,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 | Nice-to-have | Shipped | hackathon participant | set a follow-up date on a contact | remember by when I wanted to get back to them |
 | Nice-to-have | Shipped | hackathon participant | list the contacts whose follow-up date has arrived, earliest first | see who I should contact today without scanning my whole list |
 | Must-have | Shipped | user | display a detailed view of a single contact card | read all notes, links, and tags in one clean view |
-| Nice-to-have | Shipped | user | view images | remember the projects people have created |
+| Nice-to-have | Shipped | user | attach, replace, clear, and view one local photo per contact | remember a person or their project |
 | Nice-to-have | Deferred | CLI user | view contact summaries in a clean, formatted ASCII table | browse my address book without messy text wrapping |
 | Nice-to-have | Shipped | visual learner | distinguish categories with colour codes | visually scan and distinguish categories at a glance |
 | Nice-to-have | Deferred | user | run a stats/summary command (counts by tech stack or event) | get a high-level snapshot of my networking efforts |
@@ -52,7 +52,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
 | Must-have | Shipped | offline user | have all data stored locally | use the app without an internet connection at crowded venues |
 | Nice-to-have | Deferred | hackathon participant | archive or hide contacts I don't need anymore | avoid being distracted by people I no longer need to see in my active list |
 | Nice-to-have | Shipped (same name and phone) | hackathon participant | be flagged when I try to add someone who is already in my list | avoid accidentally creating two separate entries for the same person met at different events |
-
+| Nice-to-have | Shipped | hackathon participant | record, update, and clear meeting event, date, and role | remember where and how I met a contact |
 
 ## Use cases
 

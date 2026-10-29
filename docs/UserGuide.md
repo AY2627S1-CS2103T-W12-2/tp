@@ -20,8 +20,8 @@ Keep track of people you meet at hackathons. Add a contact, record why you want 
 1. Type each command below in the app's command box, pressing Enter after each one:
 
    ```text
-   add n/Aisha Rahman p/98765432 t/react
-   find Aisha
+   add n/Nora Lim p/98765432 t/react
+   find Nora
    view 1
    note 1 nt/Met at the AI booth
    ```

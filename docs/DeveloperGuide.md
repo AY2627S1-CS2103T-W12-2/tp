@@ -16,7 +16,7 @@ Start here to run LarperBoard, find the code for a feature, and make a safe chan
    ./gradlew run
    ```
 
-1. In the app, run `add n/Test Contact`, then `view 1` using the new contact's displayed index.
+1. In the app, run `add n/Test Contact`, `find Test`, then `view 1` to inspect the new contact.
 1. Run the checks before changing code:
 
    ```sh
