@@ -485,7 +485,7 @@ Format: `due`
 * `due` does not clear the detail panel, even if the contact you are viewing is not due.
 * The due-date order stays active for later `find`, `group` and `filter` commands, and the line above the list says `Sorted by due`, until you run `sort ...` or `list`.
 * No contact being due is a normal result: the list is empty and the message ends with `0 contact(s) listed!`.
-* Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date from the due list removes that contact from it. Setting a date after today does the same. If that contact is the one in the detail panel, the panel goes back to `No contact selected`; for any other contact it stays as it is.
+* Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date from the due list removes that contact from it. Setting a date after today does the same. If you were viewing that contact, the detail panel goes back to `No contact selected`. If you were viewing a different contact, the panel stays on it.
 * `list` shows all contacts again in their original order.
 * Any text typed after `due` is ignored.
 
