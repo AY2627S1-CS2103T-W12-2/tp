@@ -173,6 +173,8 @@ Due means date ≤ today; overdue means date < today. `Person.isFollowUpDueOn` a
 
 `SortCriterion` defines `ADDED`, `EDITED`, `VIEWED`, and internal `DUE` comparators. Only the first three are accepted by `sort`. Newest known activity appears first; unknown times appear last. `ModelManager` breaks ties by current original-list position.
 
+`SortCommandParser` normalizes activity keywords with `Locale.ROOT`; unknown keywords and extra arguments receive a short syntax hint.
+
 The visible list is a `FilteredList` followed by a `SortedList`. Keep references to selected targets before a mutation/view can reorder it. `list` clears both filter and sort; a new filter keeps the sort.
 
 ### Active filter label

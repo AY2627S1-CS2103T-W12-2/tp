@@ -87,7 +87,7 @@ Format: `sort added|edited|viewed`
 1. Run `sort added` for newest contacts first, `sort edited` for most recently changed, or `sort viewed` for most recently viewed.
 1. Use the new displayed indexes for subsequent commands.
 
-Unknown times appear last. Equal times keep the original contact order. Viewing a contact under `sort viewed` can move it to the top. Only these three sort options are available; use `list` to reset the order.
+Sort keywords ignore case (`sort Added` works); the command word remains lowercase. Unknown times appear last. Equal times keep the original contact order. Viewing a contact under `sort viewed` can move it to the top. Only these three sort options are available; use `list` to reset the order.
 
 ### Editing a contact: `edit`
 
@@ -135,7 +135,7 @@ Typed format: `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]...`
 * Do not mix plain words with typed fields. Phone, email, LinkedIn, dates, and roles cannot be searched.
 * Keep each prefix together: `t/react`, not `t /react`. Reserved prefixes such as `r/` are rejected even inside note/event search text; ordinary `ai/ml`, `c/o`, and URLs are allowed there.
 
-Zero matches is a normal result. `find` replaces the filter and keeps the current sort.
+Rejected searches keep the current results, viewed contact, saved data, and history. Zero matches is a normal result. `find` replaces the filter and keeps the current sort.
 
 ### Grouping contacts by tag: `group`
 

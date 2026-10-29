@@ -16,13 +16,12 @@ public class FindCommand extends Command {
 
     public static final String COMMAND_WORD = "find";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Finds contacts by name, tag, note, or event.\n"
-            + "Plain format: " + COMMAND_WORD + " KEYWORD [MORE_KEYWORDS]...\n"
-            + "Typed format: " + COMMAND_WORD + " [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]...\n"
-            + "Examples: " + COMMAND_WORD + " alice bob\n"
-            + "          " + COMMAND_WORD + " n/Alex n/Sam t/hackathon";
+    public static final String MESSAGE_USAGE = "Use " + COMMAND_WORD + " KEYWORD [MORE_KEYWORDS] or "
+            + COMMAND_WORD + " [n/TERM] [t/TERM] [nt/TERM] [ev/TERM].\n"
+            + "Supply at least one non-empty term; typed fields may repeat.";
     public static final String MESSAGE_MIXED_SEARCH =
-            "Use either plain keywords or field prefixes in one find command.";
+            "Use either plain keywords or field prefixes in one find command.\n"
+                    + "Example: find Alex or find n/Alex t/react.";
 
     private final Predicate<Person> predicate;
 
