@@ -1132,7 +1132,7 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
       Expected: The detail panel shows `CREATED` as the current Singapore time in `yyyy-MM-dd HH:mm` format, `LAST EDITED` as `—`, and `LAST VIEWED` as the current time.
 
    1. Test case: `edit 1 p/91234567`, then `view 1`<br>
-      Expected: The status message of `edit` starts with `Edited person:`. The detail panel now shows `LAST EDITED` as the current time. `CREATED` is unchanged.
+      Expected: The status message of `edit` starts with `Edited contact:`. The detail panel now shows `LAST EDITED` as the current time. `CREATED` is unchanged.
 
    1. Test case: `list`, then `view 2` where the 2nd contact is a sample contact<br>
       Expected: The status message starts with `Now viewing:`. `LAST VIEWED` shows the current time. `CREATED` and `LAST EDITED` stay `—`.
@@ -1142,13 +1142,13 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
    1. Prerequisites: Complete the test cases above. Run `find Activity`, then `view 1`, and note the three times. Wait at least one minute.
 
    1. Test case: `edit 1 p/91234567` (the phone number the contact already has)<br>
-      Expected: The status message starts with `Person unchanged:`. Run `view 1`: `CREATED` and `LAST EDITED` are the same as before. Only `LAST VIEWED` moves, because of the `view`.
+      Expected: The status message starts with `Contact unchanged:`. Run `view 1`: `CREATED` and `LAST EDITED` are the same as before. Only `LAST VIEWED` moves, because of the `view`.
 
    1. Test case: `edit 1`<br>
       Expected: `At least one field to edit must be provided.` No time changes.
 
    1. Test case: `add n/Activity Test p/91234567` (the same name and phone as the existing contact)<br>
-      Expected: `This person already exists in the address book.` No contact is added and no time changes.
+      Expected: `This contact already exists.` No contact is added and no time changes.
 
    1. Test case: `view 99` (larger than the list size)<br>
       Expected: `The person index provided is invalid.` The `LAST VIEWED` time of every contact is unchanged.

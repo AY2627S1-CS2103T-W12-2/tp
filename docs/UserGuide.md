@@ -180,7 +180,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…�
 * When editing tags, all of the contact's existing tags are replaced; adding tags with `edit` is not cumulative.
 * To remove all of a contact's tags, enter `t/` without a tag after it.
 * To remove a contact's LinkedIn handle, enter `l/` without a handle after it.
-* If the supplied values already match the contact, the command reports `Person unchanged:` followed by the
+* If the supplied values already match the contact, the command reports `Contact unchanged:` followed by the
   contact's details. The displayed list, activity times, and undo history stay unchanged.
 
 Examples:
@@ -196,7 +196,7 @@ Format: `tag INDEX t/TAG [t/TAG]…​`
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
 * At least one nonempty `t/TAG` is required. A tag must be 1 to 20 characters long and contain only `A`–`Z`, `a`–`z`, digits, hyphens (`-`), or plus signs (`+`).
 * Tags are stored in lowercase. Repeating a tag with different capitalization, or adding a tag the contact already has, keeps only one copy. The command still reports success if every requested tag is already present.
-* A successful command reports `Updated Person:` followed by the contact's details.
+* A successful command reports `Updated contact:` followed by the contact's details.
 * Use `edit INDEX t/TAG` to replace all tags, or `edit INDEX t/` to remove them all.
 
 Examples:
@@ -274,7 +274,7 @@ Typed format: `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`
 * Repeated terms in one field use OR. Different fields use AND. For example, `find n/Alex n/Sam t/hackathon` finds an Alex or Sam contact that also has a `hackathon` tag.
 * Do not mix plain keywords and typed prefixes. The message is `Use either plain keywords or field prefixes in one find command.`
   followed by `Example: find Alex or find n/Alex t/react.`
-* Empty terms and malformed prefixes show the find syntax hint below.
+* Empty terms and malformed prefixes show the find syntax hint below, except a space inside a known prefix (such as `t /react`), which reports `Invalid command format!` followed by `Remove the space before '/': use n/Alice or t/react.`
 * Other command fields (`e/`, `p/`, `l/`, `d/`, `md/`, `r/`, and `f/`) are not supported by `find`.
   At the start of the arguments or after whitespace, these prefixes give the same find syntax hint,
   even after a valid search field: for example, `find n/aisha e/p0@example.com` is invalid, not a zero-match search.
