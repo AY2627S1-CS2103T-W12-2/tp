@@ -96,7 +96,7 @@ name, so the same tag always looks the same in the contact list and detail panel
 </div>
 
 * `LINKEDIN_HANDLE` is the last part of the contact's LinkedIn profile link (e.g. `john-doe` in `linkedin.com/in/john-doe`). It may contain only letters, digits and hyphens, and must be 3 to 50 characters long.
-* `NAME` must contain 1 to 50 alphanumeric characters and spaces and cannot be blank. Leading and trailing spaces are removed, and repeated whitespace is collapsed.
+* `NAME` must contain 1 to 50 characters, and cannot be blank. It may contain English letters, digits, spaces, hyphens and apostrophes, for example `Mary-Jane` or `O'Brien`, but must start with a letter or digit. Accented and non-English letters, and other symbols such as `.` and `/`, are not supported yet. Leading and trailing spaces are removed, and repeated whitespace is collapsed.
 * `PHONE` is optional and must contain 3 to 20 digits when supplied.
 * `EMAIL` is optional and must be a valid email address of at most 254 characters when supplied.
 * A contact is a duplicate when its name matches an existing contact's name ignoring case and its phone number is the same. A different phone number permits the same name. Duplicate contacts cannot be added.
@@ -245,6 +245,7 @@ Plain format: `find KEYWORD [MORE_KEYWORDS]…​`
 
 * Plain search is case-insensitive and considers only names.
 * Plain keywords use full-word matching and OR semantics; for example, `find Hans Bo` finds `Hans Gruber` or `Bo Yang`, while `Han` does not match `Hans`.
+* A name with a hyphen or apostrophe, such as `Mary-Jane`, counts as one word, so `find Mary` does not find it. Use `find Mary-Jane`, or `find n/Mary` to match part of the name.
 
 Typed format: `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`
 
