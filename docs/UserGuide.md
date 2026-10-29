@@ -45,7 +45,7 @@ LarperBoard is a desktop app for keeping track of people you meet at hackathons.
 
 ## Features
 
-This guide describes the v1.5 release candidate. `sort` supports `added`, `edited`, and `viewed`. Separate
+This guide describes v1.5. `sort` supports `added`, `edited`, and `viewed`. Separate
 `find`, `group`, and `filter` commands replace the previous filter; combined filters
 and `sort name` / `sort starred` from [#128](https://github.com/AY2627S1-CS2103T-W12-2/tp/issues/128) are deferred.
 
@@ -64,6 +64,8 @@ and `sort name` / `sort starred` from [#128](https://github.com/AY2627S1-CS2103T
 
 * Items followed by `…`​ can appear zero or more times.<br>
   For example, `[t/TAG]…​` may be omitted, or written as `t/friend` or `t/friend t/family`.
+
+* Leading zeros in an index are accepted: `view 01` refers to displayed contact 1.
 
 * Put a required `INDEX` first; prefixed parameters can then be in any order.<br>
   For example, if the command specifies `n/NAME p/PHONE`, `p/PHONE n/NAME` is also acceptable.
@@ -107,8 +109,8 @@ name, so the same tag always looks the same in the contact list and detail panel
 
 * `LINKEDIN_HANDLE` is the last part of the contact's LinkedIn profile link (e.g. `john-doe` in `linkedin.com/in/john-doe`). It may contain only letters, digits and hyphens, and must be 3 to 50 characters long.
 * `NAME` must contain 1 to 50 characters, and cannot be blank. It may contain letters of any language, digits, spaces, hyphens and apostrophes (straight `'` or curly `’`), for example `Mary-Jane`, `O'Brien`, `José` or `李明`, but must start with a letter or digit. Other symbols such as `.`, `/` and emoji are not accepted, so `John s/o Raj` must be written without the `/`, for example `John s o Raj`. Leading and trailing spaces are removed, and repeated whitespace is collapsed.
-* `PHONE` is optional and must contain 3 to 20 digits when supplied.
-* `EMAIL` is optional and must be a valid email address of at most 254 characters when supplied.
+* `PHONE` is optional and must contain 3 to 20 digits when nonempty. An empty `p/` means no phone number.
+* `EMAIL` is optional and must be a valid email address of at most 254 characters when nonempty. An empty `e/` means no email address. An empty `l/` means no LinkedIn handle; an empty `t/` is rejected by `add`.
 * A contact is a duplicate when its name matches an existing contact's name ignoring case and its phone number is the same. A different phone number permits the same name. Duplicate contacts cannot be added.
   LarperBoard reports `A contact with this name and phone number already exists. Edit that contact instead.`
 * If a `find`, `group`, `filter starred` or `due` result is showing, `add` keeps it and updates the count. The new contact is listed only if it matches, otherwise it is saved but not shown, so use [`list`](#listing-all-contacts-list) to see every contact. A new contact has no follow-up date, so it never appears in a `due` result. When the new contact is not listed, the result message ends with `(hidden by the filter; use list to see all)`.
@@ -182,6 +184,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…�
 
 * Edits the contact at the specified `INDEX`. The index refers to the number shown in the displayed contact list. The index **must be a positive integer** 1, 2, 3, …​
 * At least one of the optional fields must be provided.
+* To remove a phone number or email address, supply `p/` or `e/` without a value.
 * Existing values will be updated to the input values.
 * When editing tags, all of the contact's existing tags are replaced; adding tags with `edit` is not cumulative.
 * To remove all of a contact's tags, enter `t/` without a tag after it.
@@ -693,6 +696,11 @@ Reattaching the identical image or clearing an absent photo is a no-op. Real sav
 
 
 ### Saving the data
+
+By default, contacts are stored in `data/addressbook.json` and window settings in `preferences.json`,
+relative to the working directory (the folder your terminal is in when you launch the app).
+They are not necessarily beside the JAR. Managed `photos/` are relative to the JAR folder.
+Launching from the folder containing the JAR keeps these locations together.
 
 LarperBoard automatically saves data after successful commands. You do not need to save manually.
 `help` and `exit` do not write contact data and remain available if the contact data file is read-only.
