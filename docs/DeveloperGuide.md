@@ -281,9 +281,10 @@ copied by `Person.toBuilder()` (`withFollowUpDate(null)` removes it). It takes p
 today) are the single definition of the boundary, so the card cue and the `due` command cannot disagree.
 
 `FollowUpCommandParser` checks the displayed index, duplicate `d/`, and either `clear` or a date, then reuses
-`Meeting.parseDate`, so follow-up dates follow the same strict rules and message as `md/`. `FollowUpCommand`
-compares the new value with the current one. If they are equal it returns `Follow-up date unchanged.` without
-touching the model. Otherwise it calls `Model.editPerson` with `target.toBuilder().withFollowUpDate(date).build()`,
+`Meeting.parseDate`, so follow-up dates follow the same strict rules as `md/` but report their own
+message (`FollowUpCommand.MESSAGE_INVALID_DATE`). `FollowUpCommand` compares the new value with the current
+one. If they are equal it returns `NAME already has follow-up date DATE. Nothing was changed.` (or `NAME has no
+follow-up date to clear. Nothing was changed.` when clearing) without touching the model. Otherwise it calls `Model.editPerson` with `target.toBuilder().withFollowUpDate(date).build()`,
 which stamps last-edited time and keeps the viewed contact in step, as `MeetingCommand` does. `LogicManager` then
 saves and records the undo entry, and restores its snapshot if saving fails, so no separate history code exists.
 
@@ -985,13 +986,13 @@ Given below are instructions to test the app manually.
       Expected: `Follow-up date for NAME set to 2020-01-01.` The card shows `Follow up: 2020-01-01 (Overdue)`, with the whole follow-up line in red.
 
    1. Test case: `followup 1 d/2020-01-01` again<br>
-      Expected: `Follow-up date unchanged.` The `LAST EDITED` time does not change and no undo step is added.
+      Expected: `NAME already has follow-up date 2020-01-01. Nothing was changed.` The `LAST EDITED` time does not change and no undo step is added.
 
    1. Test case: `followup 1 clear`<br>
       Expected: `Follow-up date cleared for NAME.` The card no longer shows a follow-up line.
 
    1. Test case: `followup 1 clear` again<br>
-      Expected: `Follow-up date unchanged.`
+      Expected: `NAME has no follow-up date to clear. Nothing was changed.`
 
    1. Test case: `followup 1 d/2020-01-01`, then `undo`<br>
       Expected: `Undid the last contact change.` The follow-up date is gone again.
@@ -1001,7 +1002,7 @@ Given below are instructions to test the app manually.
    1. Prerequisites: Run `list`, with multiple contacts in the list.
 
    1. Test case: `followup 1 d/2026-02-30`<br>
-      Expected: `Date must be a real date in YYYY-MM-DD format.` No contact is changed. Other dates to try: `d/2027-02-29`, `d/2026-1-5`, `d/26-01-05`, `d/` (empty).<br>
+      Expected: `Enter a real follow-up date as YYYY-MM-DD, e.g. 2026-10-25.` No contact is changed. Other dates to try: `d/2027-02-29`, `d/2026-1-5`, `d/26-01-05`, `d/` (empty).<br>
       Expected: The same message.
 
    1. Test case: `followup 1 d/2028-02-29`<br>

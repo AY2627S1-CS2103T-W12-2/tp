@@ -41,7 +41,7 @@ public class FollowUpCommandParser implements Parser<FollowUpCommand> {
             LocalDate date = Meeting.parseDate(fields.getValue(PREFIX_FOLLOW_UP_DATE).get());
             return new FollowUpCommand(index, date);
         } catch (IllegalArgumentException e) {
-            throw new ParseException(e.getMessage(), e);
+            throw new ParseException(FollowUpCommand.MESSAGE_INVALID_DATE, e);
         }
     }
 
