@@ -199,6 +199,20 @@ so the visible list, selection, saved contacts and undo/redo history remain unch
 Literal slash text such as `c/o`, `ai/ml` and URLs is still accepted within typed terms, but reserved prefixes
 are rejected even when intended as note or event text (for example, `find nt/likes r/java`).
 
+### Search and list command feedback
+
+`FindCommand`, `SortCommand`, `GroupCommand`, and `ViewCommand` provide short `MESSAGE_USAGE` hints
+instead of repeating feature descriptions on invalid syntax. Parsers retain the shared
+`Messages.MESSAGE_INVALID_COMMAND_FORMAT` wrapper. Find's hint lists the supported fields and requires
+a non-empty term; mixed plain/typed input gets two concrete alternative commands, without echoing user input.
+Validation order, supported inputs, displayed-index targeting, and selection behavior are unchanged.
+
+Group tag limits still come from `Tag.MESSAGE_CONSTRAINTS`, and duplicate fields use the shared message.
+View still uses `ParserUtil.parseDisplayedIndex` and the common invalid-index, multiple-index, and empty-list
+messages. These command-specific hints reuse the shared wording in `Messages` rather than redefining it.
+`list` has no argument-validation error: it continues to ignore extra text, clears the filter/sort, and keeps
+command-text history.
+
 ### Meeting context implementation
 
 The sequence below shows a partial meeting update, the no-op path, and rollback when saving fails.
@@ -259,9 +273,11 @@ Each `Person` carries an `Activity` with its created, last edited and last viewe
 * `ModelManager` holds a `java.time.Clock`. By default it is the system clock in `Model.DISPLAY_ZONE` (Asia/Singapore), which is the zone used to display activity times and to decide what "today" is. Tests inject a fixed clock. `Model#now()` returns the current time in whole seconds.
 * **Copying a contact:** `Person` is immutable. To change an existing contact, call `person.toBuilder()`, set the fields to change, and call `build()`. The builder starts with every field, so a field you do not set (including activity times and fields added by later features) is kept. Do not call the `Person` constructors with a partial set of fields. A new `Person` field must also be added to `Person.Builder`. The constructors without an activity argument are for new contacts and tests.
 * **Created:** `AddCommand` adds the new person with `created` set to `Model#now()`. A command that fails (for example, a duplicate) records nothing.
-* **Last edited:** `Model#editPerson(target, edited)` is the rule that every command changing a contact must use instead of `Model#setPerson`. If `edited.hasSameDetails(target)` it does nothing. Otherwise it stores `edited` with the activity of `target` and `lastEditedAt` set to now. The activity of `edited` is ignored, so a copy built without activity cannot wipe the other times. `EditCommand` and `TagCommand` use it, and new commands (notes, star, follow-up, photo) should too.
+* **Last edited:** `Model#editPerson(target, edited)` is the rule that every command changing a contact must use instead of `Model#setPerson`. If `edited.hasSameDetails(target)` it does nothing. Otherwise it stores `edited` with the activity of `target` and `lastEditedAt` set to now. The activity of `edited` is ignored, so a copy built without activity cannot wipe the other times. `EditCommand`, `TagCommand`, `NoteCommand`, `StarCommand`, `MeetingCommand`, `PhotoCommand` and `FollowUpCommand` use it, and new commands that change a contact should too.
 * **Last viewed:** `Model#viewPerson(person)` sets `lastViewedAt` to now and makes the stored person the viewed person. `ViewCommand` uses it. Viewing is not part of undo history, so undoing a change does not restore an earlier last-viewed time.
-* **A failed save changes nothing.** `LogicManager` takes `Model#createSnapshot()` before it runs a command. If saving the data file then fails, it calls `Model#restore(snapshot)` and shows the error, so the contacts, the viewed contact, the visible-list filter and sort, and the undo and redo stacks are as they were. No created, edited or viewed time is kept. The snapshot is opaque (`Model.Snapshot`) and covers in-memory command changes, not user preferences. `JsonAddressBookStorage` serializes to a temporary file beside the data file, then uses an atomic replacement. It rejects an existing read-only data file and preserves existing POSIX permissions. A failed write or replacement leaves the previous JSON file intact and removes the temporary file. If the process exits during a save, a stray `addressBook-*.tmp` file may remain beside the data file; it can be deleted safely. If the file system cannot perform an atomic move, saving fails without falling back to an in-place write. An existing symbolic link at the data-file path is replaced by a regular file, leaving its former target unchanged.
+* **A failed save changes nothing.** `LogicManager` takes `Model#createSnapshot()` before it runs a command. If saving the data file then fails, it calls `Model#restore(snapshot)` and shows the error, so the contacts, the viewed contact, the visible-list filter and sort, and the undo and redo stacks are as they were. No created, edited or viewed time is kept. The snapshot is opaque (`Model.Snapshot`) and covers in-memory command changes, not user preferences. `JsonAddressBookStorage` serializes to a temporary file beside the data file, then uses an atomic replacement. It rejects an existing read-only data file and preserves existing POSIX permissions. A failed write or replacement leaves the previous JSON file intact and removes the temporary file.
+  User-facing save errors give a short recovery instruction and confirm that nothing changed; the cause is
+  retained on `CommandException` and logged, rather than appended to the displayed message. If the process exits during a save, a stray `addressBook-*.tmp` file may remain beside the data file; it can be deleted safely. If the file system cannot perform an atomic move, saving fails without falling back to an in-place write. An existing symbolic link at the data-file path is replaced by a regular file, leaving its former target unchanged.
 * **Display:** the detail panel shows the three times as `yyyy-MM-dd HH:mm` in `Model.DISPLAY_ZONE` (Asia/Singapore), or an em dash (`—`) when a time is not known. The block sits at the bottom of `PersonDetailPanel.fxml`.
 
 <img src="images/EditActivitySequenceDiagram.png" width="600" />
@@ -279,11 +295,15 @@ copied by `Person.toBuilder()` (`withFollowUpDate(null)` removes it). It takes p
 today) are the single definition of the boundary, so the card cue and the `due` command cannot disagree.
 
 `FollowUpCommandParser` checks the displayed index, duplicate `d/`, and either `clear` or a date, then reuses
-`Meeting.parseDate`, so follow-up dates follow the same strict rules and message as `md/`. `FollowUpCommand`
-compares the new value with the current one. If they are equal it returns `Follow-up date unchanged.` without
-touching the model. Otherwise it calls `Model.editPerson` with `target.toBuilder().withFollowUpDate(date).build()`,
+`Meeting.parseDate`, so follow-up dates follow the same strict rules as `md/` but report their own
+message (`FollowUpCommand.MESSAGE_INVALID_DATE`). `FollowUpCommand` compares the new value with the current
+one. If they are equal it returns `NAME already has follow-up date DATE. Nothing was changed.` (or `NAME has no
+follow-up date to clear. Nothing was changed.` when clearing) without touching the model. Otherwise it calls `Model.editPerson` with `target.toBuilder().withFollowUpDate(date).build()`,
 which stamps last-edited time and keeps the viewed contact in step, as `MeetingCommand` does. `LogicManager` then
 saves and records the undo entry, and restores its snapshot if saving fails, so no separate history code exists.
+If the edited contact is the viewed one and no longer passes the visible-list filter (for example, clearing its date
+or setting one after today while the `due` list is shown), `FollowUpCommand` clears the viewed contact, so the
+detail panel shows `No contact selected`.
 
 `JsonAdaptedPerson` writes `followUpDate` as an ISO string or null. It reads the field as an `Object` so that a
 non-string value reaches `parseFollowUpDate` and gets the field-specific error rather than a Jackson error.
@@ -321,7 +341,11 @@ Design considerations:
 
 ### Activity-time sorting
 
-`SortCommandParser` trims the argument and matches `added`, `edited`, or `viewed` (`SortCriterion.ADDED`, `EDITED`, or `VIEWED`). Only those lowercase keywords are accepted; unsupported keywords (such as `name` or `due`), uppercase criteria, missing arguments, and extra arguments produce the invalid-format error with sort usage. `SortCommand` passes the `SortCriterion` to `ModelManager`. The model keeps one
+`SortCommandParser` trims the argument and normalizes it with `Locale.ROOT` before matching `added`, `edited`,
+or `viewed`. Sort keywords are case-insensitive regardless of the system locale; unsupported keywords (such as `name` or `due`), missing arguments, and extra
+arguments still produce the invalid-format error with the short sort hint. The command word remains lowercase: `sort`.
+
+`SortCommand` passes a `SortCriterion` (`ADDED`, `EDITED`, or `VIEWED`) to `ModelManager`. The model keeps one
 `FilteredList` for the current contacts and wraps it in a `SortedList`, which is the list exposed to the UI and every
 index-based command. This ensures that the index a user sees is the contact that `view`, `edit`, `delete`, and `tag`
 operate on.
@@ -424,7 +448,7 @@ The history lives in memory only and is not saved to the data file, so it starts
 
 ### \[Proposed\] Data archiving
 
-_{Explain here how the data archiving feature will be implemented}_
+Data archiving is deferred. It is not available in LarperBoard and not planned for v1.5, and no archive command exists. A possible design is an `archived` flag on `Person`, saved in `addressbook.json` and hidden by the default list predicate, with commands to archive and restore a contact and a way to list archived contacts.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -458,43 +482,47 @@ _{Explain here how the data archiving feature will be implemented}_
 
 ### User stories
 
-Priorities: Must-have, Nice-to-have, Unlikely-to-have
+Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from priority and says what LarperBoard does now:
 
-| Priority | As a …​ | I want to …​ | So that I can…​ |
-| -------- | ------ | ---------- | ------------- |
-| Must-have | user | add a contact | add people quickly |
-| Must-have | user | delete unnecessary people | remove people who are no longer relevant to me |
-| Nice-to-have | user | edit people's information | correct a mistake without having to delete and re-add the contact |
-| Nice-to-have | user | undo my last destructive CLI action | avoid losing important contact information because of a fast typo |
-| Nice-to-have | hackathon participant | clear all data or reset my board | start fresh for a brand new hackathon event |
-| Nice-to-have | user | group people together | organize everyone I met at a specific track or workshop |
-| Unlikely-to-have | forgetful participant | search contacts using partial text (typed `find` matches part of a name, tag, note or event; plain `find` matches whole name words; no fuzzy or LinkedIn-handle search) | find a person even if I only remember part of their name, tag, note, or event |
-| Nice-to-have | user | sort contacts by added, edited or viewed time (no arbitrary keyword sort) | quickly recall contacts by when they were added, changed or viewed |
-| Unlikely-to-have | power user | filter contacts (`filter starred`, `group`, `due`, and typed `find` with AND across fields; filters replace one another; no saved or arbitrary queries) | focus on a subset of my network |
-| Must-have | hackathon participant | attach project tags or stack keywords | remember what tech stack or project a participant is cracked at |
-| Nice-to-have | forgetful participant | add rapid freeform notes (e.g., "Met at booth 4") | remember the context when following up after the event |
-| Nice-to-have | hackathon participant | mark high-priority contacts with a "starred" flag | easily filter and focus on standout individuals |
-| Nice-to-have | hackathon participant | attach the hackathon name/date as a tag (auto or manual) | look back and remember which event I met each person at |
-| Nice-to-have | hackathon participant | tag a contact with their hackathon role (Frontend, Pitcher, Designer) | easily assemble balanced teams for future hackathons |
-| Nice-to-have | user | view a list of all saved contacts sorted by recency | quickly recall the last few people I spoke with |
-| Nice-to-have | user | see when a contact was added, last edited and last viewed | judge how up to date my information about them is |
-| Nice-to-have | hackathon participant | set a follow-up date on a contact | remember by when I wanted to get back to them |
-| Nice-to-have | hackathon participant | list the contacts whose follow-up date has arrived, earliest first | see who I should contact today without scanning my whole list |
-| Must-have | user | display a detailed view of a single contact card | read all notes, links, and tags in one clean view |
-| Nice-to-have | user | view images | remember the projects people have created |
-| Nice-to-have | CLI user | view contact summaries in a clean, formatted ASCII table | browse my address book without messy text wrapping |
-| Nice-to-have | visual learner | distinguish categories with colour codes | visually scan and distinguish categories at a glance |
-| Nice-to-have | user | run a stats/summary command (counts by tech stack or event) | get a high-level snapshot of my networking efforts |
-| Nice-to-have | power user | have fast keyboard navigation | navigate and manipulate data at maximum keyboard speed |
-| Nice-to-have | user | set up CLI auto-completion for commands and contact names | run commands faster with Tab completion |
-| Nice-to-have | first-time user | run a help/tutorial command with interactive examples | learn key commands within 30 seconds of installing the app |
-| Nice-to-have | hackathon participant | save social profiles (GitHub, LinkedIn, X, Telegram) under dedicated flags | have direct links to reach out to a person on their preferred platform |
-| Nice-to-have | user | copy a contact's email/social handle to the clipboard from the CLI | quickly paste it into a browser or messaging app |
-| Nice-to-have | hackathon participant | import contact details via a short encoded CLI string or QR token | exchange contact information instantly without manual typing |
-| Nice-to-have | power user | export my contact list to JSON, CSV, or Markdown | import it into my personal CRM, Notion, or address book |
-| Must-have | offline user | have all data stored locally | use the app without an internet connection at crowded venues |
-| Nice-to-have | hackathon participant | archive or hide contacts I don't need anymore | avoid being distracted by people I no longer need to see in my active list |
-| Nice-to-have | hackathon participant | be flagged when I try to add someone who is already in my list | avoid accidentally creating two separate entries for the same person met at different events |
+* `Shipped`: available in LarperBoard now.
+* `Partial`: part of the story is available; the Status cell says what is available.
+* `Deferred`: not available in LarperBoard and not planned for v1.5.
+
+| Priority | Status | As a …​ | I want to …​ | So that I can…​ |
+| -------- | ------ | ------ | ---------- | ------------- |
+| Must-have | Shipped | user | add a contact | add people quickly |
+| Must-have | Shipped | user | delete unnecessary people | remove people who are no longer relevant to me |
+| Nice-to-have | Shipped | user | edit people's information | correct a mistake without having to delete and re-add the contact |
+| Nice-to-have | Shipped | user | undo my last destructive CLI action | avoid losing important contact information because of a fast typo |
+| Nice-to-have | Shipped | hackathon participant | clear all data or reset my board | start fresh for a brand new hackathon event |
+| Nice-to-have | Shipped | user | group people together | organize everyone I met at a specific track or workshop |
+| Unlikely-to-have | Partial (typed `find` matches part of a name, tag, note or event; plain `find` matches whole name words; no fuzzy or LinkedIn-handle search) | forgetful participant | search contacts using partial text or fuzzy matching | find a person even if I only remember part of their name or handle |
+| Nice-to-have | Partial (sort by added, edited or viewed time only; no arbitrary keyword sort) | user | sort people by keywords | easily find people using keywords |
+| Unlikely-to-have | Partial (`filter starred`, `group`, `due`, and typed `find` with AND across fields; filters replace one another; no saved or arbitrary queries) | power user | filter contacts | execute complex queries on my network |
+| Must-have | Shipped | hackathon participant | attach project tags or stack keywords | remember what tech stack or project a participant is cracked at |
+| Nice-to-have | Shipped | forgetful participant | add rapid freeform notes (e.g., "Met at booth 4") | remember the context when following up after the event |
+| Nice-to-have | Shipped | hackathon participant | mark high-priority contacts with a "starred" flag | easily filter and focus on standout individuals |
+| Nice-to-have | Partial (`meeting ev/ md/` records event and date manually; nothing is added automatically) | hackathon participant | attach the hackathon name/date as a tag (auto or manual) | look back and remember which event I met each person at |
+| Nice-to-have | Shipped | hackathon participant | tag a contact with their hackathon role (Frontend, Pitcher, Designer) | easily assemble balanced teams for future hackathons |
+| Nice-to-have | Shipped | user | view a list of all saved contacts sorted by recency | quickly recall the last few people I spoke with |
+| Nice-to-have | Shipped | user | see when a contact was added, last edited and last viewed | judge how up to date my information about them is |
+| Nice-to-have | Shipped | hackathon participant | set a follow-up date on a contact | remember by when I wanted to get back to them |
+| Nice-to-have | Shipped | hackathon participant | list the contacts whose follow-up date has arrived, earliest first | see who I should contact today without scanning my whole list |
+| Must-have | Shipped | user | display a detailed view of a single contact card | read all notes, links, and tags in one clean view |
+| Nice-to-have | Shipped | user | view images | remember the projects people have created |
+| Nice-to-have | Deferred | CLI user | view contact summaries in a clean, formatted ASCII table | browse my address book without messy text wrapping |
+| Nice-to-have | Shipped | visual learner | distinguish categories with colour codes | visually scan and distinguish categories at a glance |
+| Nice-to-have | Deferred | user | run a stats/summary command (counts by tech stack or event) | get a high-level snapshot of my networking efforts |
+| Nice-to-have | Partial (Up/Down command recall only) | power user | have fast keyboard navigation | navigate and manipulate data at maximum keyboard speed |
+| Nice-to-have | Deferred | user | set up CLI auto-completion for commands and contact names | run commands faster with Tab completion |
+| Nice-to-have | Partial (`help` shows the User Guide URL with a copy button; no interactive tutorial) | first-time user | run a help/tutorial command with interactive examples | learn key commands within 30 seconds of installing the app |
+| Nice-to-have | Partial (LinkedIn only) | hackathon participant | save social profiles (GitHub, LinkedIn, X, Telegram) under dedicated flags | have direct links to reach out to a person on their preferred platform |
+| Nice-to-have | Deferred | user | copy a contact's email/social handle to the clipboard from the CLI | quickly paste it into a browser or messaging app |
+| Nice-to-have | Deferred | hackathon participant | import contact details via a short encoded CLI string or QR token | exchange contact information instantly without manual typing |
+| Nice-to-have | Deferred | power user | export my contact list to JSON, CSV, or Markdown | import it into my personal CRM, Notion, or address book |
+| Must-have | Shipped | offline user | have all data stored locally | use the app without an internet connection at crowded venues |
+| Nice-to-have | Deferred | hackathon participant | archive or hide contacts I don't need anymore | avoid being distracted by people I no longer need to see in my active list |
+| Nice-to-have | Shipped (same name and phone) | hackathon participant | be flagged when I try to add someone who is already in my list | avoid accidentally creating two separate entries for the same person met at different events |
 
 ### Use cases
 
@@ -559,7 +587,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
 1. User requests to find contacts using plain name keywords or typed search terms.
 2. LarperBoard performs a case-insensitive search and replaces the active filter while preserving any active sort and the viewed contact. Plain name keywords match whole words using OR; typed `n/`, `t/`, `nt/`, and `ev/` terms match partial text using OR within one field and AND across fields.
-3. LarperBoard displays the matching persons.
+3. LarperBoard displays the matching contacts and reports `N contact(s) listed!`, where `N` is the number of matches.
 
    Use case ends.
 
@@ -572,7 +600,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
     Use case resumes at step 1.
 
 * 2a. No contacts match the provided terms.
-  * 2a1. LarperBoard shows an empty valid result list.
+  * 2a1. LarperBoard shows an empty valid result list and reports `0 contact(s) listed!`.
 
     Use case ends.
 
@@ -850,7 +878,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
 ### Glossary
 
 * **Activity times**: The three times LarperBoard records for each contact: when it was created, last edited and last viewed. A time is shown as `—` when it is not known
-* **Archive**: Hiding a contact from the active list without deleting it, so that it can be brought back later
+* **Archive**: Hiding a contact from the active list without deleting it, so that it can be brought back later. Not available in LarperBoard and not planned for v1.5
 * **CLI (Command Line Interface)**: A way of using an application by typing text commands instead of clicking buttons
 * **Command**: A line of text typed into the command box that tells LarperBoard to do something, e.g. adding or deleting a contact
 * **Contact**: A person whose details are saved in LarperBoard, such as a teammate, mentor, recruiter or fellow participant met at a hackathon
@@ -900,20 +928,20 @@ Given below are instructions to test the app manually.
 
 ### Search, grouping, and contact view
 
-1. Prerequisites: Start with the sample contacts. Run `add n/Aisha Rahman l/aisha-rahman t/react t/frontend`, then `note 1 nt/Met at c/o booth`, `meeting 1 ev/AI/ML Hackathon`, and `view 1`.
+1. Prerequisites: Start with the sample contacts (`Aisha Rahman` is the 1st contact and has `l/aisha-rahman` and tags `react`, `frontend`). Run `list`, then `note 1 nt/Met at c/o booth`, `meeting 1 ev/AI/ML Hackathon`, and `view 1`.
 
 1. Test case: `find Aisha`, then `find Aish`<br>
-   Expected: `find Aisha` lists Aisha (`1 person(s) listed!`, and the line above the list says `Find results - Original order - 1 contact(s)`). `find Aish` shows an empty list (`0 person(s) listed!`), and the detail panel still shows Aisha.
+   Expected: `find Aisha` lists Aisha (`1 contact(s) listed!`, and the line above the list says `Find results - Original order - 1 contact(s)`). `find Aish` shows an empty list (`0 contact(s) listed!`), and the detail panel still shows Aisha.
 
 1. Test case: `find n/Aish t/react nt/c/o ev/ai/ml`<br>
-   Expected: `1 person(s) listed!` Typed `find` matches part of each field and accepts `/` in `c/o` and `ai/ml`.
+   Expected: `1 contact(s) listed!` Typed `find` matches part of each field and accepts `/` in `c/o` and `ai/ml`.
 
 1. Test case: `find n/Aisha e/aisha@example.com`<br>
    Expected: `Invalid command format!` followed by the `find` usage. The list, the line above the list, and the detail panel do not change. Other commands to try: `find n/Aisha l/aisha-rahman`, `find nt/likes r/java`, `find n/`.<br>
    Expected: The same message.
 
 1. Test case: `find Aisha n/Aisha`<br>
-   Expected: `Use either plain keywords or field prefixes in one find command.` The list and the detail panel do not change.
+   Expected: `Use either plain keywords or field prefixes in one find command.` followed by `Example: find Alex or find n/Alex t/react.` The list and the detail panel do not change.
 
 1. Test case: `group t/REACT`, then `group t/nonexistent`<br>
    Expected: `group t/REACT` shows `Group: [react]` followed by a new line and `1 contact(s) listed!`, and the line above the list says `Group: react - Original order - 1 contact(s)`. `group t/nonexistent` shows an empty list and `0 contact(s) listed!`, and the detail panel still shows Aisha.
@@ -922,18 +950,43 @@ Given below are instructions to test the app manually.
    Expected: Each command is rejected (`Invalid command format!` with usage, the tag constraint message, and `Multiple values specified for the following single-valued field(s): t/`). The list and the detail panel do not change.
 
 1. Test case: while `group t/nonexistent` shows 0 contacts, run `view 1`, then `list`, then `view 2147483648` and `view 1 2`<br>
-   Expected: `view 1` on the empty list gives `The person list is empty.` `list` shows all contacts again (`Listed all persons.`, and the line above the list says `Original order - N contact(s)`). `view 2147483648` gives `The person index provided is invalid.` `view 1 2` gives `Invalid command format!`, `Only one index parameter is accepted.`, and the `view` usage.
+   Expected: `view 1` on the empty list gives `The person list is empty.` `list` shows all contacts again (`Listed all contacts.`, and the line above the list says `Original order - 6 contact(s)`). `view 2147483648` gives `The person index provided is invalid.` `view 1 2` gives `Invalid command format!`, `Only one index parameter is accepted.`, and the `view` usage.
+
+### Search and list error feedback
+
+Start with saved contacts, run `view 1`, then `find n/zzzz` to hide the viewed contact.
+For each invalid command below, verify that the list, heading, viewed contact and saved data stay unchanged.
+
+| Command | Expected feedback / recovery |
+| --- | --- |
+| `find n/` or `find n/Aisha e/private@example.com` | `Invalid command format!`, then the two-line supported find syntax and non-empty-term hint shown in the UG. No private input is echoed. |
+| `find Alex n/Sam` | `Use either plain keywords or field prefixes in one find command.` followed by `Example: find Alex or find n/Alex t/react.` |
+| `sort name` or `sort added extra` | `Invalid command format!` followed by `Use sort added, sort edited, or sort viewed (case-insensitive).` |
+| `group react` | `Invalid command format!` followed by `Use group t/TAG with one tag, e.g. group t/react.` |
+| `group t/react!` | `Tags should contain only letters, digits, hyphens, and plus signs, and be 1 to 20 characters long` |
+| `group t/react t/java` | `Multiple values specified for the following single-valued field(s): t/` |
+| `view` | `Invalid command format!` followed by `Use view INDEX with one positive displayed index, e.g. view 1.` |
+| `view 1 2` | The format wrapper, `Only one index parameter is accepted.`, then the short view hint. |
+| `view 2147483648` | `The person index provided is invalid.` |
+| `view 1` on the empty results | `The person list is empty.`; the hidden viewed contact and its activity stay unchanged. |
+
+Run `list extra`: it still succeeds like `list`, reporting `Listed all contacts.` and restoring the original order.
+Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successful outcome, not a validation error.
 
 ### Activity-time sorting
 
 1. Add three contacts, then run `sort added`.<br>
    Expected: Contacts are newest first; equal creation times retain their original order.
 
+1. Run `sort Added`, `sort ADDED`, `sort EdItEd`, and `sort VIEWED`.<br>
+   Expected: Each succeeds with the same order as its lowercase form. `sort ADDED extra` still shows the usage error.
+
 1. Run `sort viewed`, then `view 2`.<br>
    Expected: The viewed contact moves to the top and remains selected in the detail panel.
 
 1. Run `find NAME`, followed by `sort edited`, then `list`.<br>
-   Expected: Filtering keeps the active sort; `list` restores the full original-order list.
+   Expected: Filtering keeps the active sort; `find` reports `N contact(s) listed!`, and `list` reports
+   `Listed all contacts.` while restoring the full original-order list.
 
 ### Contact activity times
 
@@ -981,7 +1034,7 @@ Given below are instructions to test the app manually.
    1. Prerequisites: Close the app and back up `data/addressbook.json`. Start the app. Make the data file read-only: `chmod u-w data/addressbook.json` on macOS or Linux, or `attrib +R data\addressbook.json` in PowerShell.
 
    1. Test case: `view 1`<br>
-      Expected: `Could not save data to file ` followed by the file path and ` due to insufficient permissions to write to the file or the folder.` The detail panel does not show a new `LAST VIEWED` time.
+      Expected: `Could not save contacts. Nothing changed. Allow file/folder writes.` The detail panel does not show a new `LAST VIEWED` time.
 
    1. Test case: `edit 1 p/90000000`<br>
       Expected: The same error message. The phone number and the times of the contact are unchanged.
@@ -1001,13 +1054,13 @@ Given below are instructions to test the app manually.
       Expected: `Follow-up date for NAME set to 2020-01-01.` The card shows `Follow up: 2020-01-01 (Overdue)`, with the whole follow-up line in red.
 
    1. Test case: `followup 1 d/2020-01-01` again<br>
-      Expected: `Follow-up date unchanged.` The `LAST EDITED` time does not change and no undo step is added.
+      Expected: `NAME already has follow-up date 2020-01-01. Nothing was changed.` The `LAST EDITED` time does not change and no undo step is added.
 
    1. Test case: `followup 1 clear`<br>
       Expected: `Follow-up date cleared for NAME.` The card no longer shows a follow-up line.
 
    1. Test case: `followup 1 clear` again<br>
-      Expected: `Follow-up date unchanged.`
+      Expected: `NAME has no follow-up date to clear. Nothing was changed.`
 
    1. Test case: `followup 1 d/2020-01-01`, then `undo`<br>
       Expected: `Undid the last contact change.` The follow-up date is gone again.
@@ -1017,7 +1070,7 @@ Given below are instructions to test the app manually.
    1. Prerequisites: Run `list`, with multiple contacts in the list.
 
    1. Test case: `followup 1 d/2026-02-30`<br>
-      Expected: `Date must be a real date in YYYY-MM-DD format.` No contact is changed. Other dates to try: `d/2027-02-29`, `d/2026-1-5`, `d/26-01-05`, `d/` (empty).<br>
+      Expected: `Enter a real follow-up date as YYYY-MM-DD, e.g. 2026-10-25.` No contact is changed. Other dates to try: `d/2027-02-29`, `d/2026-1-5`, `d/26-01-05`, `d/` (empty).<br>
       Expected: The same message.
 
    1. Test case: `followup 1 d/2028-02-29`<br>
@@ -1039,7 +1092,7 @@ Given below are instructions to test the app manually.
    1. Prerequisites: Run `list`. Using `followup`, give the 1st, 2nd and 3rd contacts the dates `2020-03-01`, `2020-01-01` and `2099-12-31` in that order. Leave the other contacts without a date.
 
    1. Test case: `due`<br>
-      Expected: The status message is `Due for follow-up on or before TODAY.` followed by a new line and `2 contact(s) listed!`, where `TODAY` is today's Singapore date in `YYYY-MM-DD` format. The contact dated `2020-01-01` is first and the one dated `2020-03-01` is second. The contact dated `2099-12-31` and the contacts without a date are not shown.
+      Expected: The status message is `Due for follow-up on or before TODAY.` followed by a new line and `2 contact(s) listed!`, where `TODAY` is today's Singapore date in `YYYY-MM-DD` format. The contact dated `2020-01-01` is first and the one dated `2020-03-01` is second. The contact dated `2099-12-31` and the contacts without a date are not shown. The line above the list says `Due on/before TODAY - Sorted by due - 2 contact(s)`.
 
    1. Test case: `list`, then `followup 4 d/TODAY` (replace `TODAY` with today's date), then `due`<br>
       Expected: `3 contact(s) listed!` The contact dated `TODAY` is last in the list, and its card shows `Follow up: TODAY` without `(Overdue)`. A date that is today counts as due but not as overdue.
@@ -1049,6 +1102,9 @@ Given below are instructions to test the app manually.
 
    1. Test case: `due`, then `followup 1 clear`<br>
       Expected: The contact disappears from the due list. `list` shows all contacts again in their original order.
+
+   1. Test case: `list`, `view 5` (a sample contact that never gets a date), then `due`<br>
+      Expected: The detail panel still shows the 5th contact although it is not in the due list. Then run `view 1` and `followup 1 clear`: the contact leaves the due list and the detail panel shows `No contact selected`.
 
    1. Test case: `list`, then `followup N clear` for every contact that still has a date (replace `N` with its index), then `due`<br>
       Expected: The list is empty and the status message ends with `0 contact(s) listed!`. No error is shown.

@@ -41,7 +41,7 @@ public class PhotoStorageTest {
             for (String path : new String[]{outside.toString(), "../outside.png", "a/../source.png",
                 "escape.png", "https://example.com/a.png", "C:\\photo.png"}) {
                 var error = assertThrows(PhotoStorage.PhotoException.class, () -> storage.importPhoto(path, ""));
-                assertEquals(PhotoStorage.MESSAGE_INVALID, error.getMessage());
+                assertEquals(PhotoStorage.MESSAGE_PATH, error.getMessage());
             }
             assertTrue(storage.readPhoto("../outside.png").isEmpty());
         } finally {
@@ -56,7 +56,8 @@ public class PhotoStorageTest {
         try {
             Files.createSymbolicLink(folder.resolve("photos"), outside);
             PhotoStorage storage = new PhotoStorage(folder);
-            assertThrows(PhotoStorage.PhotoException.class, () -> storage.importPhoto("source.png", ""));
+            var error = assertThrows(PhotoStorage.PhotoException.class, () -> storage.importPhoto("source.png", ""));
+            assertEquals(PhotoStorage.MESSAGE_IMPORT, error.getMessage());
             try (var contents = Files.list(outside)) {
                 assertEquals(0, contents.count());
             }
@@ -117,7 +118,7 @@ public class PhotoStorageTest {
         PhotoStorage storage = new PhotoStorage(folder);
         var invalid = assertThrows(PhotoStorage.PhotoException.class, () ->
                 storage.importPhoto("invalid\u0000.png", ""));
-        assertEquals(PhotoStorage.MESSAGE_INVALID, invalid.getMessage());
+        assertEquals(PhotoStorage.MESSAGE_PATH, invalid.getMessage());
         Files.createDirectory(folder.resolve("directory.png"));
         var directory = assertThrows(PhotoStorage.PhotoException.class, () ->
                 storage.importPhoto("directory.png", ""));
@@ -141,7 +142,7 @@ public class PhotoStorageTest {
         Files.writeString(folder.resolve("photos"), "not a directory");
         var error = assertThrows(PhotoStorage.PhotoException.class, () ->
                 new PhotoStorage(folder).importPhoto("source.png", ""));
-        assertEquals(PhotoStorage.MESSAGE_UNREADABLE, error.getMessage());
+        assertEquals(PhotoStorage.MESSAGE_IMPORT, error.getMessage());
         assertTrue(Files.isRegularFile(folder.resolve("source.png")));
     }
 

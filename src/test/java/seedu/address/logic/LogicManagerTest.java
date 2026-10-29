@@ -24,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.LogRecord;
@@ -36,9 +37,12 @@ import org.junit.jupiter.api.io.TempDir;
 import seedu.address.logic.commands.AddCommand;
 import seedu.address.logic.commands.CommandResult;
 import seedu.address.logic.commands.FindCommand;
+import seedu.address.logic.commands.GroupCommand;
 import seedu.address.logic.commands.ListCommand;
 import seedu.address.logic.commands.MeetingCommand;
 import seedu.address.logic.commands.NoteCommand;
+import seedu.address.logic.commands.SortCommand;
+import seedu.address.logic.commands.ViewCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.CliSyntax;
 import seedu.address.logic.parser.exceptions.ParseException;
@@ -142,14 +146,22 @@ public class LogicManagerTest {
 
     @Test
     public void execute_storageThrowsIoException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_ERROR_FORMAT, DUMMY_IO_EXCEPTION.getMessage()));
+        assertCommandFailureForExceptionFromStorage(DUMMY_IO_EXCEPTION, LogicManager.MESSAGE_SAVE_ERROR);
     }
 
     @Test
     public void execute_storageThrowsAdException_throwsCommandException() {
-        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, String.format(
-                LogicManager.FILE_OPS_PERMISSION_ERROR_FORMAT, DUMMY_AD_EXCEPTION.getMessage()));
+        assertCommandFailureForExceptionFromStorage(DUMMY_AD_EXCEPTION, LogicManager.MESSAGE_SAVE_PERMISSION_ERROR);
+    }
+
+    @Test
+    public void execute_failedSave_hidesTechnicalDetailsAndPreservesCause() {
+        useFailingStorageWithTypicalContacts();
+        CommandException error = org.junit.jupiter.api.Assertions.assertThrows(
+                CommandException.class, () -> logic.execute("meeting 1 ev/Hackathon"));
+        assertEquals(LogicManager.MESSAGE_SAVE_ERROR, error.getMessage());
+        assertFalse(error.getMessage().contains(DUMMY_IO_EXCEPTION.getMessage()));
+        assertEquals(DUMMY_IO_EXCEPTION, error.getCause());
     }
 
     @Test
@@ -335,8 +347,7 @@ public class LogicManagerTest {
         List<Person> visibleBefore = new ArrayList<>(model.getFilteredPersonList());
         Person viewedBefore = model.getViewedPerson().get();
 
-        assertThrows(CommandException.class, String.format(LogicManager.FILE_OPS_ERROR_FORMAT,
-                DUMMY_IO_EXCEPTION.getMessage()), () -> logic.execute(command));
+        assertThrows(CommandException.class, LogicManager.MESSAGE_SAVE_ERROR, () -> logic.execute(command));
 
         assertEquals(addressBookBefore, model.getAddressBook());
         assertEquals(visibleBefore, model.getFilteredPersonList());
@@ -482,9 +493,12 @@ public class LogicManagerTest {
     }
 
     @Test
-    public void execute_findWithUnsupportedField_preservesStateAndSavedData() throws Exception {
+    public void execute_invalidListCommands_preserveStateAndSavedData() throws Exception {
         model.addPerson(AMY);
         model.addPerson(BOB);
+        logic.execute("note 1 nt/first");
+        logic.execute("note 1 nt/second");
+        logic.execute("undo");
         logic.execute("find n/Amy");
         logic.execute("sort added");
         logic.execute("view 1");
@@ -494,19 +508,72 @@ public class LogicManagerTest {
         String statusBefore = model.getPersonListStatus().get();
         Path dataFile = temporaryFolder.resolve("addressBook.json");
         String savedBefore = Files.readString(dataFile);
-        String expectedMessage = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
+        String findFormat = String.format(MESSAGE_INVALID_COMMAND_FORMAT, FindCommand.MESSAGE_USAGE);
+        Map<String, String> failures = Map.ofEntries(
+                Map.entry("find e/p0@example.com", findFormat),
+                Map.entry("find n/aisha e/p0@example.com", findFormat),
+                Map.entry("find n/aisha p/90000000", findFormat),
+                Map.entry("find n/aisha l/user-0x", findFormat),
+                Map.entry("find n/", findFormat),
+                Map.entry("find private n/secret", FindCommand.MESSAGE_MIXED_SEARCH),
+                Map.entry("sort private", String.format(MESSAGE_INVALID_COMMAND_FORMAT, SortCommand.MESSAGE_USAGE)),
+                Map.entry("group", String.format(MESSAGE_INVALID_COMMAND_FORMAT, GroupCommand.MESSAGE_USAGE)),
+                Map.entry("group t/private!", Tag.MESSAGE_CONSTRAINTS),
+                Map.entry("group t/react t/java", Messages.getErrorMessageForDuplicatePrefixes(CliSyntax.PREFIX_TAG)),
+                Map.entry("view", String.format(MESSAGE_INVALID_COMMAND_FORMAT, ViewCommand.MESSAGE_USAGE)),
+                Map.entry("view 0", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX),
+                Map.entry("view 2147483648", MESSAGE_INVALID_PERSON_DISPLAYED_INDEX));
 
-        for (String args : List.of("e/p0@example.com", "n/aisha e/p0@example.com",
-                "n/aisha p/90000000", "n/aisha l/user-0x")) {
-            assertThrows(ParseException.class, expectedMessage, () -> logic.execute("find " + args));
+        for (Map.Entry<String, String> failure : failures.entrySet()) {
+            assertThrows(ParseException.class, failure.getValue(), () -> logic.execute(failure.getKey()));
             assertEquals(contactsBefore, model.getAddressBook());
             assertEquals(visibleBefore, model.getFilteredPersonList());
             assertEquals(viewedBefore, model.getViewedPerson().get());
             assertEquals(statusBefore, model.getPersonListStatus().get());
             assertEquals(savedBefore, Files.readString(dataFile));
-            assertFalse(model.canUndo());
-            assertFalse(model.canRedo());
+            assertTrue(model.canUndo());
+            assertTrue(model.canRedo());
         }
+
+        assertThrows(CommandException.class, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX, () -> logic.execute("view 2"));
+        assertEquals(contactsBefore, model.getAddressBook());
+        assertEquals(viewedBefore, model.getViewedPerson().get());
+        assertEquals(visibleBefore, model.getFilteredPersonList());
+        assertEquals(savedBefore, Files.readString(dataFile));
+        assertEquals(statusBefore, model.getPersonListStatus().get());
+        logic.execute("redo");
+        assertEquals("second", model.getAddressBook().getPersonList().getFirst().getNote().value);
+        logic.execute("undo");
+        assertEquals("first", model.getAddressBook().getPersonList().getFirst().getNote().value);
+    }
+
+    @Test
+    public void execute_viewEmptyResultsThenList_preservesSelectionAndRestoresDisplayedIndexes() throws Exception {
+        model.addPerson(AMY);
+        model.addPerson(BOB);
+        logic.execute("view 2");
+        logic.execute("find n/zzzz");
+        Person viewedBefore = model.getViewedPerson().get();
+        AddressBook contactsBefore = new AddressBook(model.getAddressBook());
+        Path dataFile = temporaryFolder.resolve("addressBook.json");
+        String savedBefore = Files.readString(dataFile);
+        String statusBefore = model.getPersonListStatus().get();
+
+        assertThrows(CommandException.class, MESSAGE_EMPTY_PERSON_LIST, () -> logic.execute("view 1"));
+
+        assertEquals(contactsBefore, model.getAddressBook());
+        assertEquals(viewedBefore, model.getViewedPerson().get());
+        assertTrue(model.getFilteredPersonList().isEmpty());
+        assertEquals(statusBefore, model.getPersonListStatus().get());
+        assertEquals(savedBefore, Files.readString(dataFile));
+        assertFalse(model.canUndo());
+        assertFalse(model.canRedo());
+
+        assertEquals("Listed all contacts.", logic.execute("list extra").getFeedbackToUser());
+        assertEquals(contactsBefore.getPersonList(), model.getFilteredPersonList());
+        assertEquals(viewedBefore, model.getViewedPerson().get());
+        logic.execute("view 1");
+        assertEquals(AMY.getName(), model.getViewedPerson().get().getName());
     }
 
     @Test
@@ -560,7 +627,7 @@ public class LogicManagerTest {
         try {
             logic.execute("note 1 nt/" + secret);
             assertParseException("note 1 " + secret,
-                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_USAGE));
+                    String.format(MESSAGE_INVALID_COMMAND_FORMAT, NoteCommand.MESSAGE_NOTE_WITHOUT_PREFIX));
             assertParseException("note 1 nt/" + (secret + " ").repeat(100), Note.MESSAGE_TOO_LONG);
             assertCommandException("note 9 nt/" + secret, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
         } finally {
@@ -603,7 +670,7 @@ public class LogicManagerTest {
             logic.execute("meeting 1 ev/" + secret + " r/" + secret);
             assertParseException("meeting 1 " + secret,
                     String.format(MESSAGE_INVALID_COMMAND_FORMAT,
-                            MeetingCommand.MESSAGE_USAGE));
+                            MeetingCommand.MESSAGE_WITHOUT_PREFIX));
             assertParseException("meeting 1 ev/" + secret + " ev/duplicate",
                     Messages.getErrorMessageForDuplicatePrefixes(
                             CliSyntax.PREFIX_EVENT));

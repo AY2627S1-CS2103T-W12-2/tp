@@ -14,9 +14,8 @@ public class GroupCommand extends Command {
 
     public static final String COMMAND_WORD = "group";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD + ": Shows contacts with the specified tag.\n"
-            + "Parameters: t/TAG\n"
-            + "Example: " + COMMAND_WORD + " t/react";
+    public static final String MESSAGE_USAGE = "Use " + COMMAND_WORD + " t/TAG with one tag, e.g. "
+            + COMMAND_WORD + " t/react.";
     public static final String MESSAGE_SUCCESS = "Group: %1$s\n%2$d contact(s) listed!";
 
     private final Tag tag;

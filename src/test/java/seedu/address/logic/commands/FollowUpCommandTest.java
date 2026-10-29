@@ -75,7 +75,7 @@ public class FollowUpCommandTest {
         Model expectedModel = copyOf(modelWithDate);
 
         assertCommandSuccess(new FollowUpCommand(INDEX_FIRST_PERSON, DATE), modelWithDate,
-                FollowUpCommand.MESSAGE_UNCHANGED, expectedModel);
+                String.format(FollowUpCommand.MESSAGE_SAME_DATE, ALICE.getName().fullName, DATE), expectedModel);
         assertEquals(withDate.getActivity(), modelWithDate.getFilteredPersonList().get(0).getActivity());
         assertFalse(modelWithDate.canUndo());
     }
@@ -85,7 +85,7 @@ public class FollowUpCommandTest {
         Model expectedModel = copyOf(model);
 
         assertCommandSuccess(new FollowUpCommand(INDEX_FIRST_PERSON, null), model,
-                FollowUpCommand.MESSAGE_UNCHANGED, expectedModel);
+                String.format(FollowUpCommand.MESSAGE_NO_DATE_TO_CLEAR, ALICE.getName().fullName), expectedModel);
         assertEquals(ALICE.getActivity(), model.getFilteredPersonList().get(0).getActivity());
     }
 

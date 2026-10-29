@@ -20,7 +20,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 
-import seedu.address.logic.commands.FollowUpCommand;
 import seedu.address.logic.commands.exceptions.CommandException;
 import seedu.address.logic.parser.exceptions.ParseException;
 import seedu.address.model.AddressBook;
@@ -104,9 +103,10 @@ public class FollowUpFeatureTest {
         assertThrows(ParseException.class, () -> logic.execute("followup 0 d/2026-10-25"));
         assertEquals(Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX,
                 assertThrows(CommandException.class, () -> logic.execute("followup 3 d/2026-10-25")).getMessage());
-        assertEquals(FollowUpCommand.MESSAGE_UNCHANGED, logic.execute("followup 1 d/2026-10-25")
-                .getFeedbackToUser());
-        assertEquals(FollowUpCommand.MESSAGE_UNCHANGED, logic.execute("followup 2 clear").getFeedbackToUser());
+        assertEquals("Amy Bee already has follow-up date 2026-10-25. Nothing was changed.",
+                logic.execute("followup 1 d/2026-10-25").getFeedbackToUser());
+        assertEquals("Bob Choo has no follow-up date to clear. Nothing was changed.",
+                logic.execute("followup 2 clear").getFeedbackToUser());
 
         assertEquals(List.of(amy, bob), model.getFilteredPersonList());
         assertFalse(model.canUndo());
@@ -123,7 +123,7 @@ public class FollowUpFeatureTest {
         assertEquals("Follow-up date for Amy Bee set to 2028-02-29.",
                 logic.execute("followup 1 d/2028-02-29").getFeedbackToUser());
         assertEquals("Follow-up date cleared for Amy Bee.", logic.execute("followup 1 clear").getFeedbackToUser());
-        assertEquals("Date must be a real date in YYYY-MM-DD format.",
+        assertEquals("Enter a real follow-up date as YYYY-MM-DD, e.g. 2026-10-25.",
                 assertThrows(ParseException.class, () -> logic.execute("followup 1 d/2027-02-29")).getMessage());
     }
 
