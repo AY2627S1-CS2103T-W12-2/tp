@@ -18,6 +18,7 @@ import org.junit.jupiter.api.Test;
 
 import javafx.beans.property.ReadOnlyObjectProperty;
 import javafx.beans.property.ReadOnlyStringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import seedu.address.commons.core.GuiSettings;
 import seedu.address.logic.Messages;
@@ -52,13 +53,31 @@ public class AddCommandTest {
     }
 
     @Test
+    public void execute_personHiddenByActiveFilter_messageSaysSoAndPersonIsStillAdded() throws Exception {
+        ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded() {
+            @Override
+            public ObservableList<Person> getFilteredPersonList() {
+                return FXCollections.observableArrayList(); // the active filter shows nobody
+            }
+        };
+        Person validPerson = new PersonBuilder().build();
+
+        CommandResult commandResult = new AddCommand(validPerson).execute(modelStub);
+
+        assertEquals(String.format(AddCommand.MESSAGE_SUCCESS, Messages.format(validPerson))
+                + AddCommand.MESSAGE_HIDDEN_BY_FILTER, commandResult.getFeedbackToUser());
+        assertEquals(1, modelStub.personsAdded.size());
+    }
+
+    @Test
     public void execute_duplicatePerson_throwsCommandException() {
         Person existingPerson = new PersonBuilder().build();
         Person duplicatePerson = new PersonBuilder(existingPerson).withName("amy bee").build();
         AddCommand addCommand = new AddCommand(duplicatePerson);
         ModelStub modelStub = new ModelStubWithPerson(existingPerson);
 
-        assertThrows(CommandException.class, AddCommand.MESSAGE_DUPLICATE_PERSON, () -> addCommand.execute(modelStub));
+        assertThrows(CommandException.class, "A contact with this name and phone number already exists. "
+                + "Edit that contact instead.", () -> addCommand.execute(modelStub));
     }
 
     @Test
@@ -271,6 +290,11 @@ public class AddCommandTest {
         @Override
         public ReadOnlyAddressBook getAddressBook() {
             return new AddressBook();
+        }
+
+        @Override
+        public ObservableList<Person> getFilteredPersonList() {
+            return FXCollections.observableArrayList(personsAdded); // no filter, so every person is shown
         }
 
         @Override

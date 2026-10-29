@@ -37,6 +37,8 @@ LarperBoard is a desktop app for keeping track of people you meet at hackathons.
 
    * `exit` : Exits the app.
 
+   Two keyboard shortcuts save typing: press **Up** in the command box to bring back the command you typed before (see [Recalling previous commands](#recalling-previous-commands-up-and-down-arrows)), and press **F1** to open the help window.
+
 1. Refer to the [Features](#features) section below for details of each command.
 
 --------------------------------------------------------------------------------------------------------------------
@@ -77,11 +79,17 @@ and `sort name` / `sort starred` from [#128](https://github.com/AY2627S1-CS2103T
 
 ### Viewing help: `help`
 
-Opens the help window with a link to this guide. The result message is `Opened help window.`
+Opens the help window, which shows the web address of this User Guide and a **Copy URL** button. Use it when you want to look up how a command works. The help window does not explain the commands itself: open the address in your web browser to read this guide.
 
 Format: `help`
 
-If you type a command that LarperBoard does not know, for example a typo such as `strar 1`, the result message is `Unknown command.` followed by the list of every command you can use, in alphabetical order, for example `Unknown command. Available commands: add, clear, delete, …`. Use `help` to open this guide.
+* The result message is `Opened help window.`
+* You can also open the help window from the **Help** menu, or by pressing **F1**.
+* If the help window is already open, `help` brings it to the front. If you minimized it, see [Known issues](#known-issues).
+* Reading this guide in your browser needs an internet connection. LarperBoard itself, and every command in it, works without one.
+* Extra text after `help` is ignored, so `help 123` works like `help`.
+
+**If you mistype a command:** when LarperBoard does not know the command, for example a typo such as `strar 1`, the result message is `Unknown command.` followed by every command you can use, in alphabetical order, for example `Unknown command. Available commands: add, clear, delete, …`. Check the spelling against that list, or use `help` to open this guide.
 
 
 ### Adding a contact: `add`
@@ -100,6 +108,8 @@ name, so the same tag always looks the same in the contact list and detail panel
 * `PHONE` is optional and must contain 3 to 20 digits when supplied.
 * `EMAIL` is optional and must be a valid email address of at most 254 characters when supplied.
 * A contact is a duplicate when its name matches an existing contact's name ignoring case and its phone number is the same. A different phone number permits the same name. Duplicate contacts cannot be added.
+  LarperBoard reports `A contact with this name and phone number already exists. Edit that contact instead.`
+* If a `find`, `group`, `filter starred` or `due` result is showing, `add` keeps it and updates the count. The new contact is listed only if it matches, otherwise it is saved but not shown, so use [`list`](#listing-all-contacts-list) to see every contact. A new contact has no follow-up date, so it never appears in a `due` result. When the new contact is not listed, the result message ends with `(hidden by the filter; use list to see all)`.
 * In the contact list, a card shows its tags on a single row. If they do not all fit, the row ends with `+N`, where `N` is the number of tags left out. Use `view INDEX` to see all of a contact's tags.
 
 Examples:
@@ -121,19 +131,19 @@ Format: `list`
 
 The heading above the contact list keeps showing the active filter, order, and result count,
 even after another command such as `view` replaces the command-result message.
-For example, `group t/react` shows `Group: react - Original order - 6 contact(s)` when six contacts match.
+When all contacts are shown in their original order, the heading is `Original order - N contact(s)`. For example, `group t/react` shows `Group: react - Original order - 6 contact(s)` when six contacts match.
 `filter starred` shows `Starred only`, while plain and typed `find` show `Find results`.
 The search heading identifies an active search but does not repeat the search terms.
-`due` shows `Due on/before YYYY-MM-DD`, using the date when the command ran.
+`due` shows `Due on/before YYYY-MM-DD`, using the date when the command ran, and sets the order part to `Sorted by due`.
 
 Changing the filter replaces its label; filters do not combine in this release.
-Sorting preserves the filter label, and the count updates when contacts change, including to zero.
+Sorting sets the order part to `Sorted by added`, `Sorted by edited`, or `Sorted by viewed` while keeping the filter label, and the count updates when contacts change, including to zero.
 `filter starred off` removes the filter label while keeping the sort.
 
 ### Sorting contacts by activity time: `sort`
 
 Sorts the currently displayed contacts by a recorded activity time. The active order and result count are shown above
-the contact list.
+the contact list, and the result message is `Sorted by CRITERION (newest first).` followed by `N contact(s) listed!`.
 
 Format: `sort added|edited|viewed`
 
@@ -143,9 +153,10 @@ Format: `sort added|edited|viewed`
 * `sort edited` puts most recently edited contacts first.
 * `sort viewed` puts most recently viewed contacts first. Viewing a contact can therefore move it in this list.
 * Contacts without the chosen recorded time appear last. Contacts with equal times keep their original list order.
+* `sort` keeps the current filter (`find`, `group`, `filter starred`, or `due`) and the viewed contact. Later `find`, `group`, and `filter` commands keep the sort.
 * The displayed indexes follow the order you see, so commands such as `view`, `edit`, `delete`, and `tag` use the
   sorted contact index.
-* Use `list` to return to the full, original-order list after `find` or `group`.
+* Use `list` to return to the full, original-order list.
 
 Examples:
 
@@ -173,6 +184,7 @@ Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…�
 * To remove a contact's LinkedIn handle, enter `l/` without a handle after it.
 * If the supplied values already match the contact, the command reports `Person unchanged:` followed by the
   contact's details. The displayed list, activity times, and undo history stay unchanged.
+* If an edit would give two contacts the same name and phone number, choose a different name or phone number.
 
 Examples:
 * `edit 1 p/91234567 e/johndoe@example.com` changes the 1st contact's phone number and email address to `91234567` and `johndoe@example.com`.
@@ -186,8 +198,8 @@ Format: `tag INDEX t/TAG [t/TAG]…​`
 
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
 * At least one nonempty `t/TAG` is required. A tag must be 1 to 20 characters long and contain only `A`–`Z`, `a`–`z`, digits, hyphens (`-`), or plus signs (`+`).
-* Tags are stored in lowercase. Repeating a tag with different capitalization, or adding a tag the contact already has, keeps only one copy. The command still reports success if every requested tag is already present.
-* A successful command reports `Updated Person:` followed by the contact's details.
+* Tags are stored in lowercase. Repeating a tag with different capitalization, or adding a tag the contact already has, keeps only one copy. If every requested tag is already present, the command reports `Tags unchanged:` followed by the contact's details. The last-edited time and undo history stay unchanged.
+* When tags are added, the command reports `Updated Person:` followed by the contact's details.
 * Use `edit INDEX t/TAG` to replace all tags, or `edit INDEX t/` to remove them all.
 
 Examples:
@@ -197,23 +209,35 @@ Examples:
 
 ### Adding a note to a contact: `note`
 
-Sets, replaces or removes a free-form note on a contact, for example where you met them or what to follow up on.
+Keeps one free-form note on a contact, for example where you met them or what to follow up on. Use it for anything that does not fit the other fields. You can search notes later with [`find nt/TERM`](#locating-contacts-find).
 
 Format: `note INDEX nt/NOTE` or `note INDEX clear`
 
+* **To save a note**, type `nt/` followed by the text. A contact that already has a note gets the new text instead; the old note is replaced, not added to.
+* **To remove a note**, type `clear` instead of `nt/NOTE`. `clear` can be in any letter case, so `CLEAR` works too.
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
-* `NOTE` can contain spaces and punctuation and can be up to 1000 characters long. An emoji such as 😀 counts as one character. An emoji that is made of several parts, such as a flag or a family, counts as several. Spaces at the start and end are removed. A note that is empty or only spaces is not accepted: use `note INDEX clear` to remove a note.
-* Setting a note on a contact that already has one replaces the old note.
-* The text after `nt/` is taken as typed, so it can contain `/`. Use `nt/` only once in a command.
-* The note is shown in full in the detail panel when you [`view`](#viewing-a-contact-view) the contact, and it is not shown in the contact list. If the note is long, scroll the detail panel to read all of it.
-* If the new note is the same as the old one, or you clear a contact that has no note, nothing is changed and the contact's last edited time stays as it was.
+* `NOTE` can be up to **1000 characters**. It can contain spaces, punctuation and `/`. An emoji such as 😀 counts as one character, but an emoji made of several parts, such as a flag or a family, counts as several.
+* Spaces at the start and end of `NOTE` are removed. A note that is empty or only spaces is not accepted: use `note INDEX clear` to remove a note.
+* Use `nt/` only once in a command.
+* The note is not shown in the contact list. [`view`](#viewing-a-contact-view) the contact to read it in full in the detail panel, and scroll the panel if the note is long.
+
+The result message tells you what happened:
+
+Situation | Message
+----------|--------
+Note saved | `Saved the note for NAME.`
+Note removed | `Cleared the note for NAME.`
+The new note is the same as the old one | `The note for NAME is already that text. Nothing was changed.`
+`clear` on a contact with no note | `NAME has no note to clear. Nothing was changed.`
+
+When nothing is changed, the contact's last edited time stays as it was.
 
 Examples:
 * `note 1 nt/Met at the AI track, wants a React teammate` sets the note of the 1st contact.
 * `find Aisha` followed by `note 1 nt/Follow up after the demo` sets the note of the 1st contact in the search results.
 * `note 2 clear` removes the note of the 2nd contact.
 
-If the note cannot be saved, LarperBoard shows these errors:
+If the command cannot be carried out, LarperBoard shows one of these errors:
 
 Input or situation | Message
 -------------------|--------
@@ -231,7 +255,7 @@ A valid `note` command when the displayed list is empty | `The person list is em
 ### Locating contacts: `find`
 
 Use plain name keywords or typed field prefixes. A valid search may return zero contacts.
-Both forms report `N contact(s) listed!`, where `N` is the number of matches, including zero.
+Both forms report `N contact(s) listed!`, where `N` is the number of matches, including zero. `find` replaces the current `find`, `group`, `filter`, or `due` result while keeping any active sort and the viewed contact.
 
 Aspect | Plain `find Han` | Typed `find n/Han`
 -------|------------------|-------------------
@@ -261,7 +285,7 @@ Typed format: `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`
   Ordinary slash-containing text in typed terms, such as `find ev/ai/ml workshop` or `find nt/c/o NUS`, remains valid.
   This also means a note or event search cannot contain these reserved prefixes after whitespace:
   `find nt/likes r/java` is rejected even if `r/java` is intended as literal note text.
-* Indexes always refer to the contacts currently displayed. Use `list` to return to the full list.
+* Indexes always refer to the contacts currently displayed. Use `list` to return to the full, original-order list. A rejected `find` command leaves the list, the heading, and the viewed contact as they were.
 
 Examples:
 * `find Aisha Ben` finds contacts named `Aisha Rahman` or `Ben Tan` when both have been added.
@@ -286,16 +310,16 @@ Shows contacts with the specified tag.
 
 Format: `group t/TAG`
 
-* Tag matching is case-insensitive.
-* The result message shows the selected tag and the number of matching contacts.
-* `group` replaces the current `find` or `group` result rather than combining with it.
-* Use `list` to return to the full contact list.
+* Tag matching is case-insensitive and matches the whole tag name. A tag must follow the same rules as `tag` (1 to 20 letters, digits, hyphens, or plus signs).
+* The result message is `Group: [TAG]` followed by a new line and `N contact(s) listed!`. No contact having the tag is a normal result: the list is empty and `N` is `0`.
+* `group` replaces the current `find`, `group`, `filter`, or `due` result rather than combining with it, while keeping any active sort and the viewed contact.
+* Use `list` to return to the full, original-order contact list.
 
 Examples:
 * `group t/react`
 * `group t/UI-UX`
 
-If `t/` is missing, the error is `Invalid command format!` followed by
+If `t/` is missing or preceded by extra text, the error is `Invalid command format!` followed by
 `Use group t/TAG with one tag, e.g. group t/react.`
 An empty, invalid, or overlong tag reports
 `Tags should contain only letters, digits, hyphens, and plus signs, and be 1 to 20 characters long`.
@@ -305,33 +329,62 @@ An accepted tag with no matches produces a normal zero-contact result, not an er
 
 ### Starring important contacts: `star` and `unstar`
 
-Marks a contact as important with a star, or removes the star again.
+Marks a contact as important with a star so that you can find them quickly, or removes the star again. After you star some contacts, [`filter starred`](#showing-only-starred-contacts-filter) shows only those contacts.
 
 Format: `star INDEX` or `unstar INDEX`
 
-* `INDEX` refers to the index number shown in the displayed contact list and must be a positive integer.
+* `star` adds the star and `unstar` removes it.
+* `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
 * A starred contact shows a ★ in the top right corner of its card in the contact list, and in the top right corner of the contact details.
-* Starring a contact that is already starred (or removing the star from one that is not) changes nothing, and LarperBoard tells you so.
-* Stars are saved with your data, and you can reverse a change with `undo`.
+* Stars are saved with your data, and you can reverse a change with [`undo`](#undoing-a-contact-change-undo).
+
+The result message tells you what happened:
+
+Situation | Message
+----------|--------
+`star` on a contact that is not starred | `Starred NAME.`
+`unstar` on a starred contact | `Removed the star from NAME.`
+`star` on a contact that is already starred | `NAME is already starred. Nothing was changed.`
+`unstar` on a contact that is not starred | `NAME is not starred. Nothing was changed.`
 
 Examples:
 * `star 1` stars the first contact in the displayed list.
 * `unstar 1` removes the star from it.
 
+If the command cannot be carried out, LarperBoard shows one of these errors (`unstar` gives the same messages with `unstar` in place of `star`):
+
+Input or situation | Message
+-------------------|--------
+`star` (no index) | `Invalid command format!` then `Add the contact's INDEX: star INDEX.`
+`star 1 2` or `star 1 junk` (more than the index) | `Invalid command format!` then `Use one INDEX only: star INDEX.`
+`star 0`, `star abc`, or an index larger than the number of contacts shown | `The person index provided is invalid.`
+A valid `star` command when the displayed list is empty | `The person list is empty.`
+
 ### Showing only starred contacts: `filter`
 
-Shows only your starred contacts, or shows all contacts again.
+Shows only the contacts you have starred with [`star`](#starring-important-contacts-star-and-unstar), or shows all contacts again. `starred` is the only thing you can filter by.
 
 Format: `filter starred` or `filter starred off`
 
-* The keywords are case-insensitive.
-* The result message shows how many contacts are listed. If you have not starred anyone, the list is empty.
+* `filter starred` hides every contact that is not starred. If you have not starred anyone, the list is empty.
+* `filter starred off` shows every contact again. [`list`](#listing-all-contacts-list) does the same.
+* The keywords are case-insensitive, so `filter Starred OFF` works.
+* While the filter is on, the list heading shows `Starred only` (see [Reading the list heading](#reading-the-list-heading)).
 * `filter` replaces the current `find`, `group` or `filter` result rather than combining with it.
-* `list` also shows all contacts again.
+* Indexes follow the filtered list, so `unstar 1` removes the star from the first contact you can see.
+
+The result message is `Showing only starred contacts.` or `Showing all contacts.`, followed by `N contact(s) listed!`.
 
 Examples:
 * `filter starred` shows only the starred contacts.
 * `filter starred off` shows every contact again.
+
+If the command cannot be carried out, LarperBoard shows one of these errors:
+
+Input | Message
+------|--------
+`filter` (nothing after it) | `Invalid command format!` then `Add starred: filter starred, or filter starred off.`
+`filter foo`, `filter off`, or `filter starred extra` | `Invalid command format!` then `Use: filter starred, or filter starred off.`
 
 ### Deleting a contact: `delete`
 
@@ -364,10 +417,10 @@ Shows the selected contact's full details in the detail panel, next to the conta
 Format: `view INDEX`
 
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
-* The detail panel shows the contact's name, phone number, email, LinkedIn handle and all of their tags. A field that the contact does not have is shown as `-`.
-* The detail panel shows `No contact selected` until you view a contact. A successful command also reports `Now viewing:` followed by the contact's details.
-* The detail panel stays on the contact you viewed until you view someone else. It is updated if you edit or tag that contact, and goes back to `No contact selected` if you delete that contact or clear all entries.
-* `find`, `group`, and `filter` change the contact list without clearing the detail panel, even if the viewed contact is hidden or there are no results. A later `view INDEX` selects from the currently displayed results, not from the retained detail panel.
+* The detail panel shows the contact's name, a ★ when starred, their photo (or a `No photo` placeholder), phone number, email, LinkedIn handle, tags in alphabetical order, note, meeting event, meeting date, meeting role, follow-up date, and activity times. A field that the contact does not have is shown as `-` (`—` for an unknown activity time).
+* The detail panel shows `No contact selected` until you view a contact. A successful command also reports `Now viewing:` followed by the contact's name, phone, email, LinkedIn handle (if present), and tags.
+* The detail panel stays on the contact you viewed until you view someone else. It updates when you change that contact (`edit`, `tag`, `note`, `star`/`unstar`, `meeting`, `followup`, or `photo`), and goes back to `No contact selected` if you delete that contact, clear all entries, or run `edit`, `followup`, `meeting`, or `star`/`unstar` so that the viewed contact leaves the current filtered list (for example, `unstar` in the starred list, or clearing its follow-up date in the due list).
+* `find`, `group`, `filter`, `due`, `sort`, and `list` change the contact list without clearing the detail panel, even if the viewed contact is hidden or there are no results. A later `view INDEX` selects from the currently displayed results, not from the retained detail panel. A rejected `view` command leaves the viewed contact and its last viewed time as they were.
 
 Examples:
 * `view 1` shows the 1st displayed contact.<br>
@@ -396,6 +449,8 @@ Clears all contacts from LarperBoard.
 
 Format: `clear`
 
+If there are no contacts, LarperBoard reports `No contacts to clear.`
+
 ### Undoing a contact change: `undo`
 
 Restores the contact list, displayed results, and viewed contact from before the most recent successful contact change. The restored contacts are saved to the data file. If there is no change to undo, LarperBoard reports `Nothing to undo.`
@@ -412,6 +467,9 @@ view time is kept for a contact that survives the undo; restoring a deleted cont
 as a new view. The history is not saved: after closing and reopening LarperBoard, restored contact
 data remains in the JSON file, but no earlier undo steps are available.
 
+For example, `add n/Jane Tan` followed by `undo` removes Jane. A second `undo` reports
+`Nothing to undo.` if there were no earlier contact changes in this session.
+
 ### Redoing an undone contact change: `redo`
 
 Reapplies the most recently undone contact change in the current app session and saves the restored
@@ -426,18 +484,25 @@ changes that leave contacts unchanged, and view or list commands keep them. Phot
 saved photo reference; imported image files are retained. Redo history is not available after the
 app is closed and reopened, although the redone contacts remain in the data file.
 
+For example, after `add n/Jane Tan` and `undo`, `redo` restores Jane. Adding a different contact
+before `redo` instead removes that redo step.
+
 ### Exiting the program: `exit`
 
-Exits the program.
+Closes LarperBoard when you have finished. You do not need to save first: your contacts are already saved to the data file after every change.
 
 Format: `exit`
 
 * After `exit`, the window stays open for about one second so that you can read the message in the result box, then it closes. The command box does not accept input during that time.
 * Choosing **Exit** from the **File** menu, or closing the window with its close button, closes LarperBoard at once.
+* `undo`, `redo` and the [command history](#recalling-previous-commands-up-and-down-arrows) are cleared when the app closes. Your contacts are not.
+* Extra text after `exit` is ignored, so `exit now` works like `exit`.
 
 ### Recalling previous commands: Up and Down arrows
 
-Brings back commands that you submitted earlier in the same session, so that you can run or fix them without typing them again.
+Brings back commands that you submitted earlier in the same session, so that you can run or fix them without typing them again. This is useful after a typo: press **Up**, correct the command, and submit it again.
+
+This is not Tab completion. LarperBoard does not complete a half-typed command when you press **Tab**.
 
 * While the command box is selected, press the **Up** arrow to bring back the previous command, and press it again to go further back.
 * Press the **Down** arrow to move forward again. After the newest command, the command box shows the text that you had typed before you started browsing.
@@ -724,10 +789,10 @@ Action | Format, Examples
 **Edit** | `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`<br> e.g., `edit 2 n/James Lee e/jameslee@example.com`
 **Exit** | `exit`
 **Filter** | `filter starred` or `filter starred off`
-**Find** | `find KEYWORD [MORE_KEYWORDS]…​` or `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`<br> e.g., `find n/James t/react`
+**Find** | `find KEYWORD [MORE_KEYWORDS]…​` or `find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]…​`<br> e.g., `find Aisha Ben`, `find n/James t/react`
 **Follow-up** | `followup INDEX d/YYYY-MM-DD` or `followup INDEX clear`<br> e.g., `followup 1 d/2026-10-25`
 **Group** | `group t/TAG`<br> e.g., `group t/react`
-**Help** | `help`
+**Help** | `help`, or press **F1**
 **List** | `list`
 **Meeting** | `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]` or `meeting INDEX clear [event/date/role]`
 **Photo** | `photo INDEX f/RELATIVE_PATH` or `photo INDEX clear`
