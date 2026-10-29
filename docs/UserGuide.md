@@ -219,12 +219,12 @@ A valid `note` command when the displayed list is empty | `The person list is em
 Use plain name keywords or typed field prefixes. A valid search may return zero contacts.
 
 Aspect | Plain `find Han` | Typed `find n/Han`
----|---|---
+-------|------------------|-------------------
 Searches | Names only | Names `n/`, tags `t/`, notes `nt/`, event names `ev/`
 Matching | Whole words: does **not** find `Hans Gruber` | Partial text: **does** find `Hans Gruber`
 Several terms | Any keyword matches (OR) | OR within one field, AND across fields
 Letter case | Ignored | Ignored
-Cannot search | Phone, email, LinkedIn handle, meeting date or role, follow-up date | Same
+Cannot search | Phone, email, LinkedIn handle, meeting date or role, follow-up date, photo | Same
 
 Plain format: `find KEYWORD [MORE_KEYWORDS]…​`
 
@@ -713,4 +713,4 @@ Prefix | Means | Used by
 `d/` | Follow-up date | `followup`
 `f/` | Photo file path | `photo`
 
-`find` accepts only `n/`, `t/`, `nt/` and `ev/`. The other prefixes give `Invalid command format!`.
+`find` accepts only `n/`, `t/`, `nt/` and `ev/`. The other prefixes in this table give `Invalid command format!` when they start a word. See [Locating contacts](#locating-contacts-find).
