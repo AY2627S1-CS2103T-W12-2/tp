@@ -199,6 +199,20 @@ so the visible list, selection, saved contacts and undo/redo history remain unch
 Literal slash text such as `c/o`, `ai/ml` and URLs is still accepted within typed terms, but reserved prefixes
 are rejected even when intended as note or event text (for example, `find nt/likes r/java`).
 
+### Search and list command feedback
+
+`FindCommand`, `SortCommand`, `GroupCommand`, and `ViewCommand` provide short `MESSAGE_USAGE` hints
+instead of repeating feature descriptions on invalid syntax. Parsers retain the shared
+`Messages.MESSAGE_INVALID_COMMAND_FORMAT` wrapper. Find's hint lists the supported fields and requires
+a non-empty term; mixed plain/typed input gets two concrete alternative commands, without echoing user input.
+Validation order, supported inputs, displayed-index targeting, and selection behavior are unchanged.
+
+Group tag limits still come from `Tag.MESSAGE_CONSTRAINTS`, and duplicate fields use the shared message.
+View still uses `ParserUtil.parseDisplayedIndex` and the common invalid-index, multiple-index, and empty-list
+messages. These command-specific hints reuse the shared wording in `Messages` rather than redefining it.
+`list` has no argument-validation error: it continues to ignore extra text, clears the filter/sort, and keeps
+command-text history.
+
 ### Contact activity
 
 Each `Person` carries an `Activity` with its created, last edited and last viewed times (see the [Model component](#model-component) and [Storage component](#storage-component) for the data and file format). The model is the only place that decides when these times change, so every feature records them the same way.
@@ -270,7 +284,7 @@ Design considerations:
 
 `SortCommandParser` trims the argument and normalizes it with `Locale.ROOT` before matching `added`, `edited`,
 or `viewed`. Sort keywords are case-insensitive regardless of the system locale; unsupported keywords and extra
-arguments still produce the format-and-usage error. The command word remains lowercase: `sort`.
+arguments still produce the invalid-format error with the short sort hint. The command word remains lowercase: `sort`.
 
 `SortCommand` passes a `SortCriterion` (`ADDED`, `EDITED`, or `VIEWED`) to `ModelManager`. The model keeps one
 `FilteredList` for the current contacts and wraps it in a `SortedList`, which is the list exposed to the UI and every
@@ -709,7 +723,7 @@ The user enters `group t/TAG` to display contacts with a selected tag.
     Use case resumes at step 2.
 
 * 3c. The given index causes integer overflow.
-  * 3c1. LarperBoard displays a message stating the provided index is too large.
+  * 3c1. LarperBoard displays `The person index provided is invalid.`, as for other invalid displayed indexes.
 
     Use case resumes at step 2.
 
@@ -848,6 +862,27 @@ Given below are instructions to test the app manually.
       Expected: The most recent window size and location are retained.
 
 1. _{ more test cases …​ }_
+
+### Search and list error feedback
+
+Start with saved contacts, run `view 1`, then `find n/zzzz` to hide the viewed contact.
+For each invalid command below, verify that the list, heading, viewed contact and saved data stay unchanged.
+
+| Command | Expected feedback / recovery |
+| --- | --- |
+| `find n/` or `find n/Aisha e/private@example.com` | `Invalid command format!`, then the two-line supported find syntax and non-empty-term hint shown in the UG. No private input is echoed. |
+| `find Alex n/Sam` | `Use either plain keywords or field prefixes in one find command.` followed by `Example: find Alex or find n/Alex t/react.` |
+| `sort name` or `sort added extra` | `Invalid command format!` followed by `Use sort added, sort edited, or sort viewed (case-insensitive).` |
+| `group react` | `Invalid command format!` followed by `Use group t/TAG with one tag, e.g. group t/react.` |
+| `group t/react!` | `Tags should contain only letters, digits, hyphens, and plus signs, and be 1 to 20 characters long` |
+| `group t/react t/java` | `Multiple values specified for the following single-valued field(s): t/` |
+| `view` | `Invalid command format!` followed by `Use view INDEX with one positive displayed index, e.g. view 1.` |
+| `view 1 2` | The format wrapper, `Only one index parameter is accepted.`, then the short view hint. |
+| `view 2147483648` | `The person index provided is invalid.` |
+| `view 1` on the empty results | `The person list is empty.`; the hidden viewed contact and its activity stay unchanged. |
+
+Run `list extra`: it still succeeds like `list`, reporting `Listed all contacts.` and restoring the original order.
+Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successful outcome, not a validation error.
 
 ### Activity-time sorting
 

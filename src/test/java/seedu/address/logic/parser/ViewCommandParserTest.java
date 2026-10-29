@@ -20,6 +20,14 @@ public class ViewCommandParserTest {
     private ViewCommandParser parser = new ViewCommandParser();
 
     @Test
+    public void parse_missingOrExtraIndex_showsDisplayedIndexExample() {
+        String hint = "Use view INDEX with one positive displayed index, e.g. view 1.";
+        assertParseFailure(parser, "", String.format(MESSAGE_INVALID_COMMAND_FORMAT, hint));
+        assertParseFailure(parser, "1 private", String.format(MESSAGE_INVALID_COMMAND_FORMAT,
+                MESSAGE_MULTIPLE_INDEXES + "\n" + hint));
+    }
+
+    @Test
     public void parse_validArgs_returnsViewCommand() {
         assertParseSuccess(parser, "1", new ViewCommand(INDEX_FIRST_PERSON));
         assertParseSuccess(parser, Integer.toString(Integer.MAX_VALUE),

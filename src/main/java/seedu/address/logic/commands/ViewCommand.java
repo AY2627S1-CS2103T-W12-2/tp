@@ -18,11 +18,8 @@ public class ViewCommand extends Command {
 
     public static final String COMMAND_WORD = "view";
 
-    public static final String MESSAGE_USAGE = COMMAND_WORD
-            + ": Displays the full details of the person identified by the index number used in the displayed "
-            + "person list.\n"
-            + "Parameters: INDEX (must be a positive integer)\n"
-            + "Example: " + COMMAND_WORD + " 1";
+    public static final String MESSAGE_USAGE = "Use " + COMMAND_WORD
+            + " INDEX with one positive displayed index, e.g. " + COMMAND_WORD + " 1.";
 
     public static final String MESSAGE_VIEW_PERSON_SUCCESS = "Now viewing: %1$s";
 
