@@ -323,6 +323,10 @@ Design considerations:
 
 ### Activity-time sorting
 
+`SortCommandParser` trims the argument and normalizes it with `Locale.ROOT` before matching `added`, `edited`,
+or `viewed`. Sort keywords are case-insensitive regardless of the system locale; unsupported keywords and extra
+arguments still produce the format-and-usage error. The command word remains lowercase: `sort`.
+
 `SortCommand` passes a `SortCriterion` (`ADDED`, `EDITED`, or `VIEWED`) to `ModelManager`. The model keeps one
 `FilteredList` for the current contacts and wraps it in a `SortedList`, which is the list exposed to the UI and every
 index-based command. This ensures that the index a user sees is the contact that `view`, `edit`, `delete`, and `tag`
@@ -561,7 +565,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
 
 1. User requests to find contacts using plain name keywords or typed search terms.
 2. LarperBoard performs a case-insensitive search. Plain name keywords use OR; repeated typed terms within one field use OR and terms across fields use AND.
-3. LarperBoard displays the matching persons.
+3. LarperBoard displays the matching contacts and reports `N contact(s) listed!`, where `N` is the number of matches.
 
    Use case ends.
 
@@ -574,7 +578,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have
     Use case resumes at step 1.
 
 * 2a. No contacts match the provided terms.
-  * 2a1. LarperBoard shows an empty valid result list.
+  * 2a1. LarperBoard shows an empty valid result list and reports `0 contact(s) listed!`.
 
     Use case ends.
 
@@ -905,11 +909,15 @@ Given below are instructions to test the app manually.
 1. Add three contacts, then run `sort added`.<br>
    Expected: Contacts are newest first; equal creation times retain their original order.
 
+1. Run `sort Added`, `sort ADDED`, `sort EdItEd`, and `sort VIEWED`.<br>
+   Expected: Each succeeds with the same order as its lowercase form. `sort ADDED extra` still shows the usage error.
+
 1. Run `sort viewed`, then `view 2`.<br>
    Expected: The viewed contact moves to the top and remains selected in the detail panel.
 
 1. Run `find NAME`, followed by `sort edited`, then `list`.<br>
-   Expected: Filtering keeps the active sort; `list` restores the full original-order list.
+   Expected: Filtering keeps the active sort; `find` reports `N contact(s) listed!`, and `list` reports
+   `Listed all contacts.` while restoring the full original-order list.
 
 ### Contact activity times
 

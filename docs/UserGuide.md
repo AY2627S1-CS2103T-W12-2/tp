@@ -106,6 +106,7 @@ Examples:
 ### Listing all contacts: `list`
 
 Clears the active contact filter and sort, then shows all contacts in their original order.
+The result message is `Listed all contacts.`, including when the list is empty.
 
 Format: `list`
 
@@ -132,6 +133,8 @@ the contact list.
 
 Format: `sort added|edited|viewed`
 
+* Sort keywords are case-insensitive: `sort Added`, `sort ADDED`, and `sort added` behave the same.
+  The command word remains lowercase: `sort`.
 * `sort added` puts most recently added contacts first.
 * `sort edited` puts most recently edited contacts first.
 * `sort viewed` puts most recently viewed contacts first. Viewing a contact can therefore move it in this list.
@@ -217,6 +220,7 @@ A valid `note` command when the displayed list is empty | `The person list is em
 ### Locating contacts: `find`
 
 Use plain name keywords or typed field prefixes. A valid search may return zero contacts.
+Both forms report `N contact(s) listed!`, where `N` is the number of matches, including zero.
 
 Plain format: `find KEYWORD [MORE_KEYWORDS]…​`
 
@@ -639,8 +643,7 @@ Back up the destination files before replacing them. Undo/redo and command recal
 
 Meeting text counts supplementary characters twice, and an event preview can split a surrogate pair
 when truncated. The pending [Unicode fix](https://github.com/AY2627S1-CS2103T-W12-2/tp/pull/181)
-is not included in v1.4.1. `find` also reports `person(s)` while other list commands say `contact(s)`;
-this wording difference does not change the results.
+is not included in v1.4.1.
 
 1. **When using multiple screens**, if you move the application to a secondary screen, and later switch to using only the primary screen, the GUI will open off-screen. The remedy is to delete the `preferences.json` file created by the application before running the application again.
 2. **If you minimize the Help Window** and then run the `help` command (or use the `Help` menu, or the keyboard shortcut `F1`) again, the original Help Window will remain minimized, and no new Help Window will appear. The remedy is to manually restore the minimized Help Window.
