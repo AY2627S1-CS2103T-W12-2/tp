@@ -52,6 +52,13 @@ public class Email {
         return test.isEmpty() || (test.length() <= MAX_LENGTH && test.matches(VALIDATION_REGEX));
     }
 
+    /**
+     * Returns true if the person has no email address.
+     */
+    public boolean isEmpty() {
+        return value.isEmpty();
+    }
+
     @Override
     public String toString() {
         return value;
