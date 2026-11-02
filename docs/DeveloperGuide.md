@@ -18,6 +18,7 @@ title: Developer Guide
     * Yong Sheng (Cysiac) used Claude Code and Codex to help draft code, tests and documentation for his features (activity times, follow-up dates and the due list, help/exit fixes) and to prepare PR reviews. He reviewed, tested and owns all such output.
     * Cheryl (Atqui-404) used Claude Code to help draft code, tests and documentation for the detail panel (notes, photo layout) and to write scripts and reports for the v1.5 beta testing. They reviewed, tested and own all such output.
     * Jia Jie (jiewue) used Claude Code and Codex to help draft code, tests and documentation for his features (plain and typed search, tag grouping, activity-time sorting, contact viewing and list status heading). He reviewed, tested and owns all such output.
+    * Hendrick (HoneycombHen) used Codex to review the repository and documentation against the submission requirements, and to help fix the contact-card tag overflow (#275), including its JavaFX regression test and manual-testing steps. He reviewed, tested and owns all such output.
     <!-- Other members: add a line describing your own use of AI tools, if any. -->
 
 --------------------------------------------------------------------------------------------------------------------
