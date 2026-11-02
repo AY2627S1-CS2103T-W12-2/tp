@@ -23,8 +23,8 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](http://github.com/jiewue)]
 
-* Role: -
-* Responsibilities: -
+* Role: Developer
+* Responsibilities: Plain and typed search, tag grouping, activity-time sorting, contact viewing and the list status heading
 
 ### Hendrick
 
@@ -33,7 +33,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](http://github.com/honeycombhen)]
 
 * Role: Developer
-* Responsibilities: -
+* Responsibilities: Tag command, undo and redo, safe data saving, tag colors; Developer Guide use cases and diagrams
 
 ### Cheryl
 

@@ -1163,8 +1163,6 @@ Given below are instructions to test the app manually.
    These steps check the user-facing exits. Hiding the main window without a close request, such as from code, cannot
    be done by hand; `MainWindowTest` covers it.
 
-1. _{ more test cases …​ }_
-
 ### Search, grouping, and contact view
 
 1. Prerequisites: Start with the sample contacts (`Aisha Rahman` is the 1st contact and has `l/aisha-rahman` and tags `react`, `frontend`). Run `list`, then `note 1 nt/Met at c/o booth`, `meeting 1 ev/AI/ML Hackathon`, and `view 1`.
@@ -1387,7 +1385,15 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
    1. Other incorrect delete commands to try: `delete`, `delete x`, `...` (where x is larger than the list size)<br>
       Expected: Similar to previous.
 
-1. _{ more test cases …​ }_
+1. Deleting a person from a filtered list
+
+   1. Prerequisites: Start with the sample contacts and run `find n/Ben`. Only `Ben Tan` is shown.
+
+   1. Test case: `delete 1`<br>
+      Expected: `Ben Tan` is deleted, not the first contact of the full list. The status message starts with
+      `Deleted contact: Ben Tan`. Run `list`: `Aisha Rahman` is still there and `Ben Tan` is gone.
+
+   1. Run `undo` to restore `Ben Tan`.
 
 ### Notes
 
@@ -1497,8 +1503,26 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
 
 ### Saving data
 
-1. Dealing with missing/corrupted data files
+1. Dealing with a missing data file
 
-   1. _{Explain how to simulate missing or corrupted data files and state the expected behavior.}_
+   1. Prerequisites: Close LarperBoard. In the folder you launch it from, move `data/addressbook.json` somewhere
+      else as a backup.
 
-1. _{ more test cases …​ }_
+   1. Launch LarperBoard.<br>
+      Expected: The app starts with the sample contacts, starting with `Aisha Rahman`.
+
+   1. Close LarperBoard and move the backup back to `data/addressbook.json`.
+
+1. Dealing with a corrupted data file
+
+   1. Prerequisites: Close LarperBoard and back up `data/addressbook.json`.
+
+   1. Open `data/addressbook.json` in a text editor, delete its last `}` so that the file is no longer valid JSON,
+      and save it. Launch LarperBoard.<br>
+      Expected: The app starts with an empty contact list. The log reports that the data file could not be loaded.
+
+   1. Run `help`, then `exit`. Reopen the corrupted file in the text editor.<br>
+      Expected: The file is unchanged, because `help` and `exit` do not write contact data.
+
+   1. Restore the backup and launch LarperBoard.<br>
+      Expected: The original contacts are shown again.
