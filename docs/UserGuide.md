@@ -183,6 +183,7 @@ Edits an existing contact in LarperBoard.
 Format: `edit INDEX [n/NAME] [p/PHONE] [e/EMAIL] [l/LINKEDIN_HANDLE] [t/TAG]…​`
 
 * Edits the contact at the specified `INDEX`. The index refers to the number shown in the displayed contact list. The index **must be a positive integer** 1, 2, 3, …​
+* An index that is not a positive integer, or is larger than the displayed list, reports `The person index provided is invalid.` A missing index reports the `edit` usage.
 * At least one of the optional fields must be provided.
 * To remove a phone number or email address, supply `p/` or `e/` without a value.
 * Existing values will be updated to the input values.
