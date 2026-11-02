@@ -154,13 +154,13 @@ public class MeetingFeatureTest {
     }
 
     @Test
-    public void execute_eventChangeRemovesViewedContactFromFilter_clearsSelection() throws Exception {
+    public void execute_eventChangeRemovesViewedContactFromFilter_keepsSelection() throws Exception {
         logic.execute("meeting 1 ev/Hack");
         logic.execute("find ev/Hack");
         logic.execute("view 1");
         logic.execute("meeting 1 ev/Conference");
         assertTrue(model.getFilteredPersonList().isEmpty());
-        assertEquals(null, model.getViewedPerson().get());
+        assertEquals("Conference", model.getViewedPerson().get().getMeeting().getEventName().orElseThrow());
     }
 
     @Test

@@ -46,11 +46,7 @@ public class FollowUpCommand extends Command {
                     ? String.format(MESSAGE_NO_DATE_TO_CLEAR, name)
                     : String.format(MESSAGE_SAME_DATE, name, date));
         }
-        boolean editsViewedPerson = target.equals(model.getViewedPerson().get());
         model.editPerson(target, target.toBuilder().withFollowUpDate(date).build());
-        if (editsViewedPerson && !model.getFilteredPersonList().contains(model.getViewedPerson().get())) {
-            model.setViewedPerson(null);
-        }
         return new CommandResult(date == null
                 ? String.format(MESSAGE_CLEARED, name)
                 : String.format(MESSAGE_SET_SUCCESS, name, date));

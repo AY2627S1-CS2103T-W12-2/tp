@@ -317,8 +317,8 @@ follow-up date to clear. Nothing was changed.` when clearing) without touching t
 which stamps last-edited time and keeps the viewed contact in step, as `MeetingCommand` does. `LogicManager` then
 saves and records the undo entry, and restores its snapshot if saving fails, so no separate history code exists.
 If the edited contact is the viewed one and no longer passes the visible-list filter (for example, clearing its date
-or setting one after today while the `due` list is shown), `FollowUpCommand` clears the viewed contact, so the
-detail panel shows `No contact selected`.
+or setting one after today while the `due` list is shown), `FollowUpCommand` leaves the viewed contact alone, so the
+detail panel keeps showing it with the updated date.
 
 `JsonAdaptedPerson` writes `followUpDate` as an ISO string or null. It reads the field as an `Object` so that a
 non-string value reaches `parseFollowUpDate` and gets the field-specific error rather than a Jackson error.
@@ -406,7 +406,7 @@ The `find`, `group`, `filter`, `due`, `sort`, and `list` commands only update th
 they do not clear `Model#getViewedPerson()` when a contact is filtered out.
 The detail selection is independent of list membership, including for zero results.
 A subsequent `view` selects by displayed index, while deleting the viewed contact
-or clearing the address book clears the detail selection. When the viewed contact is edited by `FollowUpCommand`, `MeetingCommand`, `StarCommand`, or `EditCommand` so that it leaves the visible list, the command clears the viewed contact (leaving a hidden viewed contact when editing a different contact is tracked in #227).
+or clearing the address book clears the detail selection. When the viewed contact is edited by `FollowUpCommand`, `MeetingCommand`, `StarCommand`, `NoteCommand`, or `EditCommand` so that it leaves the visible list, the viewed contact is kept and updated, in the same way as `find`, `group`, `filter`, and `due` keep a hidden viewed contact.
 
 ### Starring contacts
 
@@ -1371,7 +1371,7 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
       Expected: The contact disappears from the due list. `list` shows all contacts again in their original order.
 
    1. Test case: `list`, `view 5` (a sample contact that never gets a date), then `due`<br>
-      Expected: The detail panel still shows the 5th contact although it is not in the due list. Then run `view 1` and `followup 1 clear`: the contact leaves the due list and the detail panel shows `No contact selected`.
+      Expected: The detail panel still shows the 5th contact although it is not in the due list. Then run `view 1` and `followup 1 clear`: the contact leaves the due list, but the detail panel stays on it with its follow-up date shown as `-`.
 
    1. Test case: `list`, then `followup N clear` for every contact that still has a date (replace `N` with its index), then `due`<br>
       Expected: The list is empty and the status message ends with `0 contact(s) listed!`. No error is shown.
