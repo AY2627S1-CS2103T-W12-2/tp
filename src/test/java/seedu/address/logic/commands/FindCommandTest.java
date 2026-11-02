@@ -56,11 +56,22 @@ public class FindCommandTest {
 
     @Test
     public void execute_zeroKeywords_noPersonFound() {
-        String expectedMessage = "0 contact(s) listed!";
+        String expectedMessage = "0 contact(s) listed!\n" + FindCommand.MESSAGE_PLAIN_NO_MATCH_HINT;
         NameContainsKeywordsPredicate predicate = preparePredicate(" ");
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate, "Find results");
         assertCommandSuccess(command, model, expectedMessage, expectedModel);
+        assertEquals(List.of(), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_plainSearchForTag_noPersonFoundWithHint() throws Exception {
+        AddressBookParser parser = new AddressBookParser();
+
+        CommandResult result = parser.parseCommand("find friends").execute(model);
+
+        assertEquals("0 contact(s) listed!\nPlain find searches names only. To search tags use find t/TAG.",
+                result.getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredPersonList());
     }
 
@@ -80,8 +91,16 @@ public class FindCommandTest {
         FindCommand command = new FindCommand(predicate);
         expectedModel.updateFilteredPersonList(predicate, "Find results");
 
+        // a typed search already names its field, so it gets no hint
         assertCommandSuccess(command, model, "0 contact(s) listed!", expectedModel);
         assertEquals(List.of(), model.getFilteredPersonList());
+    }
+
+    @Test
+    public void execute_plainSearchWithMatch_noHint() throws Exception {
+        CommandResult result = new AddressBookParser().parseCommand("find Kurz").execute(model);
+
+        assertEquals("1 contact(s) listed!", result.getFeedbackToUser());
     }
 
     @Test

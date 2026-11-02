@@ -310,7 +310,9 @@ Supply at least one non-empty term; typed fields may repeat.
 ```
 
 An invalid search leaves the current results and viewed contact unchanged. A valid search with no matches
-reports `0 contact(s) listed!`; it is not an error.
+reports `0 contact(s) listed!`; it is not an error. When a plain `find` (one without field prefixes) finds no
+contacts, the message adds a second line, `Plain find searches names only. To search tags use find t/TAG.`,
+because plain `find` does not look at tags, notes or event names.
 
 ### Grouping contacts by tag: `group`
 

@@ -622,7 +622,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
     Use case resumes at step 1.
 
 * 2a. No contacts match the provided terms.
-  * 2a1. LarperBoard shows an empty valid result list and reports `0 contact(s) listed!`.
+  * 2a1. LarperBoard shows an empty valid result list and reports `0 contact(s) listed!`. For a plain name search, it adds a hint that plain `find` searches names only.
 
     Use case ends.
 
