@@ -1146,12 +1146,12 @@ Given below are instructions to test the app manually.
    1. Close the main window with its title-bar close button.<br>
       Expected: Both windows close and LarperBoard exits.
 
-   1. Relaunch the app with `java -jar larperboard.jar` and run `help` so that the Help window opens.
+   1. Relaunch the app (in a terminal, `cd` to the folder that contains `larperboard.jar`, then run `java -jar larperboard.jar`) and run `help` so that the Help window opens.
 
    1. Exit with File > Exit.<br>
       Expected: Both windows close and LarperBoard exits.
 
-   1. Relaunch the app with `java -jar larperboard.jar` and run `help` so that the Help window opens.
+   1. Relaunch the app the same way and run `help` so that the Help window opens.
 
    1. Exit with the `exit` command.<br>
       Expected: Both windows close and LarperBoard exits.
