@@ -1150,12 +1150,12 @@ Given below are instructions to test the app manually.
    1. Close the main window with its title-bar close button.<br>
       Expected: Both windows close and LarperBoard exits.
 
-   1. Relaunch the app with `java -jar larperboard.jar` and run `help` so that the Help window opens.
+   1. Relaunch the app (in a terminal, `cd` to the folder that contains `larperboard.jar`, then run `java -jar larperboard.jar`) and run `help` so that the Help window opens.
 
    1. Exit with File > Exit.<br>
       Expected: Both windows close and LarperBoard exits.
 
-   1. Relaunch the app with `java -jar larperboard.jar` and run `help` so that the Help window opens.
+   1. Relaunch the app the same way and run `help` so that the Help window opens.
 
    1. Exit with the `exit` command.<br>
       Expected: Both windows close and LarperBoard exits.
@@ -1352,9 +1352,9 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
 
 1. A malformed `followUpDate` or time in the data file
 
-   1. Prerequisites: Close the app and back up `data/addressbook.json`. Run the app from a terminal so that the log is printed, or open `addressbook.log.0` in the folder you ran it from afterwards.
+   1. Prerequisites: Close the app and back up `data/addressbook.json`. Run the app from a terminal so that the log is printed, or open `addressbook.log.0` in the folder you ran it from afterwards. A data file saved by LarperBoard already lists every field of each contact, for example `"followUpDate" : null`. Change the value of the existing line. Do not add a second line with the same name: when a name appears twice, the later line wins, so a `null` below your new line hides it and the app starts normally. If you ran a command after a failed start, restore the backup before the next test case, because that command saved an empty list over the file.
 
-   1. Test case: add `"followUpDate" : "2026-02-30"` to a contact and start the app<br>
+   1. Test case: in a contact, change `"followUpDate" : null` to `"followUpDate" : "2026-02-30"` and start the app<br>
       Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` The data file on disk is not changed by `help` or `exit`. A successful command other than these (even `list`) saves the empty list over it.
 
    1. Test case: change the value to `2026-1-5`, `""` or `20261005`, or to a non-string such as `5`, `true` or `{}`, and start the app<br>
@@ -1363,11 +1363,11 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
    1. Test case: change the value to `null`, or remove the field, and start the app<br>
       Expected: The app starts normally. The contact has no follow-up date.
 
-   1. Test case: add `"createdAt" : "2026-10-17T04:12:33.5Z"` to a contact and start the app<br>
+   1. Test case: in a contact, change the value of `"createdAt"` to `"2026-10-17T04:12:33.5Z"` and start the app<br>
       Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` Other values to try: `2026-10-17T12:12:33+08:00`, `" 2026-10-17T04:12:33Z"`, `2026-10-17`, `2026-02-30T04:12:33Z`, `1760674353`.<br>
       Expected: The same behaviour. The field name in the message is `lastEditedAt` or `lastViewedAt` when that field is the bad one.
 
-   1. Test case: use `"createdAt" : "2026-10-17T04:12:33Z"` and start the app<br>
+   1. Test case: change the value of `"createdAt"` to `"2026-10-17T04:12:33Z"` and start the app<br>
       Expected: The app starts normally. `view` shows `CREATED` as `2026-10-17 12:12` (Singapore time is 8 hours ahead of UTC).
 
    1. Restore the backup of the data file.
