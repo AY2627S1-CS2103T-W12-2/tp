@@ -14,6 +14,7 @@ title: Developer Guide
 * **Build and CI tooling:** [Gradle](https://gradle.org/), the [Shadow](https://github.com/GradleUp/shadow) plugin, [Checkstyle](https://checkstyle.org/), [JaCoCo](https://www.jacoco.org/), [Codecov](https://about.codecov.io/), GitHub Actions and [Dependabot](https://docs.github.com/en/code-security/dependabot).
 * **Documentation:** the User Guide and this Developer Guide are adapted from AB3's, and the team's own contact photos in `docs/images` are the members' own.
 * **Use of AI tools:** AI tools were used during development of LarperBoard by several team members: Anthropic's Claude (through Claude Code, with Claude Sonnet model) and OpenAI Codex. They were used across the project: to help implement features and bug fixes, write and update unit tests, update the User Guide and Developer Guide, draft commit messages and issue texts, run preliminary pull request reviews, and write scripts for beta testing. Commits where Claude helped carry a `Co-Authored-By` line, and branches that came from Codex are named `codex/...`. Every member reviewed, edited and takes responsibility for the AI-assisted code and text they committed.
+  * Vishesh Jally (jvally) used Codex to help draft code, tests and documentation for meeting context, photos and storage, improve command hints, and prepare pull request reviews. They reviewed, tested and own all such output.
 
 --------------------------------------------------------------------------------------------------------------------
 
