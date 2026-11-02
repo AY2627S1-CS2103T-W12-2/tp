@@ -45,4 +45,11 @@ public class MessagesTest {
         String expected = person.getName() + "; Email: " + person.getEmail() + "; Tags: [friends]";
         assertEquals(expected, Messages.format(person));
     }
+
+    @Test
+    public void format_personWithoutEmail_omitsEmail() {
+        Person person = new PersonBuilder().withEmail("").withLinkedIn("").withTags("friends").build();
+        String expected = person.getName() + "; Phone: " + person.getPhone() + "; Tags: [friends]";
+        assertEquals(expected, Messages.format(person));
+    }
 }
