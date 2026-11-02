@@ -19,6 +19,7 @@ title: Developer Guide
 * Use of AI tools:
   * Yong Sheng (Cysiac) used Claude Code and Codex to help draft code, tests and documentation for his features (activity times, follow-up dates and the due list, help/exit fixes) and to prepare PR reviews. He reviewed, tested and owns all such output.
     <!-- Other members: add a line describing your own use of AI tools, if any. -->
+  * Cheryl (Atqui-404) used Claude Code to help draft code, tests and documentation for the detail panel (notes, photo layout) and to write scripts and reports for the v1.5 beta testing. They reviewed, tested and own all such output.
 
 --------------------------------------------------------------------------------------------------------------------
 
