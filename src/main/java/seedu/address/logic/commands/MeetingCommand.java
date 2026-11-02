@@ -15,7 +15,8 @@ import seedu.address.model.person.Person;
 public class MeetingCommand extends Command {
     public static final String COMMAND_WORD = "meeting";
     public static final String MESSAGE_USAGE = "Use: meeting INDEX ev/EVENT, md/YYYY-MM-DD, or r/ROLE.";
-    public static final String MESSAGE_MISSING_INDEX = "Add the contact's INDEX: meeting INDEX ev/EVENT.";
+    public static final String MESSAGE_MISSING_INDEX =
+            "Add the contact's INDEX: meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE].";
     public static final String MESSAGE_NO_UPDATE = "Add ev/, md/, or r/, or use: meeting INDEX clear.";
     public static final String MESSAGE_NOT_BOTH = "Use meeting fields or clear, not both.";
     public static final String MESSAGE_WITHOUT_PREFIX = "Put meeting details after ev/, md/, or r/.";
