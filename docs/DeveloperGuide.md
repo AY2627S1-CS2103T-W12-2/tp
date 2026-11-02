@@ -9,7 +9,11 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* **Base project:** LarperBoard is based on [AddressBook-Level3 (AB3)](https://github.com/se-edu/addressbook-level3) by the [SE-EDU initiative](https://se-education.org). The overall architecture, the Jekyll documentation site setup, the PlantUML diagram sources and style, the undo/redo state diagrams, and the app icons in `src/main/resources/images` (`address_book_32.png`, `help_icon.png`, `info_icon.png`, `fail.png`, `calendar.png`, `clock.png`) come from AB3, as does the SE-EDU logo and `johndoe.png` in `docs/images`. The `MainWindow` comment about [JDK-8131666](https://bugs.openjdk.java.net/browse/JDK-8131666) and the [JMetro](http://pixelduke.wordpress.com/2012/10/23/jmetro-windows-8-controls-on-java/) styling note in `DarkTheme.css` are also inherited from AB3.
+* **Third-party libraries** (all already used by AB3, no new libraries were added): [JavaFX](https://openjfx.io/) 17.0.7, [Jackson](https://github.com/FasterXML/jackson) (`jackson-databind` 2.7.0 and `jackson-datatype-jsr310` 2.7.4), and [JUnit 5](https://github.com/junit-team/junit5) 5.14.4 for tests.
+* **Build and CI tooling:** [Gradle](https://gradle.org/), the [Shadow](https://github.com/GradleUp/shadow) plugin, [Checkstyle](https://checkstyle.org/), [JaCoCo](https://www.jacoco.org/), [Codecov](https://about.codecov.io/), GitHub Actions and [Dependabot](https://docs.github.com/en/code-security/dependabot).
+* **Documentation:** the User Guide and this Developer Guide are adapted from AB3's, and the team's own contact photos in `docs/images` are the members' own.
+* **Use of AI tools:** AI tools were used during development of LarperBoard by several team members: Anthropic's Claude (through Claude Code, with Claude Sonnet model) and OpenAI Codex. They were used across the project: to help implement features and bug fixes, write and update unit tests, update the User Guide and Developer Guide, draft commit messages and issue texts, run preliminary pull request reviews, and write scripts for beta testing. Commits where Claude helped carry a `Co-Authored-By` line, and branches that came from Codex are named `codex/...`. Every member reviewed, edited and takes responsibility for the AI-assisted code and text they committed.
 
 --------------------------------------------------------------------------------------------------------------------
 
