@@ -24,7 +24,8 @@ public class FindCommand extends Command {
             "Use either plain keywords or field prefixes in one find command.\n"
                     + "Example: find Alex or find n/Alex t/react.";
     public static final String MESSAGE_PLAIN_NO_MATCH_HINT =
-            "Plain find searches names only. To search tags use find t/TAG.";
+            "Without a prefix, find searches names only. "
+            + "Search tags with find t/TAG, notes with find nt/TERM and events with find ev/TERM.";
 
     private final Predicate<Person> predicate;
 

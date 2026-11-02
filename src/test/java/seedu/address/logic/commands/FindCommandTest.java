@@ -70,7 +70,8 @@ public class FindCommandTest {
 
         CommandResult result = parser.parseCommand("find friends").execute(model);
 
-        assertEquals("0 contact(s) listed!\nPlain find searches names only. To search tags use find t/TAG.",
+        assertEquals("0 contact(s) listed!\nWithout a prefix, find searches names only. "
+                        + "Search tags with find t/TAG, notes with find nt/TERM and events with find ev/TERM.",
                 result.getFeedbackToUser());
         assertEquals(List.of(), model.getFilteredPersonList());
     }
