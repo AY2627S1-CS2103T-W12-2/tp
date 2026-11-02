@@ -14,6 +14,12 @@ title: Developer Guide
 * **Build and CI tooling:** [Gradle](https://gradle.org/), the [Shadow](https://github.com/GradleUp/shadow) plugin, [Checkstyle](https://checkstyle.org/), [JaCoCo](https://www.jacoco.org/), [Codecov](https://about.codecov.io/), GitHub Actions and [Dependabot](https://docs.github.com/en/code-security/dependabot).
 * **Documentation:** the User Guide and this Developer Guide are adapted from AB3's, and the team's own contact photos in `docs/images` are the members' own.
 * **Use of AI tools:** AI tools were used during development of LarperBoard by several team members: Anthropic's Claude (through Claude Code, with Claude Sonnet model) and OpenAI Codex. They were used across the project: to help implement features and bug fixes, write and update unit tests, update the User Guide and Developer Guide, draft commit messages and issue texts, run preliminary pull request reviews, and write scripts for beta testing. Commits where Claude helped carry a `Co-Authored-By` line, and branches that came from Codex are named `codex/...`. Every member reviewed, edited and takes responsibility for the AI-assisted code and text they committed.
+  * Individual members:
+    * Yong Sheng (Cysiac) used Claude Code and Codex to help draft code, tests and documentation for his features (activity times, follow-up dates and the due list, help/exit fixes) and to prepare PR reviews. He reviewed, tested and owns all such output.
+    * Cheryl (Atqui-404) used Claude Code to help draft code, tests and documentation for the detail panel (notes, photo layout) and to write scripts and reports for the v1.5 beta testing. They reviewed, tested and own all such output.
+    * Jia Jie (jiewue) used Claude Code and Codex to help draft code, tests and documentation for his features (plain and typed search, tag grouping, activity-time sorting, contact viewing and list status heading). He reviewed, tested and owns all such output.
+    * Hendrick (HoneycombHen) used Codex to review the repository and documentation against the submission requirements, and to help fix the contact-card tag overflow (#275), including its JavaFX regression test and manual-testing steps. He reviewed, tested and owns all such output.
+    <!-- Other members: add a line describing your own use of AI tools, if any. -->
 
 * **Hendrick (HoneycombHen):** Used OpenAI Codex to review the repository and documentation against the course's
   submission requirements, investigate and fix the contact-card tag overflow issue (#275), write its JavaFX

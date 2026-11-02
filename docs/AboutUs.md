@@ -5,7 +5,7 @@ title: About Us
 
 We are a team based in the [School of Computing, National University of Singapore](https://www.comp.nus.edu.sg).
 
-You can reach us at the email `seer[at]comp.nus.edu.sg`
+You can reach us through our [team repository issue tracker](https://github.com/AY2627S1-CS2103T-W12-2/tp/issues).
 
 ## Project team
 
@@ -50,5 +50,5 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 
 [[github](http://github.com/cysiac)]
 
-* Role: Developer / Claude Expert
-* Responsibilities: Develop Features + Educate the rest on usage of Claude
+* Role: Developer
+* Responsibilities: Contact activity times, follow-up dates and the due list; Help and exit behaviour; reviewing pull requests

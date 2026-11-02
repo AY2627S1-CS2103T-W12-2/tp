@@ -30,7 +30,7 @@ The Help menu opens the [online User Guide](https://ay2627s1-cs2103t-w12-2.githu
 
 Use `delete INDEX` with one positive index from the currently displayed contact list. For example, `delete 2` removes the second displayed contact.
 
-The command accepts only one index. `delete 1 2` shows a usage error; an invalid or oversized index reports `The person index provided is invalid.` See the [delete error cases](docs/UserGuide.md#deleting-a-person-delete) for empty or invalid lists and indexes.
+The command accepts only one index. `delete 1 2` shows a usage error; an invalid or oversized index reports `The person index provided is invalid.` See the [delete error cases](docs/UserGuide.md#deleting-a-contact-delete) for empty or invalid lists and indexes.
 
 See the [v1.5 release notes](docs/releases/v1.5.md) for changes, upgrade instructions, and known limitations.
 
