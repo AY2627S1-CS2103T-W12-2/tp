@@ -573,7 +573,7 @@ For an invalid command shape, `Invalid command format!` is followed by one hint:
 
 Input | Hint
 ------|-----
-`meeting` or `meeting ev/Event` | `Add the contact's INDEX: meeting INDEX ev/EVENT.`
+`meeting` or `meeting ev/Event` | `Add the contact's INDEX: meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE].`
 `meeting 1` | `Add ev/, md/, or r/, or use: meeting INDEX clear.`
 `meeting 1 Mentor` | `Put meeting details after ev/, md/, or r/.`
 `meeting 1 clear ev/Event` | `Use meeting fields or clear, not both.`
