@@ -135,8 +135,8 @@ public class FollowUpCommandTest {
     }
 
     @Test
-    public void execute_clearDateOfViewedContactInDueView_clearsSelection() throws Exception {
-        // in the due view, clearing the date makes the contact leave the visible list
+    public void execute_clearDateOfViewedContactInDueView_keepsSelection() throws Exception {
+        // in the due view, clearing the date makes the contact leave the visible list, but the panel stays on it
         LocalDate today = LocalDate.now(FIXED_CLOCK);
         Person due = ALICE.toBuilder().withFollowUpDate(today).build();
         Model dueModel = modelWith(ALICE, due);
@@ -146,7 +146,7 @@ public class FollowUpCommandTest {
         new FollowUpCommand(INDEX_FIRST_PERSON, null).execute(dueModel);
 
         assertEquals(0, dueModel.getFilteredPersonList().size());
-        org.junit.jupiter.api.Assertions.assertNull(dueModel.getViewedPerson().get());
+        assertTrue(dueModel.getViewedPerson().get().getFollowUpDate().isEmpty());
     }
 
     @Test

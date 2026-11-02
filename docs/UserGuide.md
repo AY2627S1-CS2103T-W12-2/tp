@@ -431,7 +431,7 @@ Format: `view INDEX`
 * `INDEX` refers to the contact's number in the currently displayed list and **must be a positive integer** 1, 2, 3, …​
 * The detail panel shows the contact's name, a ★ when starred, their photo (or a `No photo` placeholder), phone number, email, LinkedIn handle, tags in alphabetical order, note, meeting event, meeting date, meeting role, follow-up date, and activity times. A field that the contact does not have is shown as `-` (`—` for an unknown activity time).
 * The detail panel shows `No contact selected` until you view a contact. A successful command also reports `Now viewing:` followed by the contact's name, phone, email, LinkedIn handle (if present), and tags.
-* The detail panel stays on the contact you viewed until you view someone else. It updates when you change that contact (`edit`, `tag`, `note`, `star`/`unstar`, `meeting`, `followup`, or `photo`), and goes back to `No contact selected` if you delete that contact, clear all entries, or run `edit`, `followup`, `meeting`, or `star`/`unstar` so that the viewed contact leaves the current filtered list (for example, `unstar` in the starred list, or clearing its follow-up date in the due list).
+* The detail panel stays on the contact you viewed until you view someone else. It updates when you change that contact (`edit`, `tag`, `note`, `star`/`unstar`, `meeting`, `followup`, or `photo`), and goes back to `No contact selected` only if you delete that contact or clear all entries. If one of those commands makes the viewed contact leave the current filtered list (for example, `unstar` in the starred list, or clearing its follow-up date in the due list), the panel stays on that contact with its updated details, until you view someone else.
 * `find`, `group`, `filter`, `due`, `sort`, and `list` change the contact list without clearing the detail panel, even if the viewed contact is hidden or there are no results. A later `view INDEX` selects from the currently displayed results, not from the retained detail panel. A rejected `view` command leaves the viewed contact and its last viewed time as they were.
 
 Examples:
@@ -582,7 +582,7 @@ Input | Hint
 `meeting 1 2 ev/Event` | `Use one INDEX, then ev/, md/, r/, or clear.`
 `meeting 1 clear when` or `meeting 1 clear event extra` | `Use: meeting INDEX clear [event\|date\|role].`
 
-Cards show up to 32 UTF-16 code units of the event; `view INDEX` shows full meeting details. Changing the viewed event so it leaves the current search clears selection.
+Cards show up to 32 UTF-16 code units of the event; `view INDEX` shows full meeting details. Changing the viewed event so that it leaves the current search keeps the contact in the detail panel.
 
 `find ev/TERM [ev/TERM]...` matches partial event names, ignoring case, with OR between terms. No matches is valid; do not mix typed terms with plain name words.
 
@@ -639,7 +639,7 @@ Format: `due`
 * `due` does not clear the detail panel, even if the contact you are viewing is not due.
 * The due-date order stays active for later `find`, `group` and `filter` commands, and the line above the list says `Sorted by due`, until you run `sort ...` or `list`.
 * No contact being due is a normal result: the list is empty and the message ends with `0 contact(s) listed!`.
-* Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date from the due list removes that contact from it. Setting a date after today does the same. If you were viewing that contact, the detail panel goes back to `No contact selected`. If you were viewing a different contact, the panel stays on it.
+* Index commands such as `view 1` or `followup 1 clear` use the numbers shown in the due list. Clearing a date from the due list removes that contact from it. Setting a date after today does the same. The detail panel stays on whichever contact you were viewing, including a contact that has just left the due list.
 * `list` shows all contacts again in their original order.
 * Any text typed after `due` is ignored.
 

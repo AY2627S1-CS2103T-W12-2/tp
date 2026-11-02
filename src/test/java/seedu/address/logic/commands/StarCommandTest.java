@@ -3,7 +3,6 @@ package seedu.address.logic.commands;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.logic.commands.CommandTestUtil.assertCommandFailure;
@@ -97,7 +96,7 @@ public class StarCommandTest {
      * another contact is viewed (selection kept), the viewed contact stays in the list (selection kept).
      */
     @Test
-    public void execute_unstarViewedPersonInStarredFilter_clearsSelection() throws Exception {
+    public void execute_unstarViewedPersonInStarredFilter_keepsSelection() throws Exception {
         Model starredModel = starredFirstPersonModel();
         new FilterCommand(true).execute(starredModel);
         starredModel.viewPerson(starredModel.getFilteredPersonList().get(0));
@@ -105,7 +104,7 @@ public class StarCommandTest {
         new StarCommand(INDEX_FIRST_PERSON, false).execute(starredModel);
 
         assertTrue(starredModel.getFilteredPersonList().isEmpty());
-        assertNull(starredModel.getViewedPerson().get());
+        assertFalse(starredModel.getViewedPerson().get().isStarred());
     }
 
     @Test
