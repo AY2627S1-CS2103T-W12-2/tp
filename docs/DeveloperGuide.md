@@ -9,7 +9,16 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* _{List the sources of reused or adapted ideas, code, documentation, and third-party libraries here, with links to the originals.}_
+* LarperBoard is based on the [AddressBook-Level3 (AB3)](https://se-education.org/addressbook-level3/) project ([source repository](https://github.com/se-edu/addressbook-level3)) created by the [SE-EDU initiative](https://se-education.org). Parts of the documentation and diagrams are adapted from AB3.
+* Libraries used:
+  * [JavaFX](https://openjfx.io/) 17.0.7
+  * [Jackson](https://github.com/FasterXML/jackson) (`jackson-databind` 2.7.0, `jackson-datatype-jsr310` 2.7.4)
+  * [JUnit 5](https://github.com/junit-team/junit5) 5.14.4
+* Build tool plugin: [Gradle Shadow](https://github.com/GradleUp/shadow) (`com.gradleup.shadow` 9.5.1), used to build the runnable JAR.
+* Diagrams are drawn with [PlantUML](https://plantuml.com/), following the [se-edu PlantUML guide](https://se-education.org/guides/tutorials/plantUml.html).
+* Use of AI tools:
+  * Yong Sheng (Cysiac) used Claude Code and Codex to help draft code, tests and documentation for his features (activity times, follow-up dates and the due list, help/exit fixes) and to prepare PR reviews. He reviewed, tested and owns all such output.
+    <!-- Other members: add a line describing your own use of AI tools, if any. -->
 
 --------------------------------------------------------------------------------------------------------------------
 
