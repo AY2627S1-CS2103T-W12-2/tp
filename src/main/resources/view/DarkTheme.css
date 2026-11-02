@@ -111,9 +111,14 @@
     -fx-background-color: #424d5f;
 }
 
+.list-cell #cardPane {
+    /* Reserve the selection border so selecting a card does not resize its tag row. */
+    -fx-border-color: transparent;
+    -fx-border-width: 1;
+}
+
 .list-cell:filled:selected #cardPane {
     -fx-border-color: #3e7b91;
-    -fx-border-width: 1;
 }
 
 .list-cell .label {

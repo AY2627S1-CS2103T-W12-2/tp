@@ -11,16 +11,22 @@ import static seedu.address.logic.commands.CommandTestUtil.VALID_LINKEDIN_AMY;
 import java.awt.GraphicsEnvironment;
 import java.time.LocalDate;
 import java.util.List;
+import java.util.concurrent.FutureTask;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 
 import javafx.application.Platform;
+import javafx.css.PseudoClass;
 import javafx.scene.Scene;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
+import javafx.scene.layout.StackPane;
 import seedu.address.model.person.Person;
 import seedu.address.testutil.PersonBuilder;
 
@@ -148,6 +154,53 @@ public class PersonCardTest {
                 "python", "react", "devops", "cloud").build(), 300);
 
         assertEquals(one.getRoot().prefHeight(300), many.getRoot().prefHeight(300));
+    }
+
+    @Test
+    public void tagRow_selectionAndFocusChanges_preserveTagsAndOverflow() throws Exception {
+        FutureTask<Void> task = new FutureTask<>(() -> {
+            PersonCard card = new PersonCard(new PersonBuilder().withTags("fullstack-ml-eng-26", "mentor",
+                    "backend", "python", "react", "devops", "cloud", "go").build(), 1);
+            ListView<Person> list = new ListView<>();
+            list.getItems().add(card.person);
+            list.setCellFactory(view -> new ListCell<>() {
+                @Override
+                protected void updateItem(Person item, boolean empty) {
+                    super.updateItem(item, empty);
+                    setGraphic(empty ? null : card.getRoot());
+                }
+            });
+            StackPane container = new StackPane(list);
+            Scene scene = new Scene(container, 300, 200);
+            scene.getStylesheets().add(PersonCard.class.getResource("/view/DarkTheme.css").toExternalForm());
+            for (double width = 180; width <= 440; width += 0.5) {
+                container.resize(width, 200);
+                layOut(scene);
+                List<String> initial = shownTagNames(card);
+                for (boolean selected : new boolean[] {true, false, true, false}) {
+                    if (selected) {
+                        list.getSelectionModel().select(0);
+                    } else {
+                        list.getSelectionModel().clearSelection();
+                    }
+                    list.pseudoClassStateChanged(PseudoClass.getPseudoClass("focused"), !selected);
+                    layOut(scene);
+                    assertEquals(initial, shownTagNames(card), "Tags changed on selection at width " + width);
+                    assertEquals(initial.size() < 8, overflowLabel(card).isVisible(),
+                            "Wrong overflow visibility at width " + width);
+                    assertEquals("+" + (8 - initial.size()), overflowLabel(card).getText());
+                    Pane tags = (Pane) card.getRoot().lookup("#tags");
+                    for (Label label : shownTagLabelsAndOverflow(card)) {
+                        assertTrue(label.getWidth() >= label.prefWidth(-1) - 1e-3,
+                                "Squeezed tag at width " + width + ": " + label.getText());
+                        assertTrue(label.getBoundsInParent().getMaxX() <= tags.getWidth() + 1e-3);
+                    }
+                }
+            }
+            return null;
+        });
+        Platform.runLater(task);
+        task.get(30, TimeUnit.SECONDS);
     }
 
     @Test

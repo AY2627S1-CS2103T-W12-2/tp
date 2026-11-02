@@ -21,6 +21,11 @@ title: Developer Guide
     * Hendrick (HoneycombHen) used Codex to review the repository and documentation against the submission requirements, and to help fix the contact-card tag overflow (#275), including its JavaFX regression test and manual-testing steps. He reviewed, tested and owns all such output.
     <!-- Other members: add a line describing your own use of AI tools, if any. -->
 
+* **Hendrick (HoneycombHen):** Used OpenAI Codex to review the repository and documentation against the course's
+  submission requirements, investigate and fix the contact-card tag overflow issue (#275), write its JavaFX
+  regression test and manual-testing instructions, and run automated tests and Checkstyle. He takes responsibility
+  for reviewing and validating AI-assisted changes before committing them.
+
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
@@ -1217,6 +1222,23 @@ For each invalid command below, verify that the list, heading, viewed contact an
 
 Run `list extra`: it still succeeds like `list`, reporting `Listed all contacts.` and restoring the original order.
 Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successful outcome, not a validation error.
+
+### Contact card tag overflow
+
+1. Prerequisites: Use a disposable data folder and run `list`. Add the contact below:
+
+   ```text
+   add n/Tag Heavy p/91234567 t/fullstack-ml-eng-26 t/mentor t/backend t/python t/react t/devops t/cloud t/go
+   ```
+
+1. Narrow the contact list until some of its eight tags are hidden. Click the card, click the command box,
+   and select a different card. Repeat after resizing the window, including at 150% display scaling.
+   Expected: At a fixed list width, the same complete tag chips and the same `+N` remain visible throughout
+   selection and focus changes. `N` equals eight minus the number of visible chips; no chip is squeezed or clipped.
+   Resizing may change the count. When all eight tags fit, `+N` disappears.
+
+1. Run `find n/Tag Heavy`, then `view 1`. Expected: The detail panel shows all eight tags.
+   Run `delete 1` to remove the test contact, then `list`.
 
 ### Activity-time sorting
 
