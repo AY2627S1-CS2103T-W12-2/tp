@@ -44,3 +44,4 @@ See the [v1.5 release notes](docs/releases/v1.5.md) for changes, upgrade instruc
 
 * This project is based on the AddressBook-Level3 project created by the [SE-EDU initiative](https://se-education.org).
 * Libraries used: [JavaFX](https://openjfx.io/), [Jackson](https://github.com/FasterXML/jackson), [JUnit5](https://github.com/junit-team/junit5)
+* AI tools (Anthropic's Claude through Claude Code, and OpenAI Codex) were used by team members to help write code, tests and documentation. See the [Developer Guide acknowledgements](docs/DeveloperGuide.md#acknowledgements) for the details.

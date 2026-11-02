@@ -9,18 +9,16 @@ title: Developer Guide
 
 ## **Acknowledgements**
 
-* LarperBoard is based on the [AddressBook-Level3 (AB3)](https://se-education.org/addressbook-level3/) project ([source repository](https://github.com/se-edu/addressbook-level3)) created by the [SE-EDU initiative](https://se-education.org). Parts of the documentation and diagrams are adapted from AB3.
-* Libraries used:
-  * [JavaFX](https://openjfx.io/) 17.0.7
-  * [Jackson](https://github.com/FasterXML/jackson) (`jackson-databind` 2.7.0, `jackson-datatype-jsr310` 2.7.4)
-  * [JUnit 5](https://github.com/junit-team/junit5) 5.14.4
-* Build tool plugin: [Gradle Shadow](https://github.com/GradleUp/shadow) (`com.gradleup.shadow` 9.5.1), used to build the runnable JAR.
-* Diagrams are drawn with [PlantUML](https://plantuml.com/), following the [se-edu PlantUML guide](https://se-education.org/guides/tutorials/plantUml.html).
-* Use of AI tools:
-  * Yong Sheng (Cysiac) used Claude Code and Codex to help draft code, tests and documentation for his features (activity times, follow-up dates and the due list, help/exit fixes) and to prepare PR reviews. He reviewed, tested and owns all such output.
+* **Base project:** LarperBoard is based on [AddressBook-Level3 (AB3)](https://github.com/se-edu/addressbook-level3) by the [SE-EDU initiative](https://se-education.org). The overall architecture, the Jekyll documentation site setup, the PlantUML diagram sources and style, the undo/redo state diagrams, and the app icons in `src/main/resources/images` (`address_book_32.png`, `help_icon.png`, `info_icon.png`, `fail.png`, `calendar.png`, `clock.png`) come from AB3, as does the SE-EDU logo and `johndoe.png` in `docs/images`. The `MainWindow` comment about [JDK-8131666](https://bugs.openjdk.java.net/browse/JDK-8131666) and the [JMetro](http://pixelduke.wordpress.com/2012/10/23/jmetro-windows-8-controls-on-java/) styling note in `DarkTheme.css` are also inherited from AB3.
+* **Third-party libraries** (all already used by AB3, no new libraries were added): [JavaFX](https://openjfx.io/) 17.0.7, [Jackson](https://github.com/FasterXML/jackson) (`jackson-databind` 2.7.0 and `jackson-datatype-jsr310` 2.7.4), and [JUnit 5](https://github.com/junit-team/junit5) 5.14.4 for tests.
+* **Build and CI tooling:** [Gradle](https://gradle.org/), the [Shadow](https://github.com/GradleUp/shadow) plugin, [Checkstyle](https://checkstyle.org/), [JaCoCo](https://www.jacoco.org/), [Codecov](https://about.codecov.io/), GitHub Actions and [Dependabot](https://docs.github.com/en/code-security/dependabot).
+* **Documentation:** the User Guide and this Developer Guide are adapted from AB3's, and the team's own contact photos in `docs/images` are the members' own.
+* **Use of AI tools:** AI tools were used during development of LarperBoard by several team members: Anthropic's Claude (through Claude Code, with Claude Sonnet model) and OpenAI Codex. They were used across the project: to help implement features and bug fixes, write and update unit tests, update the User Guide and Developer Guide, draft commit messages and issue texts, run preliminary pull request reviews, and write scripts for beta testing. Commits where Claude helped carry a `Co-Authored-By` line, and branches that came from Codex are named `codex/...`. Every member reviewed, edited and takes responsibility for the AI-assisted code and text they committed.
+  * Individual members:
+    * Yong Sheng (Cysiac) used Claude Code and Codex to help draft code, tests and documentation for his features (activity times, follow-up dates and the due list, help/exit fixes) and to prepare PR reviews. He reviewed, tested and owns all such output.
+    * Cheryl (Atqui-404) used Claude Code to help draft code, tests and documentation for the detail panel (notes, photo layout) and to write scripts and reports for the v1.5 beta testing. They reviewed, tested and own all such output.
+    * Jia Jie (jiewue) used Claude Code and Codex to help draft code, tests and documentation for his features (plain and typed search, tag grouping, activity-time sorting, contact viewing and list status heading). He reviewed, tested and owns all such output.
     <!-- Other members: add a line describing your own use of AI tools, if any. -->
-  * Cheryl (Atqui-404) used Claude Code to help draft code, tests and documentation for the detail panel (notes, photo layout) and to write scripts and reports for the v1.5 beta testing. They reviewed, tested and own all such output.
-  * Jia Jie (jiewue) used Claude Code and Codex to help draft code, tests and documentation for his features (plain and typed search, tag grouping, activity-time sorting, contact viewing and list status heading). He reviewed, tested and owns all such output.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -629,7 +627,7 @@ Priorities: Must-have, Nice-to-have, Unlikely-to-have. Status is separate from p
     Use case resumes at step 1.
 
 * 2a. No contacts match the provided terms.
-  * 2a1. LarperBoard shows an empty valid result list and reports `0 contact(s) listed!`.
+  * 2a1. LarperBoard shows an empty valid result list and reports `0 contact(s) listed!`. For a find without a prefix, it adds a hint that such a find searches names only and how to search tags, notes and events.
 
     Use case ends.
 
@@ -1157,12 +1155,12 @@ Given below are instructions to test the app manually.
    1. Close the main window with its title-bar close button.<br>
       Expected: Both windows close and LarperBoard exits.
 
-   1. Relaunch the app with `java -jar larperboard.jar` and run `help` so that the Help window opens.
+   1. Relaunch the app (in a terminal, `cd` to the folder that contains `larperboard.jar`, then run `java -jar larperboard.jar`) and run `help` so that the Help window opens.
 
    1. Exit with File > Exit.<br>
       Expected: Both windows close and LarperBoard exits.
 
-   1. Relaunch the app with `java -jar larperboard.jar` and run `help` so that the Help window opens.
+   1. Relaunch the app the same way and run `help` so that the Help window opens.
 
    1. Exit with the `exit` command.<br>
       Expected: Both windows close and LarperBoard exits.
@@ -1359,9 +1357,9 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
 
 1. A malformed `followUpDate` or time in the data file
 
-   1. Prerequisites: Close the app and back up `data/addressbook.json`. Run the app from a terminal so that the log is printed, or open `addressbook.log.0` in the folder you ran it from afterwards.
+   1. Prerequisites: Close the app and back up `data/addressbook.json`. Run the app from a terminal so that the log is printed, or open `addressbook.log.0` in the folder you ran it from afterwards. A data file saved by LarperBoard already lists every field of each contact, for example `"followUpDate" : null`. Change the value of the existing line. Do not add a second line with the same name: when a name appears twice, the later line wins, so a `null` below your new line hides it and the app starts normally. If you ran a command after a failed start, restore the backup before the next test case, because that command saved an empty list over the file.
 
-   1. Test case: add `"followUpDate" : "2026-02-30"` to a contact and start the app<br>
+   1. Test case: in a contact, change `"followUpDate" : null` to `"followUpDate" : "2026-02-30"` and start the app<br>
       Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` The data file on disk is not changed by `help` or `exit`. A successful command other than these (even `list`) saves the empty list over it.
 
    1. Test case: change the value to `2026-1-5`, `""` or `20261005`, or to a non-string such as `5`, `true` or `{}`, and start the app<br>
@@ -1370,11 +1368,11 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
    1. Test case: change the value to `null`, or remove the field, and start the app<br>
       Expected: The app starts normally. The contact has no follow-up date.
 
-   1. Test case: add `"createdAt" : "2026-10-17T04:12:33.5Z"` to a contact and start the app<br>
+   1. Test case: in a contact, change the value of `"createdAt"` to `"2026-10-17T04:12:33.5Z"` and start the app<br>
       Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` Other values to try: `2026-10-17T12:12:33+08:00`, `" 2026-10-17T04:12:33Z"`, `2026-10-17`, `2026-02-30T04:12:33Z`, `1760674353`.<br>
       Expected: The same behaviour. The field name in the message is `lastEditedAt` or `lastViewedAt` when that field is the bad one.
 
-   1. Test case: use `"createdAt" : "2026-10-17T04:12:33Z"` and start the app<br>
+   1. Test case: change the value of `"createdAt"` to `"2026-10-17T04:12:33Z"` and start the app<br>
       Expected: The app starts normally. `view` shows `CREATED` as `2026-10-17 12:12` (Singapore time is 8 hours ahead of UTC).
 
    1. Restore the backup of the data file.

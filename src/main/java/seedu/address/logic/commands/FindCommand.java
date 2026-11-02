@@ -7,6 +7,7 @@ import java.util.function.Predicate;
 import seedu.address.commons.util.ToStringBuilder;
 import seedu.address.logic.Messages;
 import seedu.address.model.Model;
+import seedu.address.model.person.NameContainsKeywordsPredicate;
 import seedu.address.model.person.Person;
 
 /**
@@ -22,6 +23,9 @@ public class FindCommand extends Command {
     public static final String MESSAGE_MIXED_SEARCH =
             "Use either plain keywords or field prefixes in one find command.\n"
                     + "Example: find Alex or find n/Alex t/react.";
+    public static final String MESSAGE_PLAIN_NO_MATCH_HINT =
+            "Without a prefix, find searches names only. "
+            + "Search tags with find t/TAG, notes with find nt/TERM and events with find ev/TERM.";
 
     private final Predicate<Person> predicate;
 
@@ -33,8 +37,12 @@ public class FindCommand extends Command {
     public CommandResult execute(Model model) {
         requireNonNull(model);
         model.updateFilteredPersonList(predicate, "Find results");
-        return new CommandResult(
-                String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, model.getFilteredPersonList().size()));
+        int count = model.getFilteredPersonList().size();
+        String message = String.format(Messages.MESSAGE_PERSONS_LISTED_OVERVIEW, count);
+        if (count == 0 && predicate instanceof NameContainsKeywordsPredicate) {
+            message += "\n" + MESSAGE_PLAIN_NO_MATCH_HINT;
+        }
+        return new CommandResult(message);
     }
 
     @Override

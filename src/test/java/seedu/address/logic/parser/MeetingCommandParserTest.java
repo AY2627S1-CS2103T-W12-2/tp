@@ -89,8 +89,12 @@ public class MeetingCommandParserTest {
 
     @Test
     public void parse_wrongShape_givesOneSpecificHint() {
+        assertEquals("Add the contact's INDEX: meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE].",
+                MeetingCommand.MESSAGE_MISSING_INDEX);
         assertParseFailure(parser, "", format(MeetingCommand.MESSAGE_MISSING_INDEX));
         assertParseFailure(parser, " ev/Event", format(MeetingCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " md/2026-10-29", format(MeetingCommand.MESSAGE_MISSING_INDEX));
+        assertParseFailure(parser, " r/Mentor", format(MeetingCommand.MESSAGE_MISSING_INDEX));
         assertParseFailure(parser, " 1 clear ev/Event", format(MeetingCommand.MESSAGE_NOT_BOTH));
         assertParseFailure(parser, " 1 Mentor", format(MeetingCommand.MESSAGE_WITHOUT_PREFIX));
         assertParseFailure(parser, " 1 2 ev/Event", format(MeetingCommand.MESSAGE_EXTRA_WORDS));
