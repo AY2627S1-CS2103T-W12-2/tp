@@ -437,7 +437,7 @@ Format: `view INDEX`
 
 Examples:
 * `view 1` shows the 1st displayed contact.<br>
-  ![result for 'view 1'](images/Ui-v1.5.png)
+  ![A viewed contact](images/Ui-v1.6.png)
 * `find Aisha` followed by `view 1` shows the 1st contact in the search results.
 
 If the contact cannot be viewed, LarperBoard shows these errors:
@@ -549,9 +549,9 @@ Command | Use it to | Date prefix | Example
 
 Record where, when, and in what role you met someone. To plan a later contact, use [`followup`](#setting-a-follow-up-date-followup); see [which command to use](#choosing-between-meeting-followup-and-due).
 
-![Meeting feature at 1280×720](images/meeting-v1.5.png)
+![Meeting feature at 1280×720](images/meeting-v1.6.png)
 
-[View the simulated 150% layout](images/meeting-v1.5-150percent.png).
+[View the simulated 150% layout](images/meeting-v1.6-150percent.png).
 
 Format: `meeting INDEX [ev/EVENT] [md/YYYY-MM-DD] [r/ROLE]`
 
@@ -650,9 +650,9 @@ Examples:
 
 ### Contact photos: `photo`
 
-![Photo feature at 1280×720](images/photo-v1.5.png)
+![Photo feature at 1280×720](images/photo-v1.6.png)
 
-[View the simulated 150% layout](images/photo-v1.5-150percent.png).
+[View the simulated 150% layout](images/photo-v1.6-150percent.png).
 
 Format: `photo INDEX f/RELATIVE_PATH` or `photo INDEX clear`
 
