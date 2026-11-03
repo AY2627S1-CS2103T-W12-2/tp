@@ -21,11 +21,6 @@ title: Developer Guide
     * Hendrick (HoneycombHen) used Codex to review the repository and documentation against the submission requirements, and to help fix the contact-card tag overflow (#275), including its JavaFX regression test and manual-testing steps. He reviewed, tested and owns all such output.
     * Jally (jvally) used Codex to help draft code, tests and documentation for meeting context, photos and storage, improve command hints, assist with release preparation, User Guide and website updates, and prepare pull request reviews. They reviewed, tested and own all such output.
 
-* **Hendrick (HoneycombHen):** Used OpenAI Codex to review the repository and documentation against the course's
-  submission requirements, investigate and fix the contact-card tag overflow issue (#275), write its JavaFX
-  regression test and manual-testing instructions, and run automated tests and Checkstyle. He takes responsibility
-  for reviewing and validating AI-assisted changes before committing them.
-
 --------------------------------------------------------------------------------------------------------------------
 
 ## **Setting up, getting started**
