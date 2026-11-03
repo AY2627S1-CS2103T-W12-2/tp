@@ -45,12 +45,7 @@ public class MeetingCommand extends Command {
         if (replacement.equals(target.getMeeting())) {
             return new CommandResult("Meeting context unchanged.");
         }
-        boolean editsViewedPerson = target.equals(model.getViewedPerson().get());
         model.editPerson(target, target.toBuilder().withMeeting(replacement).build());
-        if (editsViewedPerson
-                && !model.getFilteredPersonList().contains(model.getViewedPerson().get())) {
-            model.setViewedPerson(null);
-        }
         return new CommandResult("Meeting context updated for " + target.getName() + ".");
     }
 

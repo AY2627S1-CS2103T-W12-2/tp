@@ -1,6 +1,7 @@
 package seedu.address.logic.parser;
 
 import static seedu.address.logic.Messages.MESSAGE_INVALID_COMMAND_FORMAT;
+import static seedu.address.logic.Messages.MESSAGE_INVALID_PERSON_DISPLAYED_INDEX;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_AMY;
 import static seedu.address.logic.commands.CommandTestUtil.EMAIL_DESC_BOB;
 import static seedu.address.logic.commands.CommandTestUtil.INVALID_EMAIL_DESC;
@@ -66,13 +67,25 @@ public class EditCommandParserTest {
     }
 
     @Test
-    public void parse_invalidPreamble_failure() {
+    public void parse_invalidIndex_failure() {
         // negative index
-        assertParseFailure(parser, "-5" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "-5" + NAME_DESC_AMY, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
 
         // zero index
-        assertParseFailure(parser, "0" + NAME_DESC_AMY, MESSAGE_INVALID_FORMAT);
+        assertParseFailure(parser, "0" + NAME_DESC_AMY, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
 
+        // non-numeric index
+        assertParseFailure(parser, "abc" + NAME_DESC_AMY, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+
+        // explicit plus sign
+        assertParseFailure(parser, "+1" + NAME_DESC_AMY, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+
+        // index larger than the largest int
+        assertParseFailure(parser, "2147483648" + NAME_DESC_AMY, MESSAGE_INVALID_PERSON_DISPLAYED_INDEX);
+    }
+
+    @Test
+    public void parse_invalidPreamble_failure() {
         // invalid arguments being parsed as preamble
         assertParseFailure(parser, "1 some random string", MESSAGE_INVALID_FORMAT);
 

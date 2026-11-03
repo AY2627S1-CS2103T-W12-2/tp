@@ -53,6 +53,16 @@ public class AddCommandTest {
     }
 
     @Test
+    public void execute_personWithOnlyName_messageShowsOnlyName() throws Exception {
+        Person nameOnlyPerson = new PersonBuilder().withName("Jane Tan").withPhone("").withEmail("")
+                .withLinkedIn("").withTags().build();
+
+        CommandResult commandResult = new AddCommand(nameOnlyPerson).execute(new ModelStubAcceptingPersonAdded());
+
+        assertEquals("New contact added: Jane Tan", commandResult.getFeedbackToUser());
+    }
+
+    @Test
     public void execute_personHiddenByActiveFilter_messageSaysSoAndPersonIsStillAdded() throws Exception {
         ModelStubAcceptingPersonAdded modelStub = new ModelStubAcceptingPersonAdded() {
             @Override

@@ -14,7 +14,17 @@ title: Developer Guide
 * **Build and CI tooling:** [Gradle](https://gradle.org/), the [Shadow](https://github.com/GradleUp/shadow) plugin, [Checkstyle](https://checkstyle.org/), [JaCoCo](https://www.jacoco.org/), [Codecov](https://about.codecov.io/), GitHub Actions and [Dependabot](https://docs.github.com/en/code-security/dependabot).
 * **Documentation:** the User Guide and this Developer Guide are adapted from AB3's, and the team's own contact photos in `docs/images` are the members' own.
 * **Use of AI tools:** AI tools were used during development of LarperBoard by several team members: Anthropic's Claude (through Claude Code, with Claude Sonnet model) and OpenAI Codex. They were used across the project: to help implement features and bug fixes, write and update unit tests, update the User Guide and Developer Guide, draft commit messages and issue texts, run preliminary pull request reviews, and write scripts for beta testing. Commits where Claude helped carry a `Co-Authored-By` line, and branches that came from Codex are named `codex/...`. Every member reviewed, edited and takes responsibility for the AI-assisted code and text they committed.
-  * Vishesh Jally (jvally) used Codex to help draft code, tests and documentation for meeting context, photos and storage, improve command hints, and prepare pull request reviews. They reviewed, tested and own all such output.
+  * Individual members:
+    * Yong Sheng (Cysiac) used Claude Code and Codex to help draft code, tests and documentation for his features (activity times, follow-up dates and the due list, help/exit fixes) and to prepare PR reviews. He reviewed, tested and owns all such output.
+    * Cheryl (Atqui-404) used Claude Code to help draft code, tests and documentation for the detail panel (notes, photo layout) and to write scripts and reports for the v1.5 beta testing. They reviewed, tested and own all such output.
+    * Jia Jie (jiewue) used Claude Code and Codex to help draft code, tests and documentation for his features (plain and typed search, tag grouping, activity-time sorting, contact viewing and list status heading). He reviewed, tested and owns all such output.
+    * Hendrick (HoneycombHen) used Codex to review the repository and documentation against the submission requirements, and to help fix the contact-card tag overflow (#275), including its JavaFX regression test and manual-testing steps. He reviewed, tested and owns all such output.
+    * Jally (jvally) used Codex to help draft code, tests and documentation for meeting context, photos and storage, improve command hints, assist with release preparation, User Guide and website updates, and prepare pull request reviews. They reviewed, tested and own all such output.
+
+* **Hendrick (HoneycombHen):** Used OpenAI Codex to review the repository and documentation against the course's
+  submission requirements, investigate and fix the contact-card tag overflow issue (#275), write its JavaFX
+  regression test and manual-testing instructions, and run automated tests and Checkstyle. He takes responsibility
+  for reviewing and validating AI-assisted changes before committing them.
 
 --------------------------------------------------------------------------------------------------------------------
 
@@ -307,8 +317,8 @@ follow-up date to clear. Nothing was changed.` when clearing) without touching t
 which stamps last-edited time and keeps the viewed contact in step, as `MeetingCommand` does. `LogicManager` then
 saves and records the undo entry, and restores its snapshot if saving fails, so no separate history code exists.
 If the edited contact is the viewed one and no longer passes the visible-list filter (for example, clearing its date
-or setting one after today while the `due` list is shown), `FollowUpCommand` clears the viewed contact, so the
-detail panel shows `No contact selected`.
+or setting one after today while the `due` list is shown), `FollowUpCommand` leaves the viewed contact alone, so the
+detail panel keeps showing it with the updated date.
 
 `JsonAdaptedPerson` writes `followUpDate` as an ISO string or null. It reads the field as an `Object` so that a
 non-string value reaches `parseFollowUpDate` and gets the field-specific error rather than a Jackson error.
@@ -396,7 +406,7 @@ The `find`, `group`, `filter`, `due`, `sort`, and `list` commands only update th
 they do not clear `Model#getViewedPerson()` when a contact is filtered out.
 The detail selection is independent of list membership, including for zero results.
 A subsequent `view` selects by displayed index, while deleting the viewed contact
-or clearing the address book clears the detail selection. When the viewed contact is edited by `FollowUpCommand`, `MeetingCommand`, `StarCommand`, or `EditCommand` so that it leaves the visible list, the command clears the viewed contact (leaving a hidden viewed contact when editing a different contact is tracked in #227).
+or clearing the address book clears the detail selection. When the viewed contact is edited by `FollowUpCommand`, `MeetingCommand`, `StarCommand`, `NoteCommand`, or `EditCommand` so that it leaves the visible list, the viewed contact is kept and updated, in the same way as `find`, `group`, `filter`, and `due` keep a hidden viewed contact.
 
 ### Starring contacts
 
@@ -1151,12 +1161,12 @@ Given below are instructions to test the app manually.
    1. Close the main window with its title-bar close button.<br>
       Expected: Both windows close and LarperBoard exits.
 
-   1. Relaunch the app with `java -jar larperboard.jar` and run `help` so that the Help window opens.
+   1. Relaunch the app (in a terminal, `cd` to the folder that contains `larperboard.jar`, then run `java -jar larperboard.jar`) and run `help` so that the Help window opens.
 
    1. Exit with File > Exit.<br>
       Expected: Both windows close and LarperBoard exits.
 
-   1. Relaunch the app with `java -jar larperboard.jar` and run `help` so that the Help window opens.
+   1. Relaunch the app the same way and run `help` so that the Help window opens.
 
    1. Exit with the `exit` command.<br>
       Expected: Both windows close and LarperBoard exits.
@@ -1212,6 +1222,23 @@ For each invalid command below, verify that the list, heading, viewed contact an
 
 Run `list extra`: it still succeeds like `list`, reporting `Listed all contacts.` and restoring the original order.
 Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successful outcome, not a validation error.
+
+### Contact card tag overflow
+
+1. Prerequisites: Use a disposable data folder and run `list`. Add the contact below:
+
+   ```text
+   add n/Tag Heavy p/91234567 t/fullstack-ml-eng-26 t/mentor t/backend t/python t/react t/devops t/cloud t/go
+   ```
+
+1. Narrow the contact list until some of its eight tags are hidden. Click the card, click the command box,
+   and select a different card. Repeat after resizing the window, including at 150% display scaling.
+   Expected: At a fixed list width, the same complete tag chips and the same `+N` remain visible throughout
+   selection and focus changes. `N` equals eight minus the number of visible chips; no chip is squeezed or clipped.
+   Resizing may change the count. When all eight tags fit, `+N` disappears.
+
+1. Run `find n/Tag Heavy`, then `view 1`. Expected: The detail panel shows all eight tags.
+   Run `delete 1` to remove the test contact, then `list`.
 
 ### Activity-time sorting
 
@@ -1344,7 +1371,7 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
       Expected: The contact disappears from the due list. `list` shows all contacts again in their original order.
 
    1. Test case: `list`, `view 5` (a sample contact that never gets a date), then `due`<br>
-      Expected: The detail panel still shows the 5th contact although it is not in the due list. Then run `view 1` and `followup 1 clear`: the contact leaves the due list and the detail panel shows `No contact selected`.
+      Expected: The detail panel still shows the 5th contact although it is not in the due list. Then run `view 1` and `followup 1 clear`: the contact leaves the due list, but the detail panel stays on it with its follow-up date shown as `-`.
 
    1. Test case: `list`, then `followup N clear` for every contact that still has a date (replace `N` with its index), then `due`<br>
       Expected: The list is empty and the status message ends with `0 contact(s) listed!`. No error is shown.
@@ -1353,9 +1380,9 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
 
 1. A malformed `followUpDate` or time in the data file
 
-   1. Prerequisites: Close the app and back up `data/addressbook.json`. Run the app from a terminal so that the log is printed, or open `addressbook.log.0` in the folder you ran it from afterwards.
+   1. Prerequisites: Close the app and back up `data/addressbook.json`. Run the app from a terminal so that the log is printed, or open `addressbook.log.0` in the folder you ran it from afterwards. A data file saved by LarperBoard already lists every field of each contact, for example `"followUpDate" : null`. Change the value of the existing line. Do not add a second line with the same name: when a name appears twice, the later line wins, so a `null` below your new line hides it and the app starts normally. If you ran a command after a failed start, restore the backup before the next test case, because that command saved an empty list over the file.
 
-   1. Test case: add `"followUpDate" : "2026-02-30"` to a contact and start the app<br>
+   1. Test case: in a contact, change `"followUpDate" : null` to `"followUpDate" : "2026-02-30"` and start the app<br>
       Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'followUpDate' must be a real date in YYYY-MM-DD format.` The data file on disk is not changed by `help` or `exit`. A successful command other than these (even `list`) saves the empty list over it.
 
    1. Test case: change the value to `2026-1-5`, `""` or `20261005`, or to a non-string such as `5`, `true` or `{}`, and start the app<br>
@@ -1364,11 +1391,11 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
    1. Test case: change the value to `null`, or remove the field, and start the app<br>
       Expected: The app starts normally. The contact has no follow-up date.
 
-   1. Test case: add `"createdAt" : "2026-10-17T04:12:33.5Z"` to a contact and start the app<br>
+   1. Test case: in a contact, change the value of `"createdAt"` to `"2026-10-17T04:12:33.5Z"` and start the app<br>
       Expected: The app starts with an empty contact list. The log has the line `Illegal values found in ` followed by the file path and `: Invalid contact data: 'createdAt' must be an ISO-8601 UTC timestamp.` Other values to try: `2026-10-17T12:12:33+08:00`, `" 2026-10-17T04:12:33Z"`, `2026-10-17`, `2026-02-30T04:12:33Z`, `1760674353`.<br>
       Expected: The same behaviour. The field name in the message is `lastEditedAt` or `lastViewedAt` when that field is the bad one.
 
-   1. Test case: use `"createdAt" : "2026-10-17T04:12:33Z"` and start the app<br>
+   1. Test case: change the value of `"createdAt"` to `"2026-10-17T04:12:33Z"` and start the app<br>
       Expected: The app starts normally. `view` shows `CREATED` as `2026-10-17 12:12` (Singapore time is 8 hours ahead of UTC).
 
    1. Restore the backup of the data file.

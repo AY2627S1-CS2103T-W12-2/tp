@@ -38,16 +38,20 @@ public class Messages {
      */
     public static String format(Person person) {
         final StringBuilder builder = new StringBuilder();
-        builder.append(person.getName())
-                .append("; Phone: ")
-                .append(person.getPhone())
-                .append("; Email: ")
-                .append(person.getEmail());
+        builder.append(person.getName());
+        if (!person.getPhone().isEmpty()) {
+            builder.append("; Phone: ").append(person.getPhone());
+        }
+        if (!person.getEmail().isEmpty()) {
+            builder.append("; Email: ").append(person.getEmail());
+        }
         if (!person.getLinkedIn().isEmpty()) {
             builder.append("; LinkedIn: ").append(person.getLinkedIn());
         }
-        builder.append("; Tags: ");
-        person.getTags().forEach(builder::append);
+        if (!person.getTags().isEmpty()) {
+            builder.append("; Tags: ");
+            person.getTags().forEach(builder::append);
+        }
         return builder.toString();
     }
 

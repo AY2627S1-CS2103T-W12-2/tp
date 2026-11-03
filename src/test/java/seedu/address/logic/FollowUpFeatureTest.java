@@ -2,7 +2,6 @@ package seedu.address.logic;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static seedu.address.testutil.TypicalTimes.FIXED_CLOCK;
@@ -180,7 +179,9 @@ public class FollowUpFeatureTest {
         // index 1 in the due list is Bob (earliest), not the first contact in the address book
         assertEquals("Follow-up date cleared for Bob Choo.", logic.execute("followup 1 clear").getFeedbackToUser());
         assertEquals(List.of("Amy Bee"), names());
-        assertNull(model.getViewedPerson().get());
+        // the panel stays on the contact that left the due list, with its date now cleared
+        assertEquals("Bob Choo", model.getViewedPerson().get().getName().fullName);
+        assertTrue(model.getViewedPerson().get().getFollowUpDate().isEmpty());
         assertThrows(CommandException.class, () -> logic.execute("followup 2 clear"));
 
         // a date that is still due keeps the contact on the list
