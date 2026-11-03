@@ -1391,7 +1391,8 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
 
    1. Test case: `delete 1`<br>
       Expected: `Ben Tan` is deleted, not the first contact of the full list. The status message starts with
-      `Deleted contact: Ben Tan`. Run `list`: `Aisha Rahman` is still there and `Ben Tan` is gone.
+      `Deleted contact: Ben Tan`. The list is now empty because the `find` filter is still on.
+      Run `list`: `Aisha Rahman` is still there and `Ben Tan` is gone.
 
    1. Run `undo` to restore `Ben Tan`.
 
@@ -1509,7 +1510,8 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
       else as a backup.
 
    1. Launch LarperBoard.<br>
-      Expected: The app starts with the sample contacts, starting with `Aisha Rahman`.
+      Expected: The app starts with the sample contacts, starting with `Aisha Rahman`. `data/addressbook.json`
+      is not created yet; it reappears only after the first command that saves, such as `list`.
 
    1. Close LarperBoard and move the backup back to `data/addressbook.json`.
 
@@ -1520,6 +1522,8 @@ Run a valid `find n/zzzz` or `group t/nonexist`: zero results remain a successfu
    1. Open `data/addressbook.json` in a text editor, delete its last `}` so that the file is no longer valid JSON,
       and save it. Launch LarperBoard.<br>
       Expected: The app starts with an empty contact list. The log reports that the data file could not be loaded.
+      Do not run any command other than `help` or `exit` before restoring the backup: any other successful command,
+      even `list`, saves the empty list over the corrupted file.
 
    1. Run `help`, then `exit`. Reopen the corrupted file in the text editor.<br>
       Expected: The file is unchanged, because `help` and `exit` do not write contact data.

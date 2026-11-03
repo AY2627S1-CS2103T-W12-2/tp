@@ -24,7 +24,7 @@ You can reach us at the email `seer[at]comp.nus.edu.sg`
 [[github](http://github.com/jiewue)]
 
 * Role: Developer
-* Responsibilities: Plain and typed search, tag grouping, activity-time sorting, contact viewing and the list status heading
+* Responsibilities: Plain and typed search, tag grouping, activity-time sorting, contact-view docs and the list status heading
 
 ### Hendrick
 
