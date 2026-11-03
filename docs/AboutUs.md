@@ -15,7 +15,8 @@ You can reach us through our [team repository issue tracker](https://github.com/
 
 [[github](https://github.com/jvally)]
 
-* Role: Project Advisor
+* Role: Developer
+* Responsibilities: Meeting context, contact photos and storage; release preparation and testing
 
 ### Lee Jia Jie
 

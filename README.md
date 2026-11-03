@@ -1,7 +1,7 @@
 [![codecov](https://codecov.io/gh/AY2627S1-CS2103T-W12-2/tp/graph/badge.svg?token=69EYSQR3GS)](https://codecov.io/gh/AY2627S1-CS2103T-W12-2/tp)
 [![CI Status](https://github.com/AY2627S1-CS2103T-W12-2/tp/workflows/Java%20CI/badge.svg)](https://github.com/AY2627S1-CS2103T-W12-2/tp/actions)
 
-![Ui](docs/images/Ui-v1.5.png)
+![Ui](docs/images/Ui-v1.6.png)
 
 # LarperBoard
 
@@ -10,6 +10,8 @@
 LarperBoard has a graphical contact list and detail panel, with command-line-style input for adding, finding, viewing, editing, and deleting contacts. Data is saved locally.
 
 The latest release is [LarperBoard v1.5](https://github.com/AY2627S1-CS2103T-W12-2/tp/releases/tag/v1.5).
+The source is prepared for v1.6; see the [candidate release notes](docs/releases/v1.6.md)
+and [verification record](docs/validation/v1.6.md).
 
 ## Quick start
 
@@ -21,7 +23,7 @@ java -jar larperboard.jar
 
 Try `list`, then `add n/Aisha Rahman p/98765432 e/aisha@example.com l/aisha-rahman t/frontend`. See the [User Guide](docs/UserGuide.md#quick-start) for the full setup and command instructions.
 
-## Run LarperBoard v1.5
+## Run the LarperBoard v1.6 candidate
 
 With Java 25 installed, build the JAR from the project root using `./gradlew shadowJar`, then run `java -jar build/libs/larperboard.jar`.
 The Help menu opens the [online User Guide](https://ay2627s1-cs2103t-w12-2.github.io/tp/UserGuide.html).
@@ -32,7 +34,7 @@ Use `delete INDEX` with one positive index from the currently displayed contact 
 
 The command accepts only one index. `delete 1 2` shows a usage error; an invalid or oversized index reports `The person index provided is invalid.` See the [delete error cases](docs/UserGuide.md#deleting-a-contact-delete) for empty or invalid lists and indexes.
 
-See the [v1.5 release notes](docs/releases/v1.5.md) for changes, upgrade instructions, and known limitations.
+See the [v1.6 candidate release notes](docs/releases/v1.6.md) for changes, upgrade instructions, and known limitations.
 
 ## Documentation
 
