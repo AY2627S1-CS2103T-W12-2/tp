@@ -12,12 +12,10 @@ title: LarperBoard
 
 Add notes, star important contacts, record follow-up dates and meeting context, and attach a local photo. Search names, tags, notes, or event names, sort by activity time, and undo or redo saved contact changes. Recall recent commands with the Up and Down arrow keys in the command field.
 
-The latest release is [LarperBoard v1.5](https://github.com/AY2627S1-CS2103T-W12-2/tp/releases/tag/v1.5).
-The source is prepared for v1.6; see the [candidate release notes](releases/v1.6.html)
-and [verification record](validation/v1.6.html).
+The latest release is [LarperBoard v1.6](https://github.com/AY2627S1-CS2103T-W12-2/tp/releases/tag/v1.6).
 
 * To get started, download the JAR from the [releases page](https://github.com/AY2627S1-CS2103T-W12-2/tp/releases) and follow the [**User Guide quick start**](UserGuide.html#quick-start).
-* See the [v1.6 candidate release notes](releases/v1.6.html) for upgrade instructions and known limitations.
+* See the [v1.6 release notes](releases/v1.6.html) for upgrade instructions and known limitations.
 * To contribute, see the [**Developer Guide**](DeveloperGuide.html).
 
 
