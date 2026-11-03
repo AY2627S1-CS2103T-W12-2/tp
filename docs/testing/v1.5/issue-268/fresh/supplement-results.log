@@ -1,0 +1,142 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by com.sun.glass.utils.NativeLibLoader in module javafx.graphics (jrt:/javafx.graphics)
+WARNING: Use --enable-native-access=javafx.graphics to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Nov 01, 2026 5:47:28 PM seedu.address.MainApp init
+INFO: =============================[ Initializing LarperBoard ]===========================
+Nov 01, 2026 5:47:28 PM seedu.address.MainApp initPrefs
+INFO: Using preference file : preferences.json
+Nov 01, 2026 5:47:28 PM seedu.address.commons.util.JsonUtil readJsonFile
+INFO: JSON file preferences.json found.
+Nov 01, 2026 5:47:28 PM seedu.address.MainApp initModelManager
+INFO: Using data file : data/addressbook.json
+Nov 01, 2026 5:47:28 PM seedu.address.MainApp start
+INFO: Starting LarperBoard v1.5
+Nov 01, 2026 5:47:28 PM seedu.address.ui.UiManager start
+INFO: Starting UI...
+DISPLAY outputScale=2.0x2.0 screen=Rectangle2D [minX=0.0, minY=0.0, maxX=1512.0, maxY=982.0, width=1512.0, height=982.0] dpi=127.0
+Nov 01, 2026 5:47:28 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list]
+Nov 01, 2026 5:47:28 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list => Listed all contacts.
+Nov 01, 2026 5:47:28 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:47:28 PM seedu.address.logic.commands.NoteCommand execute
+INFO: Note saved (12 characters) for the person at index 1
+Nov 01, 2026 5:47:28 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Saved the note for Beta Tester.
+PASS command note 1 nt/SearchNeedle => Saved the note for Beta Tester.
+Nov 01, 2026 5:47:28 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][find [hidden]]
+Nov 01, 2026 5:47:28 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: 1 contact(s) listed!
+PASS command find nt/SearchNeedle => 1 contact(s) listed!
+Nov 01, 2026 5:47:28 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][view 1]
+Nov 01, 2026 5:47:28 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Now viewing: Beta Tester; Phone: 91234567; Email: beta@example.com; Tags: [test]
+PASS command view 1 => Now viewing: Beta Tester; Phone: 91234567; Email: beta@example.com; Tags: [test]
+Nov 01, 2026 5:47:28 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:47:28 PM seedu.address.logic.commands.NoteCommand execute
+INFO: Note cleared for the person at index 1
+Nov 01, 2026 5:47:28 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Cleared the note for Beta Tester.
+PASS command note 1 clear => Cleared the note for Beta Tester.
+PASS #191 clear removes searched result
+DISPOSITION #191 clear viewed=Beta Tester
+Nov 01, 2026 5:47:29 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list]
+Nov 01, 2026 5:47:29 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list => Listed all contacts.
+Nov 01, 2026 5:47:29 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:47:29 PM seedu.address.logic.commands.NoteCommand execute
+INFO: Note saved (12 characters) for the person at index 1
+Nov 01, 2026 5:47:29 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Saved the note for Beta Tester.
+PASS command note 1 nt/SearchNeedle => Saved the note for Beta Tester.
+Nov 01, 2026 5:47:29 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][find [hidden]]
+Nov 01, 2026 5:47:29 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: 1 contact(s) listed!
+PASS command find nt/SearchNeedle => 1 contact(s) listed!
+Nov 01, 2026 5:47:29 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][view 1]
+Nov 01, 2026 5:47:29 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Now viewing: Beta Tester; Phone: 91234567; Email: beta@example.com; Tags: [test]
+PASS command view 1 => Now viewing: Beta Tester; Phone: 91234567; Email: beta@example.com; Tags: [test]
+Nov 01, 2026 5:47:29 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:47:29 PM seedu.address.logic.commands.NoteCommand execute
+INFO: Note saved (8 characters) for the person at index 1
+Nov 01, 2026 5:47:29 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Saved the note for Beta Tester.
+PASS command note 1 nt/Replaced => Saved the note for Beta Tester.
+PASS #191 replace removes searched result
+DISPOSITION #191 replace viewed=Beta Tester
+Nov 01, 2026 5:47:29 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list]
+Nov 01, 2026 5:47:29 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list => Listed all contacts.
+Nov 01, 2026 5:47:29 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][view 1]
+Nov 01, 2026 5:47:29 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Now viewing: Beta Tester; Phone: 91234567; Email: beta@example.com; Tags: [test]
+PASS command view 1 => Now viewing: Beta Tester; Phone: 91234567; Email: beta@example.com; Tags: [test]
+Nov 01, 2026 5:47:30 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:47:30 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: The note for Beta Tester is already that text. Nothing was changed.
+PASS command note 1 nt/Replaced => The note for Beta Tester is already that text. Nothing was changed.
+Nov 01, 2026 5:47:30 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][star 1]
+Nov 01, 2026 5:47:30 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Beta Tester is already starred. Nothing was changed.
+PASS command star 1 => Beta Tester is already starred. Nothing was changed.
+PASS repeat note and star preserve activity timestamps
+Nov 01, 2026 5:47:30 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][NOTE [hidden]]
+Nov 01, 2026 5:47:30 PM seedu.address.logic.commands.NoteCommand execute
+INFO: Note saved (26 characters) for the person at index 1
+Nov 01, 2026 5:47:30 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Saved the note for Beta Tester.
+PASS command NOTE 1 nt/SYNTHETIC_VALID_PRIVATE268 => Saved the note for Beta Tester.
+Nov 01, 2026 5:47:30 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][find [hidden]]
+Nov 01, 2026 5:47:30 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: 1 contact(s) listed!
+PASS command find nt/SYNTHETIC_VALID_PRIVATE268 => 1 contact(s) listed!
+Nov 01, 2026 5:47:30 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list]
+Nov 01, 2026 5:47:30 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list => Listed all contacts.
+Nov 01, 2026 5:47:30 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:47:30 PM seedu.address.logic.commands.NoteCommand execute
+INFO: Note saved (31 characters) for the person at index 1
+Nov 01, 2026 5:47:30 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Saved the note for Beta Tester.
+PASS command note 1 nt/Reconnect after demo 😀 /backend => Saved the note for Beta Tester.
+PASS valid uppercase note and note search redacted
+PASS editing recalled text preserves stored entry
+Nov 01, 2026 5:47:30 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][help]
+Nov 01, 2026 5:47:30 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Opened help window.
+PASS command help => Opened help window.
+PASS #242 hiding stage without close request hides Help
+Nov 01, 2026 5:47:30 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][help]
+Nov 01, 2026 5:47:30 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Opened help window.
+PASS command help => Opened help window.
+PASS close request alone closes main and Help
+TOTAL CHECKS 27
+Nov 01, 2026 5:47:30 PM seedu.address.MainApp stop
+INFO: ============================ [ Stopping LarperBoard ] =============================

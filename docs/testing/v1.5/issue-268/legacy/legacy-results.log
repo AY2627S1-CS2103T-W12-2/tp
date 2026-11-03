@@ -1,0 +1,578 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by com.sun.glass.utils.NativeLibLoader in module javafx.graphics (jrt:/javafx.graphics)
+WARNING: Use --enable-native-access=javafx.graphics to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Nov 01, 2026 5:43:59 PM seedu.address.MainApp init
+INFO: =============================[ Initializing LarperBoard ]===========================
+Nov 01, 2026 5:43:59 PM seedu.address.MainApp initPrefs
+INFO: Using preference file : preferences.json
+Nov 01, 2026 5:43:59 PM seedu.address.MainApp initPrefs
+INFO: Creating new preference file preferences.json
+Nov 01, 2026 5:43:59 PM seedu.address.MainApp initModelManager
+INFO: Using data file : data/addressbook.json
+Nov 01, 2026 5:43:59 PM seedu.address.MainApp start
+INFO: Starting LarperBoard v1.5
+Nov 01, 2026 5:43:59 PM seedu.address.ui.UiManager start
+INFO: Starting UI...
+DISPLAY outputScale=2.0x2.0 screen=Rectangle2D [minX=0.0, minY=0.0, maxX=1512.0, maxY=982.0, width=1512.0, height=982.0] dpi=127.0
+PASS legacy JSON loaded
+PASS missing note/star defaults
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.commands.NoteCommand execute
+INFO: Note saved (35 characters) for the person at index 1
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Saved the note for Legacy Tester.
+PASS command note 1 nt/  Met at booth / A; punctuation: !? 😀   => Saved the note for Legacy Tester.
+PASS note value [35]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.commands.NoteCommand execute
+INFO: Note saved (21 characters) for the person at index 1
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Saved the note for Legacy Tester.
+PASS command note 1 nt/Replacement / slash 😀 => Saved the note for Legacy Tester.
+PASS note value [21]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: The note for Legacy Tester is already that text. Nothing was changed.
+PASS command note 1 nt/Replacement / slash 😀 => The note for Legacy Tester is already that text. Nothing was changed.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][undo]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Undid the last contact change.
+PASS command undo => Undid the last contact change.
+PASS note value [35]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][redo]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Redid the last undone contact change.
+PASS command redo => Redid the last undone contact change.
+PASS note value [21]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.commands.NoteCommand execute
+INFO: Note cleared for the person at index 1
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Cleared the note for Legacy Tester.
+PASS command note 1 clear => Cleared the note for Legacy Tester.
+PASS note value [0]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Legacy Tester has no note to clear. Nothing was changed.
+PASS command note 1 clear => Legacy Tester has no note to clear. Nothing was changed.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][undo]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Undid the last contact change.
+PASS command undo => Undid the last contact change.
+PASS note value [21]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][redo]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Redid the last undone contact change.
+PASS command redo => Redid the last undone contact change.
+PASS note value [0]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: note [hidden]
+PASS command note 1 nt/    => Note cannot be blank. Use 'note INDEX clear' to remove it.
+PASS note value [0]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.commands.NoteCommand execute
+INFO: Note saved (1000 characters) for the person at index 1
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Saved the note for Legacy Tester.
+PASS command note 1 nt/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa… [1010 code points] => Saved the note for Legacy Tester.
+PASS note value [1000]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: note [hidden]
+PASS command note 1 nt/aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa… [1011 code points] => Note must be at most 1000 characters.
+PASS note value [1000]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.commands.NoteCommand execute
+INFO: Note saved (1000 characters) for the person at index 1
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Saved the note for Legacy Tester.
+PASS command note 1 nt/😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀?… [1010 code points] => Saved the note for Legacy Tester.
+PASS note value [1000]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: note [hidden]
+PASS command note 1 nt/😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀😀?… [1011 code points] => Note must be at most 1000 characters.
+PASS note value [1000]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][view 1]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Now viewing: Legacy Tester; Phone: 93456789; Email: legacy@example.com; LinkedIn: legacy-tester; Tags: [legacy]
+PASS command view 1 => Now viewing: Legacy Tester; Phone: 93456789; Email: legacy@example.com; LinkedIn: legacy-tester; Tags: [legacy]
+PASS long note exceeds viewport
+PASS long note scroll reaches bottom
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: note [hidden]
+PASS command note 999 nt/SYNTHETIC_PRIVATE_BETA268 => The person index provided is invalid.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][NOTE [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: NOTE [hidden]
+PASS command NOTE nope nt/SYNTHETIC_PRIVATE_BETA268 => The person index provided is invalid.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: note [hidden]
+PASS command note 1 SYNTHETIC_PRIVATE_BETA268 => Invalid command format! Put the note after nt/: note INDEX nt/NOTE.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: note [hidden]
+PASS command note 1 NT/SYNTHETIC_PRIVATE_BETA268 => Invalid command format! Put the note after nt/: note INDEX nt/NOTE.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: note [hidden]
+PASS command note 1 nt/SYNTHETIC_PRIVATE_BETA268SYNTHETIC_PRIVATE_BETA268SYNTH… [1510 code points] => Note must be at most 1000 characters.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][find [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: find [hidden]
+PASS command find NT/SYNTHETIC_PRIVATE_BETA268 => Invalid command format! Use find KEYWORD [MORE_KEYWORDS] or find [n/TERM] [t/TERM] [nt/TERM] [ev/TERM]. Supply at least one non-empty term; typed fields may repeat.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][find [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: find [hidden]
+PASS command find nt /SYNTHETIC_PRIVATE_BETA268 => Invalid command format! Remove the space before '/': use n/Alice or t/react.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][star 1]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.commands.StarCommand execute
+INFO: Starred the person at index 1
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Starred Legacy Tester.
+PASS command star 1 => Starred Legacy Tester.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][star 1]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Legacy Tester is already starred. Nothing was changed.
+PASS command star 1 => Legacy Tester is already starred. Nothing was changed.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][undo]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Undid the last contact change.
+PASS command undo => Undid the last contact change.
+PASS duplicate star creates no undo entry
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][redo]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Redid the last undone contact change.
+PASS command redo => Redid the last undone contact change.
+PASS redo star
+PASS detail star visible
+PASS card star visible
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][filter starred]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.commands.FilterCommand execute
+INFO: Starred filter on: 1 contact(s) shown
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Showing only starred contacts.
+1 contact(s) listed!
+PASS command filter starred => Showing only starred contacts. 1 contact(s) listed!
+PASS starred filter count
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][unstar 1]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.commands.StarCommand execute
+INFO: Unstarred the person at index 1
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Removed the star from Legacy Tester.
+PASS command unstar 1 => Removed the star from Legacy Tester.
+PASS unstar removes contact from filter
+PASS unstar clears removed selection
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][unstar 1]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: unstar 1
+PASS command unstar 1 => The person list is empty.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][undo]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Undid the last contact change.
+PASS command undo => Undid the last contact change.
+PASS undo unstar restores filtered contact
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][redo]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Redid the last undone contact change.
+PASS command redo => Redid the last undone contact change.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][filter starred off]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.commands.FilterCommand execute
+INFO: Starred filter off: 1 contact(s) shown
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Showing all contacts.
+1 contact(s) listed!
+PASS command filter starred off => Showing all contacts. 1 contact(s) listed!
+PASS filter off restores contacts
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][unstar 1]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Legacy Tester is not starred. Nothing was changed.
+PASS command unstar 1 => Legacy Tester is not starred. Nothing was changed.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][unstar 1]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Legacy Tester is not starred. Nothing was changed.
+PASS command unstar 1 => Legacy Tester is not starred. Nothing was changed.
+PASS unstarred card indicator hidden
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][view 1]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Now viewing: Legacy Tester; Phone: 93456789; Email: legacy@example.com; LinkedIn: legacy-tester; Tags: [legacy]
+PASS command view 1 => Now viewing: Legacy Tester; Phone: 93456789; Email: legacy@example.com; LinkedIn: legacy-tester; Tags: [legacy]
+PASS unstarred detail indicator hidden
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][find Beta]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: 0 contact(s) listed!
+PASS command find Beta => 0 contact(s) listed!
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list => Listed all contacts.
+PASS recall latest list
+PASS list preserves prior recall
+PASS Down restores unfinished draft
+PASS newest limit preserves draft
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][invalidBetaCommand]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: invalidBetaCommand
+PASS command invalidBetaCommand => Unknown command. Available commands: add, clear, delete, due, edit, exit, filter, find, followup, group, help, list, meeting, note, photo, redo, sort, star, tag, undo, unstar, view.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][invalidBetaCommand]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: invalidBetaCommand
+PASS command invalidBetaCommand => Unknown command. Available commands: add, clear, delete, due, edit, exit, filter, find, followup, group, help, list, meeting, note, photo, redo, sort, star, tag, undo, unstar, view.
+PASS failed commands recalled
+PASS consecutive commands deduplicated
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 0]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 0 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 1]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 1 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 2]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 2 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 3]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 3 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 4]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 4 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 5]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 5 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 6]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 6 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 7]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 7 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 8]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 8 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 9]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 9 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 10]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 10 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 11]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 11 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 12]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 12 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 13]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 13 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 14]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 14 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 15]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 15 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 16]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 16 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 17]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 17 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 18]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 18 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 19]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 19 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 20]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 20 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 21]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 21 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 22]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 22 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 23]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 23 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 24]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 24 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 25]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 25 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 26]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 26 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 27]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 27 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 28]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 28 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 29]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 29 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 30]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 30 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 31]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 31 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 32]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 32 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 33]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 33 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 34]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 34 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 35]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 35 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 36]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 36 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 37]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 37 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 38]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 38 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 39]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 39 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 40]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 40 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 41]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 41 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 42]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 42 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 43]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 43 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 44]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 44 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 45]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 45 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 46]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 46 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 47]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 47 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 48]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 48 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 49]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 49 => Listed all contacts.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][list 50]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Listed all contacts.
+PASS command list 50 => Listed all contacts.
+PASS 50-entry eviction and oldest boundary
+PASS history newest boundary after eviction
+PASS Up outside command box leaves recall alone
+PASS Down outside command box leaves recall alone
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][note [hidden]]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.commands.NoteCommand execute
+INFO: Note saved (31 characters) for the person at index 1
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Saved the note for Legacy Tester.
+PASS command note 1 nt/Reconnect after demo 😀 /backend => Saved the note for Legacy Tester.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][star 1]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.commands.StarCommand execute
+INFO: Starred the person at index 1
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Starred Legacy Tester.
+PASS command star 1 => Starred Legacy Tester.
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][view 1]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Now viewing: Legacy Tester; Phone: 93456789; Email: legacy@example.com; LinkedIn: legacy-tester; Tags: [legacy]
+PASS command view 1 => Now viewing: Legacy Tester; Phone: 93456789; Email: legacy@example.com; LinkedIn: legacy-tester; Tags: [legacy]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][filter starred]
+Nov 01, 2026 5:44:00 PM seedu.address.logic.commands.FilterCommand execute
+INFO: Starred filter on: 1 contact(s) shown
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Showing only starred contacts.
+1 contact(s) listed!
+PASS command filter starred => Showing only starred contacts. 1 contact(s) listed!
+PASS saved JSON equals model
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][help]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Opened help window.
+PASS command help => Opened help window.
+PASS help command opens window
+PASS Copy URL exact guide link
+PASS F1 opens Help in command box
+PASS Help menu opens window
+Nov 01, 2026 5:44:00 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][exit]
+Nov 01, 2026 5:44:00 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Exiting LarperBoard ...
+PASS command exit => Exiting LarperBoard ...
+PASS exit result visible before close
+PASS exit closes main and Help
+PASS private synthetic note absent from logs
+TOTAL CHECKS 142
+Nov 01, 2026 5:44:02 PM seedu.address.MainApp stop
+INFO: ============================ [ Stopping LarperBoard ] =============================

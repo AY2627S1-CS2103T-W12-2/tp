@@ -1,0 +1,13 @@
+{
+  "persons": [
+    {
+      "name": "Legacy Tester",
+      "phone": "93456789",
+      "email": "legacy@example.com",
+      "linkedIn": "legacy-tester",
+      "tags": [
+        "legacy"
+      ]
+    }
+  ]
+}

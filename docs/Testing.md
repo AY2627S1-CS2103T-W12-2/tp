@@ -34,3 +34,7 @@ This project has three types of tests:
    For example: `seedu.address.storage.StorageManagerTest`
 1. *Hybrid tests* combine unit and integration testing. These tests check both the individual units and how they work together.<br>
    For example: `seedu.address.logic.LogicManagerTest`
+
+## Release beta-test reports
+
+* [v1.5: notes, stars, command recall, help and exit (#268)](testing/v1.5/issue-268/README.md) — recorded results, environment, limitations and supporting evidence from 1 November 2026.

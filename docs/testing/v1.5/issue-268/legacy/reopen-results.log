@@ -1,0 +1,37 @@
+WARNING: A restricted method in java.lang.System has been called
+WARNING: java.lang.System::load has been called by com.sun.glass.utils.NativeLibLoader in module javafx.graphics (jrt:/javafx.graphics)
+WARNING: Use --enable-native-access=javafx.graphics to avoid a warning for callers in this module
+WARNING: Restricted methods will be blocked in a future release unless native access is enabled
+
+Nov 01, 2026 5:44:30 PM seedu.address.MainApp init
+INFO: =============================[ Initializing LarperBoard ]===========================
+Nov 01, 2026 5:44:30 PM seedu.address.MainApp initPrefs
+INFO: Using preference file : preferences.json
+Nov 01, 2026 5:44:30 PM seedu.address.commons.util.JsonUtil readJsonFile
+INFO: JSON file preferences.json found.
+Nov 01, 2026 5:44:30 PM seedu.address.MainApp initModelManager
+INFO: Using data file : data/addressbook.json
+Nov 01, 2026 5:44:30 PM seedu.address.MainApp start
+INFO: Starting LarperBoard v1.5
+Nov 01, 2026 5:44:30 PM seedu.address.ui.UiManager start
+INFO: Starting UI...
+DISPLAY outputScale=2.0x2.0 screen=Rectangle2D [minX=0.0, minY=0.0, maxX=1512.0, maxY=982.0, width=1512.0, height=982.0] dpi=127.0
+PASS note value [31]
+PASS star survives separate-process reopen
+PASS saved JSON equals model
+PASS recall resets on reopen
+Nov 01, 2026 5:44:30 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][undo]
+Nov 01, 2026 5:44:30 PM seedu.address.ui.MainWindow executeCommand
+INFO: An error occurred while executing command: undo
+PASS command undo => Nothing to undo.
+Nov 01, 2026 5:44:30 PM seedu.address.logic.LogicManager execute
+INFO: ----------------[USER COMMAND][help]
+Nov 01, 2026 5:44:30 PM seedu.address.ui.MainWindow executeCommand
+INFO: Result: Opened help window.
+PASS command help => Opened help window.
+PASS Help before window close
+PASS main window close hides Help
+TOTAL CHECKS 8
+Nov 01, 2026 5:44:30 PM seedu.address.MainApp stop
+INFO: ============================ [ Stopping LarperBoard ] =============================
